@@ -12,6 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-anatomy_sdl-0990",
+    title: "Anatomy Sdl",
+    subject: "anatomy",
+    category: "sdls",
+    code: "CBME Core",
+    description: "Uploaded document: Anatomy SDL.pdf. Reference study material for Anatomy.",
+    tags: ["Anatomy", "Sdls", "Self-Directed Learning", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/anatomy_sdl.pdf",
+    fileSize: "8.8 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-histology-0419",
     title: "Histology",
     subject: "anatomy",
@@ -369,6 +384,42 @@ const SUBJECT_INFO = {
     description: "Molecular mechanisms of life, metabolic pathways, enzyme kinetics, genetics, and clinical diagnostics.",
     modules: ["Biomolecules", "Metabolism", "Enzymology", "Molecular Biology", "Clinical Chemistry"],
     statTotal: "BI1.1 - BI11.24"
+  },
+  community_medicine: {
+    name: "Community Medicine",
+    fullName: "Community Medicine & Preventive Healthcare",
+    icon: "community",
+    accent: "#0d9488",
+    description: "Epidemiological principles, family health study, public health programs, and biostatistics.",
+    modules: ["Epidemiology", "Family Health Survey", "Environmental Health", "Nutrition", "Demography"],
+    statTotal: "CM1.1 - CM20.4"
+  },
+  aetcom: {
+    name: "AETCOM",
+    fullName: "Attitude, Ethics and Communication Module",
+    icon: "aetcom",
+    accent: "#7c3aed",
+    description: "Foundational professional values, doctor-patient communication, medical empathy, and bioethics.",
+    modules: ["Doctor-Patient Relationship", "Cadaver Respect", "Empathy", "Working in Health Teams"],
+    statTotal: "Modules 1.1 - 1.5"
+  },
+  ece: {
+    name: "ECE",
+    fullName: "Early Clinical Exposure",
+    icon: "ece",
+    accent: "#ea580c",
+    description: "Pre-clinical hospital and community correlation linking basic science to clinical presentation.",
+    modules: ["Hospital OPD Visits", "Clinical Case Correlation", "Diagnostic Skills"],
+    statTotal: "ECE Core"
+  },
+  foundation: {
+    name: "Foundation Course",
+    fullName: "1st Year MBBS Foundation Course",
+    icon: "foundation",
+    accent: "#475569",
+    description: "Medical college orientation, basic life support (BLS), language skills, and medical humanities.",
+    modules: ["Orientation", "Skills Module (BLS)", "Field Visits", "Professional Growth"],
+    statTotal: "FC 1 - FC 6"
   }
 };
 

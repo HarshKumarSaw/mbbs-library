@@ -1,10 +1,15 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==============================================================================
 # MBBS Resource Library - Automatic Mobile Phone Upload & Sync Script
-# 1. Automatically organizes unorganized files on phone into subject folders:
-#    - Anatomy/
-#    - Physiology/
-#    - Biochemistry/
+# 1. Automatically organizes unorganized files on phone into 1st Year MBBS
+#    curriculum subject & subdiscipline folders:
+#    - Anatomy/ (Histology/, Gross Anatomy/, Embryology/, Neuroanatomy/, Genetics/)
+#    - Physiology/ (Cardiovascular/, Respiratory/, Hematology/, Renal/, etc.)
+#    - Biochemistry/ (Enzymes/, Metabolism/, Clinical Biochemistry/, etc.)
+#    - Community Medicine/
+#    - ECE (Early Clinical Exposure)/
+#    - AETCOM/
+#    - Foundation Course/
 #    - Other/
 # 2. Automatically catalogs and uploads all files to GitHub Pages website.
 # ==============================================================================
@@ -51,11 +56,33 @@ if [ ! -d "$PHONE_DIR" ]; then
     exit 0
 fi
 
-# Ensure standard subject folders exist on phone
-mkdir -p "$PHONE_DIR/Anatomy" "$PHONE_DIR/Physiology" "$PHONE_DIR/Biochemistry" "$PHONE_DIR/Other"
+# Ensure 1st Year MBBS Subjects & Subdiscipline folders exist on phone
+mkdir -p "$PHONE_DIR/Anatomy/Histology" \
+         "$PHONE_DIR/Anatomy/Gross Anatomy" \
+         "$PHONE_DIR/Anatomy/Embryology" \
+         "$PHONE_DIR/Anatomy/Neuroanatomy" \
+         "$PHONE_DIR/Anatomy/Genetics" \
+         "$PHONE_DIR/Physiology/General & Nerve-Muscle" \
+         "$PHONE_DIR/Physiology/Hematology" \
+         "$PHONE_DIR/Physiology/Cardiovascular" \
+         "$PHONE_DIR/Physiology/Respiratory" \
+         "$PHONE_DIR/Physiology/Renal" \
+         "$PHONE_DIR/Physiology/Gastrointestinal" \
+         "$PHONE_DIR/Physiology/Endocrine & Reproduction" \
+         "$PHONE_DIR/Physiology/Neurophysiology" \
+         "$PHONE_DIR/Biochemistry/Biomolecules & Enzymes" \
+         "$PHONE_DIR/Biochemistry/Metabolism" \
+         "$PHONE_DIR/Biochemistry/Clinical Biochemistry" \
+         "$PHONE_DIR/Biochemistry/Molecular Biology" \
+         "$PHONE_DIR/Biochemistry/Nutrition & Vitamins" \
+         "$PHONE_DIR/Community Medicine" \
+         "$PHONE_DIR/ECE (Early Clinical Exposure)" \
+         "$PHONE_DIR/AETCOM" \
+         "$PHONE_DIR/Foundation Course" \
+         "$PHONE_DIR/Other"
 
 # ==============================================================================
-# PHASE 1: Auto-Organize Phone Files Subject-Wise
+# PHASE 1: Auto-Organize Phone Files Subject & Subdiscipline-Wise
 # ==============================================================================
 ORGANIZED_COUNT=0
 ORGANIZED_SUMMARY=()
@@ -70,18 +97,65 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
         base_name=$(basename "$file")
         lower_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]')
 
-        # Detect subject for folder organization
-        if [[ "$lower_name" =~ physiology|physio|cardio|heart|ecg|respirat|lung|renal|kidney|hemato|blood|nerve|reflex|endocrine ]]; then
+        # 1. Anatomy subdisciplines (Histology is subfolder of Anatomy)
+        if [[ "$lower_name" =~ histo ]]; then
+            subj_dir="Anatomy/Histology"
+        elif [[ "$lower_name" =~ embryo ]]; then
+            subj_dir="Anatomy/Embryology"
+        elif [[ "$lower_name" =~ neuroanat ]]; then
+            subj_dir="Anatomy/Neuroanatomy"
+        elif [[ "$lower_name" =~ genetic ]]; then
+            subj_dir="Anatomy/Genetics"
+        elif [[ "$lower_name" =~ gross ]]; then
+            subj_dir="Anatomy/Gross Anatomy"
+        # 2. CBME Professional Modules
+        elif [[ "$lower_name" =~ aetcom|ethics|communication ]]; then
+            subj_dir="AETCOM"
+        elif [[ "$lower_name" =~ ece|clinical_exposure|early_clinical ]]; then
+            subj_dir="ECE (Early Clinical Exposure)"
+        elif [[ "$lower_name" =~ community|psm|epidemiol|field_visit|family_adopt ]]; then
+            subj_dir="Community Medicine"
+        elif [[ "$lower_name" =~ foundation|orientation|bls|first_aid ]]; then
+            subj_dir="Foundation Course"
+        # 3. Physiology Subdisciplines
+        elif [[ "$lower_name" =~ hemato|blood ]]; then
+            subj_dir="Physiology/Hematology"
+        elif [[ "$lower_name" =~ cardio|heart|ecg ]]; then
+            subj_dir="Physiology/Cardiovascular"
+        elif [[ "$lower_name" =~ respirat|lung ]]; then
+            subj_dir="Physiology/Respiratory"
+        elif [[ "$lower_name" =~ renal|kidney ]]; then
+            subj_dir="Physiology/Renal"
+        elif [[ "$lower_name" =~ git|gastro|intest ]]; then
+            subj_dir="Physiology/Gastrointestinal"
+        elif [[ "$lower_name" =~ endocrin|hormon|reproduct ]]; then
+            subj_dir="Physiology/Endocrine & Reproduction"
+        elif [[ "$lower_name" =~ neurophysio|reflex|cns ]]; then
+            subj_dir="Physiology/Neurophysiology"
+        elif [[ "$lower_name" =~ physiology|physio ]]; then
             subj_dir="Physiology"
-        elif [[ "$lower_name" =~ biochem|metabol|enzym|lipid|carbo|protein|amino|vitamin|mineral|inborn|genetic|dna|rna|urine|lft ]]; then
+        # 4. Biochemistry Subdisciplines
+        elif [[ "$lower_name" =~ enzym|protein|carbo|lipid ]]; then
+            subj_dir="Biochemistry/Biomolecules & Enzymes"
+        elif [[ "$lower_name" =~ metabol|glycolys|tca|krebs ]]; then
+            subj_dir="Biochemistry/Metabolism"
+        elif [[ "$lower_name" =~ lft|rft|kft|urine|diagnostic|clinical_chem ]]; then
+            subj_dir="Biochemistry/Clinical Biochemistry"
+        elif [[ "$lower_name" =~ dna|rna|molecular_bio|pcr ]]; then
+            subj_dir="Biochemistry/Molecular Biology"
+        elif [[ "$lower_name" =~ vitamin|nutrition|mineral ]]; then
+            subj_dir="Biochemistry/Nutrition & Vitamins"
+        elif [[ "$lower_name" =~ biochem|chem ]]; then
             subj_dir="Biochemistry"
-        elif [[ "$lower_name" =~ anat|gross|histo|embryo|bone|neuroanat|cranial|plexus|muscle|organ|cadaver|dissect|thorax|abdomen|pelvis|limb|head|neck|brain ]]; then
+        # 5. General Anatomy Keywords
+        elif [[ "$lower_name" =~ anat|bone|cranial|plexus|muscle|organ|cadaver|dissect|thorax|abdomen|pelvis|limb|head|neck|brain ]]; then
             subj_dir="Anatomy"
         else
             subj_dir="Other"
         fi
 
         target_phone_dest="$PHONE_DIR/$subj_dir/$base_name"
+        mkdir -p "$(dirname "$target_phone_dest")"
         if [ "$file" != "$target_phone_dest" ]; then
             if [ -f "$target_phone_dest" ]; then
                 if cmp -s "$file" "$target_phone_dest"; then
@@ -106,14 +180,24 @@ if [ "$ORGANIZED_COUNT" -gt 0 ]; then
 fi
 
 # ==============================================================================
-# Helper Detection Functions
+# Helper Detection Functions for Website Sync
 # ==============================================================================
 detect_subject() {
     local path_lower="$1"
-    if [[ "$path_lower" =~ /physiology/|physiology|physio|cardio|heart|ecg|respirat|lung|renal|kidney|hemato|blood|nerve|reflex|endocrine ]]; then
+    if [[ "$path_lower" =~ /anatomy/|anatomy|anat ]]; then
+        echo "anatomy"
+    elif [[ "$path_lower" =~ /physiology/|physiology|physio ]]; then
         echo "physiology"
-    elif [[ "$path_lower" =~ /biochemistry/|biochem|metabol|enzym|lipid|carbo|protein|amino|vitamin|mineral|inborn|genetic|dna|rna|urine|lft ]]; then
+    elif [[ "$path_lower" =~ /biochemistry/|biochemistry|biochem ]]; then
         echo "biochemistry"
+    elif [[ "$path_lower" =~ /community|community_medicine ]]; then
+        echo "community_medicine"
+    elif [[ "$path_lower" =~ /aetcom|aetcom ]]; then
+        echo "aetcom"
+    elif [[ "$path_lower" =~ /ece|clinical_exposure ]]; then
+        echo "ece"
+    elif [[ "$path_lower" =~ /foundation ]]; then
+        echo "foundation"
     else
         echo "anatomy"
     fi
@@ -121,13 +205,13 @@ detect_subject() {
 
 detect_category() {
     local path_lower="$1"
-    if [[ "$path_lower" =~ note|lecture|slide|theory|summary|class|concept|review|handout ]]; then
+    if [[ "$path_lower" =~ sdl ]]; then
+        echo "sdls"
+    elif [[ "$path_lower" =~ note|lecture|slide|theory|summary|class|concept|review|handout ]]; then
         echo "notes"
     elif [[ "$path_lower" =~ assign|case|problem|homework|worksheet|task|vignette ]]; then
         echo "assignments"
-    elif [[ "$path_lower" =~ sdl|self|competency|directed ]]; then
-        echo "sdls"
-    elif [[ "$path_lower" =~ pract|lab|manual|spotter|dissect|diagram|sketch|specimen|histology_slide|chart ]]; then
+    elif [[ "$path_lower" =~ pract|lab|manual|spotter|dissect|diagram|sketch|specimen|histology|slide|chart ]]; then
         echo "practicals"
     else
         echo "other"
@@ -220,15 +304,29 @@ for file in "${ALL_FILES[@]}"; do
         subj_display=$(awk "BEGIN {print toupper(substr(\"$subject\",1,1)) tolower(substr(\"$subject\",2))}")
         cat_display=$(awk "BEGIN {print toupper(substr(\"$category\",1,1)) tolower(substr(\"$category\",2))}")
 
+        # Add tag for subdiscipline if present
+        extra_tag="1st Year MBBS"
+        if [[ "$lower_path" =~ histo ]]; then
+            extra_tag="Histology"
+        elif [[ "$lower_path" =~ embryo ]]; then
+            extra_tag="Embryology"
+        elif [[ "$lower_path" =~ cardio ]]; then
+            extra_tag="Cardiovascular"
+        elif [[ "$lower_path" =~ enzym ]]; then
+            extra_tag="Enzymes"
+        elif [[ "$lower_path" =~ sdl ]]; then
+            extra_tag="Self-Directed Learning"
+        fi
+
         cat << EOF >> "$TMP_ENTRIES"
   {
     id: "$unique_id",
     title: "$title",
     subject: "$subject",
     category: "$category",
-    code: "CBME Mobile",
-    description: "Uploaded document: $base_name. Reference study material.",
-    tags: ["$subj_display", "$cat_display", "Mobile Upload"],
+    code: "CBME Core",
+    description: "Uploaded document: $base_name. Reference study material for $subj_display.",
+    tags: ["$subj_display", "$cat_display", "$extra_tag", "Mobile Upload"],
     fileUrl: "$target_rel_url",
     fileSize: "$file_size",
     pages: "Document",
@@ -296,8 +394,8 @@ git commit -m "$COMMIT_MSG" >/dev/null
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 cat << EOF >> "$LOG_FILE"
 
-### Auto-Sync & Organization: $TIMESTAMP
-- **Phone Organization**: Organized $ORGANIZED_COUNT unorganized files into subject folders
+### Auto-Sync & Curriculum Organization: $TIMESTAMP
+- **Phone Organization**: Organized $ORGANIZED_COUNT file(s) into 1st Year MBBS subject & subdiscipline folders
 - **New Files Uploaded to Site**: $NEW_FILES_PROCESSED
 EOF
 for item in "${PROCESSED_NAMES[@]}"; do
