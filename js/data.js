@@ -12,6 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-bioc-biochemistry_practical-2198",
+    title: "Biochemistry Practical",
+    subject: "biochemistry",
+    category: "other",
+    code: "Biochemistry / Other",
+    description: "Uploaded document: Biochemistry Practical.pdf. Organized under Biochemistry (Other).",
+    tags: ["Biochemistry", "Other", "Mobile Upload"],
+    fileUrl: "assets/docs/biochemistry/biochemistry_practical.pdf",
+    fileSize: "13.9 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_project-1680",
     title: "Physiology Project",
     subject: "physiology",
