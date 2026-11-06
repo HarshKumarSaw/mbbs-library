@@ -290,3 +290,30 @@
 - **Files Uploaded / Updated from Phone**: 0
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 27
+
+### Two-Way Auto-Sync & Deletion: 2026-11-06 20:19:57 UTC
+- **Phone Deduplication**: Resolved 0 duplicate(s)
+- **Phone Organization**: Organized 0 root file(s)
+- **Phone Deletions Synced to Website**: 19 file(s)
+  - Anatomy/Anatomy Viva Question Bank.pdf (deleted from phone)
+  - Anatomy/Brachial Plexus Notes.pdf (deleted from phone)
+  - Anatomy/Cranial Nerves Summary.pdf (deleted from phone)
+  - Anatomy/Gross Dissection Manual.pdf (deleted from phone)
+  - Anatomy/Histology Workbook Assignment.pdf (deleted from phone)
+  - Anatomy/Inguinal Canal Sdl.pdf (deleted from phone)
+  - Biochemistry/Carbohydrate Metabolism Notes.pdf (deleted from phone)
+  - Biochemistry/Clinical Biochem Manual.pdf (deleted from phone)
+  - Biochemistry/Clinical Chemistry Cheat Sheet.pdf (deleted from phone)
+  - Biochemistry/Enzyme Kinetics Notes.pdf (deleted from phone)
+  - Biochemistry/Inborn Errors Assignment.pdf (deleted from phone)
+  - Biochemistry/Vitamin Deficiencies Sdl.pdf (deleted from phone)
+  - Physiology/Action Potential Notes.pdf (deleted from phone)
+  - Physiology/Cardiac Cycle Ecg Notes.pdf (deleted from phone)
+  - Physiology/Hematology Practical Manual.pdf (deleted from phone)
+  - Physiology/Hypoxia Altitude Sdl.pdf (deleted from phone)
+  - Physiology/Normal Lab Values Reference.pdf (deleted from phone)
+  - Physiology/Project/ECG Cardiac Project.pdf (deleted from phone)
+  - Physiology/Respiratory Cases Assignment.pdf (deleted from phone)
+- **Files Uploaded / Updated from Phone**: 0
+- **Offline Files Seeded to Phone**: 0
+- **Total In-Sync Files**: 8
