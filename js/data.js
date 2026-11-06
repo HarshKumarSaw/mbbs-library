@@ -8,6 +8,42 @@
 
 const MBBS_RESOURCES = [
   // ==========================================
+  // MOBILE AUTO-SYNCED RESOURCES
+  // ==========================================
+  // __AUTO_RESOURCES_START__
+  {
+    id: "user-anat-anatomy_diagrams-0203",
+    title: "Anatomy Diagrams",
+    subject: "anatomy",
+    category: "practicals",
+    code: "CBME Mobile",
+    description: "Uploaded document: Anatomy Diagrams.pdf. Reference study material.",
+    tags: ["Anatomy", "Practicals", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/anatomy_diagrams.pdf",
+    fileSize: "2.5 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
+    id: "user-phys-physiology_assignment-0203",
+    title: "Physiology Assignment",
+    subject: "physiology",
+    category: "assignments",
+    code: "CBME Mobile",
+    description: "Uploaded document: Physiology Assignment.pdf. Reference study material.",
+    tags: ["Physiology", "Assignments", "Mobile Upload"],
+    fileUrl: "assets/docs/physiology/physiology_assignment.pdf",
+    fileSize: "17.9 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  // __AUTO_RESOURCES_END__
+
+  // ==========================================
   // ANATOMY
   // ==========================================
   {
