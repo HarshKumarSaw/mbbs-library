@@ -2,82 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Physiology Section | MBBS Resource Library</title>
-  <meta name="description" content="Human Physiology resources for MBBS students: Cardiovascular, Respiratory, Hematology, Renal and Neurophysiology notes, lab practicals, SDL modules and viva reference values.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Physiology Vault | MBBS Masterclass</title>
+  <meta name="description" content="Human Physiology resources for MBBS students: Cardiac cycle, Nerve & Muscle physiology, Hematology practicals, Respiratory, and Renal mechanisms.">
+  <meta name="theme-color" content="#FAF8F5">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237950F2'><path d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/></svg>">
 </head>
 <body>
 
-  <!-- Top Academic Notice -->
-  <aside class="top-bar">
+  <!-- Top Announcement Ribbon -->
+  <aside class="top-bar" aria-label="Department Notice">
     <div class="container top-bar-content">
       <div class="top-bar-badge">
         <span class="pulse-dot"></span>
         <span>Department of Physiology • Pre-Clinical Division</span>
       </div>
       <div>
-        <span>CBME Competency Modules PY1.1 - PY11.14</span>
+        <span>CBME Competency PY1.1 - PY11.14 • Mechanisms, Labs & Clinical Correlation</span>
       </div>
     </div>
   </aside>
 
-  <!-- Navigation Bar -->
+  <!-- Sticky Glassmorphic Navbar -->
   <header class="navbar" role="banner">
     <div class="container nav-container">
-      <a href="index.html" class="brand">
-        <div class="brand-emblem" style="background: linear-gradient(135deg, #0284c7, #075985);" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
-            <path d="M3.22 12H9.5l1.5-3 2 6 1.5-3h4.28"></path>
-          </svg>
+      <a href="index.html" class="brand" aria-label="MBBS Masterclass Vault Home">
+        <div class="brand-emblem" aria-hidden="true" style="background: linear-gradient(135deg, #7950F2, #5C7CFA);">
+          <span style="font-size: 1.35rem;">🫀</span>
         </div>
         <div class="brand-text">
-          <h1>Physiology Department</h1>
-          <span>MBBS Resource Library</span>
+          <h1>Physiology.Vault</h1>
+          <span>Mechanisms & Labs</span>
         </div>
       </a>
 
-      <button type="button" class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
+      <button type="button" class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="7" x2="20" y2="7"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="17" x2="20" y2="17"></line>
         </svg>
       </button>
 
       <nav role="navigation">
         <ul class="nav-links" id="nav-links">
           <li><a href="index.html" class="nav-link">← All Subjects</a></li>
-          <li><a href="anatomy.html" class="nav-link">Anatomy</a></li>
-          <li><a href="physiology.html" class="nav-link active">Physiology</a></li>
-          <li><a href="biochemistry.html" class="nav-link">Biochemistry</a></li>
-          <li><a href="#catalog-section" class="nav-link nav-cta">Search Physiology</a></li>
+          <li><a href="anatomy.html" class="nav-link">🦴 Anatomy</a></li>
+          <li><a href="physiology.html" class="nav-link active">🫀 Physiology</a></li>
+          <li><a href="biochemistry.html" class="nav-link">🧪 Biochemistry</a></li>
+          <li><a href="#catalog-section" class="nav-link nav-cta">Search Physiology ⚡</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <!-- Hero Section -->
   <main>
-    <section class="hero" style="background: linear-gradient(135deg, #0a192f 0%, #075985 60%, #0284c7 100%);">
+    <!-- Department Hero Section -->
+    <section class="hero" aria-labelledby="hero-title">
       <div class="container hero-content">
-        <div class="hero-tag">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
-          </svg>
-          <span>Department Portal</span>
+        <div class="hero-tag" style="background: rgba(121, 80, 242, 0.12); color: #5F3DC4; border-color: rgba(121, 80, 242, 0.3);">
+          <span>🫀 Human Physiology Division</span>
+          <span>PY1.1 - PY11.14</span>
         </div>
 
-        <h2>Human Physiology Resources</h2>
-        <p>Cardiac cycle mechanisms, nerve action potential dynamics, hematology practical procedures, spirometry interpretation cases, and clinical normal values.</p>
+        <h2 id="hero-title">
+          Human Physiology <br>
+          <span class="gradient-text artistic-highlight" style="background: linear-gradient(135deg, #7950F2, #4C6EF5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Mechanisms & Lab Vault.</span>
+        </h2>
+
+        <p>
+          Master cardiac cycles, nerve action potential dynamics, hematology procedures, spirometry curves, and clinical viva reference values with crystal clarity.
+        </p>
 
         <!-- Search Bar -->
         <div class="search-wrapper">
-          <form class="search-box" id="search-form" onsubmit="return false;">
+          <form class="search-box" id="search-form" role="search" onsubmit="return false;">
             <span class="search-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
@@ -86,67 +91,81 @@
               type="search" 
               id="search-input" 
               class="search-input" 
-              placeholder="Search Physiology topics (e.g. Action Potential, ECG, Hematology, Hypoxia)..." 
+              placeholder="Search Physiology (e.g. Cardiac Cycle, Action Potential, ECG, Hypoxia)..." 
               aria-label="Search Physiology resources"
+              autocomplete="off"
             >
             <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">✕</button>
             <button type="button" class="search-btn" onclick="document.getElementById('catalog-section').scrollIntoView({behavior: 'smooth'})">
-              <span>Search</span>
+              <span>Find PDF</span>
             </button>
           </form>
         </div>
 
-        <!-- Quick Sub-Modules -->
-        <div class="stats-bar">
+        <!-- Quick Search Pill Chips -->
+        <div class="quick-chips" aria-label="Popular physiology search topics">
+          <button type="button" class="quick-chip" data-search="Cardiac Cycle">🫀 Cardiac Cycle</button>
+          <button type="button" class="quick-chip" data-search="Action Potential">⚡ Action Potential</button>
+          <button type="button" class="quick-chip" data-search="ECG">📈 ECG Waves</button>
+          <button type="button" class="quick-chip" data-search="Hematology">🩸 Hematology Labs</button>
+          <button type="button" class="quick-chip" data-search="Spirometry">🫁 Spirometry</button>
+          <button type="button" class="quick-chip" data-search="SDL">💡 SDLs</button>
+        </div>
+
+        <!-- Floating Stats Capsules -->
+        <div class="stats-bar" aria-label="Physiology library statistics">
+          <div class="stat-item">
+            <span class="stat-number" id="stat-physiology">--</span>
+            <span class="stat-label">Physiology Docs</span>
+          </div>
           <div class="stat-item">
             <span class="stat-number">Cardiovascular</span>
-            <span class="stat-label">Wiggers & Hemodynamics</span>
+            <span class="stat-label">Cycles & Pressures</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">Respiratory</span>
-            <span class="stat-label">ABG & Spirometry</span>
+            <span class="stat-number">Nerve & Muscle</span>
+            <span class="stat-label">Potentials & Reflexes</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">Hematology</span>
-            <span class="stat-label">Cell Counts & Staining</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">Electrophysiology</span>
-            <span class="stat-label">Action Potentials</span>
+            <span class="stat-number">Lab Practicals</span>
+            <span class="stat-label">Blood & Spirometry</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Resources Section -->
-    <section class="resources-section" id="catalog-section">
+    <section class="resources-section" id="catalog-section" aria-label="Physiology resource directory">
       <div class="container">
         
+        <!-- Category Filter Track -->
         <div class="filter-toolbar">
           <div class="filter-row">
             <div>
-              <span class="filter-group-label">Filter by Category:</span>
-              <div class="filter-pills" id="category-filters">
-                <!-- Populated via script -->
+              <span class="filter-group-label">Filter by Document Type:</span>
+              <div class="filter-pills" id="category-filters" role="tablist">
+                <!-- Populated dynamically via JS -->
               </div>
             </div>
           </div>
         </div>
 
-        <div class="results-bar">
+        <!-- Results Counter & Active Badges -->
+        <div class="results-info-bar">
           <div class="results-count" id="results-count">Loading Physiology documents...</div>
-          <div class="active-filters-tags" id="active-filters"></div>
+          <div class="active-filters" id="active-filters"></div>
         </div>
 
+        <!-- Cards Grid -->
         <div class="resources-grid" id="resources-grid">
-          <!-- Populated via script -->
+          <!-- Populated dynamically via JS -->
         </div>
 
       </div>
     </section>
   </main>
 
-  <!-- PDF Viewer Modal -->
+  <!-- Mobile Bottom-Sheet PDF Modal -->
   <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-container">
       <div class="modal-header">
@@ -155,44 +174,58 @@
           <h3 class="modal-title" id="modal-title">Document Title</h3>
         </div>
         <div class="modal-actions">
-          <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn" title="Open in dedicated tab">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
             </svg>
-            <span class="btn-label-desktop">New Tab</span>
+            <span>External</span>
           </a>
-          <a href="#" download class="modal-btn modal-btn-primary" id="modal-download-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <a href="#" download class="modal-btn modal-btn-primary" id="modal-download-btn" title="Download PDF file">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            <span class="btn-label-desktop">Download</span>
+            <span>Save</span>
           </a>
-          <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close">✕</button>
+          <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close document viewer">
+            ✕
+          </button>
         </div>
       </div>
+
       <div class="modal-body">
-        <iframe id="pdf-frame" class="pdf-frame" src="about:blank" title="Document Viewer"></iframe>
+        <iframe id="pdf-frame" class="pdf-frame" src="about:blank" title="PDF Document Viewer"></iframe>
       </div>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="container footer-bottom">
-      <div>© 2026 Department of Physiology • MBBS Academic Resource Portal</div>
-      <div class="footer-host-badge">
-        <a href="index.html" style="color: inherit;">← Back to Main Library</a>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          🫀 Physiology Masterclass Vault
+        </div>
+        <p class="footer-text">
+          High-yield academic physiological mechanisms, lab practical procedures, and CBME modules for medical undergraduates.
+        </p>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 Harsh Kumar Saw • Pre-Clinical Medical Division</div>
+        <div class="footer-host-badge">
+          <a href="index.html" style="color: inherit; text-decoration: none; font-weight: 600;">← Back to Main Library</a>
+        </div>
       </div>
     </div>
   </footer>
 
   <script src="js/data.js"></script>
   <script>
-    // Force physiology subject on page load
+    // Pre-lock view to Physiology
     window.location.hash = "physiology";
   </script>
   <script src="js/app.js"></script>

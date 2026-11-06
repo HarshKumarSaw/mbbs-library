@@ -12,6 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-physiology_homework-3183",
+    title: "Physiology Homework",
+    subject: "physiology",
+    category: "other",
+    code: "Physiology / Other",
+    description: "Uploaded document: Physiology Homework.pdf. Organized under Physiology (Other).",
+    tags: ["Physiology", "Other", "Mobile Upload"],
+    fileUrl: "assets/docs/physiology/physiology_homework.pdf",
+    fileSize: "4.1 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-anatomy_try-2409",
     title: "Anatomy Try",
     subject: "anatomy",

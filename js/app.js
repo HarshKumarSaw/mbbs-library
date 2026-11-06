@@ -542,6 +542,26 @@
       });
     }
 
+    // Quick Search Chips click
+    document.querySelectorAll(".quick-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const query = chip.dataset.search || chip.textContent.replace(/[^\w\s]/gi, "").trim();
+        state.searchQuery = query;
+        if (DOM.searchInput) {
+          DOM.searchInput.value = query;
+        }
+        if (DOM.searchClear) {
+          DOM.searchClear.style.display = "block";
+        }
+        applyFilterAndRender();
+
+        const catalog = document.getElementById("catalog-section");
+        if (catalog) {
+          catalog.scrollIntoView({ behavior: "smooth" });
+        }
+      });
+    });
+
     // Subject quick cards click (in Hero / Showcase section)
     document.querySelectorAll("[data-navigate-subject]").forEach(elem => {
       elem.addEventListener("click", (e) => {
