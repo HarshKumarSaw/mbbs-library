@@ -110,7 +110,7 @@ const MBBS_RESOURCES = [
     description: "Uploaded document: Anatomy Diagrams.pdf. Reference study material.",
     tags: ["Anatomy", "Practicals", "Mobile Upload"],
     fileUrl: "assets/docs/anatomy/anatomy_diagrams.pdf",
-    fileSize: "45 B",
+    fileSize: "1 KB",
     pages: "Document",
     author: "HarshKumarSaw",
     date: "Nov 2026",
