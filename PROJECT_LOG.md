@@ -170,3 +170,31 @@
 - **Phone Deduplication**: Resolved 0 version duplicate(s)
 - **Phone Organization**: Organized 0 file(s) on phone
 - **Files Uploaded / Updated**: 0
+
+---
+
+### Session 6: Ali Abdaal Minimalist & Uncrowded Mobile-First Transformation (Nov 6, 2026 ~19:30 - 19:37 UTC)
+1. **User Requirement & Critique**:
+   - Previous attempt still felt too small and crowded on phones.
+   - Explicitly requested the aesthetic and spacing of **[https://aliabdaal.com/](https://aliabdaal.com/)**.
+2. **Root Cause Analysis**:
+   - Small font sizes (`0.72rem` - `0.88rem` / 11.5px - 14px) made text look miniature on mobile.
+   - Visual clutter: Multi-level badges, subject codes, multiple hashtags (`#Thorax #Heart`), and crowded stat boxes crammed into narrow mobile viewports.
+3. **Ali Abdaal Design Principles Implemented**:
+   - **Signature Highlighter Effect**: Built CSS `.hero-highlighter` with warm marker pen highlights (`#FDE047` yellow, coral, purple, mint).
+   - **Big, Confident Typography**: Base font 16px/17px, card titles 22px-24px, hero title 38px on mobile, relaxed line height (1.65).
+   - **Breathable Single-Column Mobile Cards**:
+     - 1 column on phones (<768px) with 24px padding and 24px rounded corners (`--radius-card: 24px`).
+     - Clear visual hierarchy: Subject badge (e.g. `🦴 Anatomy`) + Category badge ➔ Large bold title ➔ Relaxed description ➔ Clean single-line meta (`📄 Pages • 💾 Size • 📅 Year`).
+     - Large thumb-friendly 52px primary action button ("Read PDF ➔") + secondary download icon button.
+     - Stripped out unnecessary clutter like dense hashtag clouds.
+   - **Generous Touch Targets & Spacious Controls**:
+     - 60px thumb-first search bar with large 16px input and search icon.
+     - 48px high filter pill buttons with comfortable padding (`0.65rem 1.35rem`) and smooth horizontal momentum scrolling.
+     - 46px topic chips with emojis (`🔬 Histology`, `🫀 Cardiac Cycle`, `🧠 Cranial Nerves`, `🧪 Enzyme Kinetics`, `💡 SDLs`).
+   - **Streamlined Hero & Header**:
+     - Clean single-line announcement ribbon and single-line stats trust ribbon (`📚 24 Master Documents • ⚡ Instant PDF Reader • 📱 Mobile Synced`).
+4. **Verification & Deployment**:
+   - Tested HTTP 200 on all endpoints via BusyBox HTTP server.
+   - Verified that automated phone sync (`mbbs-sync`) pushed live to GitHub Pages.
+   - Live URL: `https://harshkumarsaw.github.io/mbbs-library/`
