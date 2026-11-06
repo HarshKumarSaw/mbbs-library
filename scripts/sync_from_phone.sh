@@ -1,17 +1,10 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==============================================================================
-# MBBS Resource Library - Automatic Mobile Phone Upload & Sync Script
-# 1. Automatically organizes unorganized files on phone into 1st Year MBBS
-#    curriculum subject & subdiscipline folders:
-#    - Anatomy/ (Histology/, Gross Anatomy/, Embryology/, Neuroanatomy/, Genetics/)
-#    - Physiology/ (Cardiovascular/, Respiratory/, Hematology/, Renal/, etc.)
-#    - Biochemistry/ (Enzymes/, Metabolism/, Clinical Biochemistry/, etc.)
-#    - Community Medicine/
-#    - ECE (Early Clinical Exposure)/
-#    - AETCOM/
-#    - Foundation Course/
-#    - Other/
-# 2. Automatically catalogs and uploads all files to GitHub Pages website.
+# MBBS Resource Library - Dynamic Mobile Phone Auto-Sync & Organize Engine
+# 1. Supports ANY custom folders/subfolders created on your phone!
+#    Example: Physiology/Project/ -> creates 'Project' category automatically!
+# 2. Automatically organizes root files into appropriate subject folders.
+# 3. Catalogs new files and publishes live to GitHub Pages.
 # ==============================================================================
 
 set -euo pipefail
@@ -56,33 +49,58 @@ if [ ! -d "$PHONE_DIR" ]; then
     exit 0
 fi
 
-# Ensure 1st Year MBBS Subjects & Subdiscipline folders exist on phone
-mkdir -p "$PHONE_DIR/Anatomy/Histology" \
-         "$PHONE_DIR/Anatomy/Gross Anatomy" \
-         "$PHONE_DIR/Anatomy/Embryology" \
-         "$PHONE_DIR/Anatomy/Neuroanatomy" \
-         "$PHONE_DIR/Anatomy/Genetics" \
-         "$PHONE_DIR/Physiology/General & Nerve-Muscle" \
-         "$PHONE_DIR/Physiology/Hematology" \
-         "$PHONE_DIR/Physiology/Cardiovascular" \
-         "$PHONE_DIR/Physiology/Respiratory" \
-         "$PHONE_DIR/Physiology/Renal" \
-         "$PHONE_DIR/Physiology/Gastrointestinal" \
-         "$PHONE_DIR/Physiology/Endocrine & Reproduction" \
-         "$PHONE_DIR/Physiology/Neurophysiology" \
-         "$PHONE_DIR/Biochemistry/Biomolecules & Enzymes" \
-         "$PHONE_DIR/Biochemistry/Metabolism" \
-         "$PHONE_DIR/Biochemistry/Clinical Biochemistry" \
-         "$PHONE_DIR/Biochemistry/Molecular Biology" \
-         "$PHONE_DIR/Biochemistry/Nutrition & Vitamins" \
-         "$PHONE_DIR/Community Medicine" \
-         "$PHONE_DIR/ECE (Early Clinical Exposure)" \
-         "$PHONE_DIR/AETCOM" \
-         "$PHONE_DIR/Foundation Course" \
-         "$PHONE_DIR/Other"
+# Normalize string to safe identifier
+to_safe_id() {
+    echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '_' | sed 's/__*/_/g; s/^_//; s/_$//'
+}
+
+# Format display label (Title Case with spaces)
+format_display() {
+    echo "$1" | sed -E 's/[_\-]+/ /g; s/\.[^.]+$//; s/\s+/ /g; s/^\s+|\s+$//' | awk '{
+        for (i=1; i<=NF; i++) {
+            $i = toupper(substr($i,1,1)) tolower(substr($i,2))
+        }
+        print
+    }'
+}
+
+format_file_size() {
+    local bytes="$1"
+    if [ "$bytes" -ge 1048576 ]; then
+        awk "BEGIN {printf \"%.1f MB\", $bytes/1048576}"
+    elif [ "$bytes" -ge 1024 ]; then
+        awk "BEGIN {printf \"%.0f KB\", $bytes/1024}"
+    else
+        echo "${bytes} B"
+    fi
+}
+
+format_safe_filename() {
+    local base="$1"
+    local ext="${base##*.}"
+    local name_no_ext="${base%.*}"
+    local safe
+    safe=$(echo "$name_no_ext" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9._-' '_' | sed 's/__*/_/g; s/^_//; s/_$//')
+    echo "${safe}.${ext,,}"
+}
+
+detect_category_from_name() {
+    local lower="$1"
+    if [[ "$lower" =~ sdl ]]; then
+        echo "sdls"
+    elif [[ "$lower" =~ note|lecture|slide|theory|summary|class|concept|review|handout ]]; then
+        echo "notes"
+    elif [[ "$lower" =~ assign|case|problem|homework|worksheet|task|vignette ]]; then
+        echo "assignments"
+    elif [[ "$lower" =~ pract|lab|manual|spotter|dissect|diagram|sketch|specimen|histology|slide|chart ]]; then
+        echo "practicals"
+    else
+        echo "other"
+    fi
+}
 
 # ==============================================================================
-# PHASE 1: Auto-Organize Phone Files Subject & Subdiscipline-Wise
+# PHASE 1: Auto-Organize Phone Files in Root into Subject Folders
 # ==============================================================================
 ORGANIZED_COUNT=0
 ORGANIZED_SUMMARY=()
@@ -97,7 +115,7 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
         base_name=$(basename "$file")
         lower_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]')
 
-        # 1. Anatomy subdisciplines (Histology is subfolder of Anatomy)
+        # 1. Anatomy subdisciplines
         if [[ "$lower_name" =~ histo ]]; then
             subj_dir="Anatomy/Histology"
         elif [[ "$lower_name" =~ embryo ]]; then
@@ -180,76 +198,7 @@ if [ "$ORGANIZED_COUNT" -gt 0 ]; then
 fi
 
 # ==============================================================================
-# Helper Detection Functions for Website Sync
-# ==============================================================================
-detect_subject() {
-    local path_lower="$1"
-    if [[ "$path_lower" =~ /anatomy/|anatomy|anat ]]; then
-        echo "anatomy"
-    elif [[ "$path_lower" =~ /physiology/|physiology|physio ]]; then
-        echo "physiology"
-    elif [[ "$path_lower" =~ /biochemistry/|biochemistry|biochem ]]; then
-        echo "biochemistry"
-    elif [[ "$path_lower" =~ /community|community_medicine ]]; then
-        echo "community_medicine"
-    elif [[ "$path_lower" =~ /aetcom|aetcom ]]; then
-        echo "aetcom"
-    elif [[ "$path_lower" =~ /ece|clinical_exposure ]]; then
-        echo "ece"
-    elif [[ "$path_lower" =~ /foundation ]]; then
-        echo "foundation"
-    else
-        echo "anatomy"
-    fi
-}
-
-detect_category() {
-    local path_lower="$1"
-    if [[ "$path_lower" =~ sdl ]]; then
-        echo "sdls"
-    elif [[ "$path_lower" =~ note|lecture|slide|theory|summary|class|concept|review|handout ]]; then
-        echo "notes"
-    elif [[ "$path_lower" =~ assign|case|problem|homework|worksheet|task|vignette ]]; then
-        echo "assignments"
-    elif [[ "$path_lower" =~ pract|lab|manual|spotter|dissect|diagram|sketch|specimen|histology|slide|chart ]]; then
-        echo "practicals"
-    else
-        echo "other"
-    fi
-}
-
-format_file_size() {
-    local bytes="$1"
-    if [ "$bytes" -ge 1048576 ]; then
-        awk "BEGIN {printf \"%.1f MB\", $bytes/1048576}"
-    elif [ "$bytes" -ge 1024 ]; then
-        awk "BEGIN {printf \"%.0f KB\", $bytes/1024}"
-    else
-        echo "${bytes} B"
-    fi
-}
-
-format_title() {
-    local raw="$1"
-    echo "$raw" | sed -E 's/[_\-]+/ /g; s/\.[^.]+$//; s/\s+/ /g; s/^\s+|\s+$//' | awk '{
-        for (i=1; i<=NF; i++) {
-            $i = toupper(substr($i,1,1)) tolower(substr($i,2))
-        }
-        print
-    }'
-}
-
-format_safe_filename() {
-    local base="$1"
-    local ext="${base##*.}"
-    local name_no_ext="${base%.*}"
-    local safe
-    safe=$(echo "$name_no_ext" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9._-' '_' | sed 's/__*/_/g; s/^_//; s/_$//')
-    echo "${safe}.${ext,,}"
-}
-
-# ==============================================================================
-# PHASE 2: Scan All Organized Files and Sync to Website
+# PHASE 2: Dynamic Scan of All Folders & Auto-Sync to Website
 # ==============================================================================
 ALL_FILES=()
 while IFS= read -r -d '' f; do
@@ -274,16 +223,85 @@ touch "$TMP_ENTRIES"
 for file in "${ALL_FILES[@]}"; do
     base_name=$(basename "$file")
     rel_path="${file#$PHONE_DIR/}"
-    lower_path=$(echo "$rel_path" | tr '[:upper:]' '[:lower:]')
 
-    subject=$(detect_subject "$lower_path")
-    category=$(detect_category "$lower_path")
+    # Split rel_path into directory hierarchy
+    IFS='/' read -r -a path_parts <<< "$rel_path"
+    num_parts=${#path_parts[@]}
+
+    # Top folder is the Subject
+    top_folder="${path_parts[0]}"
+    top_lower=$(echo "$top_folder" | tr '[:upper:]' '[:lower:]')
+
+    if [[ "$top_lower" =~ anatomy|anat ]]; then
+        subject="anatomy"
+        subj_display="Anatomy"
+    elif [[ "$top_lower" =~ physiology|physio ]]; then
+        subject="physiology"
+        subj_display="Physiology"
+    elif [[ "$top_lower" =~ biochemistry|biochem ]]; then
+        subject="biochemistry"
+        subj_display="Biochemistry"
+    elif [[ "$top_lower" =~ community ]]; then
+        subject="community_medicine"
+        subj_display="Community Medicine"
+    elif [[ "$top_lower" =~ aetcom ]]; then
+        subject="aetcom"
+        subj_display="AETCOM"
+    elif [[ "$top_lower" =~ ece ]]; then
+        subject="ece"
+        subj_display="ECE"
+    elif [[ "$top_lower" =~ foundation ]]; then
+        subject="foundation"
+        subj_display="Foundation Course"
+    else
+        subject=$(to_safe_id "$top_folder")
+        subj_display=$(format_display "$top_folder")
+    fi
+
+    # Subfolder determines Category dynamically!
+    sub_folder=""
+    category=""
+    cat_display=""
+
+    if [ "$num_parts" -ge 3 ]; then
+        # File is inside e.g. "Physiology/Project/file.pdf"
+        sub_folder="${path_parts[1]}"
+        sub_lower=$(echo "$sub_folder" | tr '[:upper:]' '[:lower:]')
+
+        if [[ "$sub_lower" =~ ^note ]]; then
+            category="notes"
+            cat_display="Notes"
+        elif [[ "$sub_lower" =~ ^assign ]]; then
+            category="assignments"
+            cat_display="Assignments"
+        elif [[ "$sub_lower" =~ ^sdl ]]; then
+            category="sdls"
+            cat_display="SDLs"
+        elif [[ "$sub_lower" =~ ^pract ]]; then
+            category="practicals"
+            cat_display="Practicals"
+        else
+            # Dynamic custom category from ANY folder created by user!
+            category=$(to_safe_id "$sub_folder")
+            cat_display=$(format_display "$sub_folder")
+        fi
+    else
+        # Directly under Subject folder: infer from filename
+        category=$(detect_category_from_name "$base_name")
+        cat_display=$(format_display "$category")
+    fi
 
     safe_filename=$(format_safe_filename "$base_name")
-    target_rel_url="assets/docs/$subject/$safe_filename"
+
+    # Target relative path preserving subfolder structure
+    if [ -n "$sub_folder" ]; then
+        target_rel_url="assets/docs/$subject/$(to_safe_id "$sub_folder")/$safe_filename"
+    else
+        target_rel_url="assets/docs/$subject/$safe_filename"
+    fi
+
     target_abs_path="$REPO_DIR/$target_rel_url"
     target_dir=$(dirname "$target_abs_path")
-
     mkdir -p "$target_dir"
 
     file_copied=0
@@ -295,28 +313,22 @@ for file in "${ALL_FILES[@]}"; do
 
     # Check if cataloged in js/data.js
     if ! grep -q "$target_rel_url" "$DATA_FILE"; then
-        title=$(format_title "$base_name")
+        title=$(format_display "$base_name")
         file_bytes=$(wc -c < "$file")
         file_size=$(format_file_size "$file_bytes")
         current_date=$(date +"%b %Y")
         unique_id="user-${subject:0:4}-${safe_filename%.*}-$(date +%s | tail -c 5)"
 
-        subj_display=$(awk "BEGIN {print toupper(substr(\"$subject\",1,1)) tolower(substr(\"$subject\",2))}")
-        cat_display=$(awk "BEGIN {print toupper(substr(\"$category\",1,1)) tolower(substr(\"$category\",2))}")
-
-        # Add tag for subdiscipline if present
-        extra_tag="1st Year MBBS"
-        if [[ "$lower_path" =~ histo ]]; then
-            extra_tag="Histology"
-        elif [[ "$lower_path" =~ embryo ]]; then
-            extra_tag="Embryology"
-        elif [[ "$lower_path" =~ cardio ]]; then
-            extra_tag="Cardiovascular"
-        elif [[ "$lower_path" =~ enzym ]]; then
-            extra_tag="Enzymes"
-        elif [[ "$lower_path" =~ sdl ]]; then
-            extra_tag="Self-Directed Learning"
+        # Tags builder
+        tags_json="\"$subj_display\""
+        if [ -n "$cat_display" ] && [ "$cat_display" != "$subj_display" ]; then
+            tags_json="$tags_json, \"$cat_display\""
         fi
+        if [ "$num_parts" -ge 4 ]; then
+            deep_tag=$(format_display "${path_parts[2]}")
+            tags_json="$tags_json, \"$deep_tag\""
+        fi
+        tags_json="$tags_json, \"Mobile Upload\""
 
         cat << EOF >> "$TMP_ENTRIES"
   {
@@ -324,9 +336,9 @@ for file in "${ALL_FILES[@]}"; do
     title: "$title",
     subject: "$subject",
     category: "$category",
-    code: "CBME Core",
-    description: "Uploaded document: $base_name. Reference study material for $subj_display.",
-    tags: ["$subj_display", "$cat_display", "$extra_tag", "Mobile Upload"],
+    code: "$subj_display / $cat_display",
+    description: "Uploaded document: $base_name. Organized under $subj_display ($cat_display).",
+    tags: [$tags_json],
     fileUrl: "$target_rel_url",
     fileSize: "$file_size",
     pages: "Document",
@@ -365,7 +377,7 @@ CHANGES=$(git status --porcelain)
 if [ -z "$CHANGES" ]; then
     if [ "$ON_STARTUP" -eq 1 ]; then
         if [ "$ORGANIZED_COUNT" -eq 0 ]; then
-            echo -e "${GREEN}📚 MBBS Library:${RESET} in sync with phone folder ($TOTAL_PHONE_FILES files across subject folders)."
+            echo -e "${GREEN}📚 MBBS Library:${RESET} in sync with phone folder ($TOTAL_PHONE_FILES files across folders)."
         fi
     else
         echo -e "${GREEN}✨ [MBBS Library] All $TOTAL_PHONE_FILES files on phone are organized and synced to website!${RESET}"
@@ -394,8 +406,8 @@ git commit -m "$COMMIT_MSG" >/dev/null
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 cat << EOF >> "$LOG_FILE"
 
-### Auto-Sync & Curriculum Organization: $TIMESTAMP
-- **Phone Organization**: Organized $ORGANIZED_COUNT file(s) into 1st Year MBBS subject & subdiscipline folders
+### Auto-Sync & Dynamic Folder Sync: $TIMESTAMP
+- **Phone Organization**: Organized $ORGANIZED_COUNT file(s) on phone
 - **New Files Uploaded to Site**: $NEW_FILES_PROCESSED
 EOF
 for item in "${PROCESSED_NAMES[@]}"; do

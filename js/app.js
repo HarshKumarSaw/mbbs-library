@@ -86,19 +86,26 @@
     }
   }
 
+  // Capitalize & clean name helper
+  function formatName(str) {
+    if (!str) return "";
+    return str.replace(/[_\-]+/g, " ")
+              .replace(/\b\w/g, char => char.toUpperCase());
+  }
+
   // Parse Initial URL State (Hash or Query string)
   function parseUrlParameters() {
     const params = new URLSearchParams(window.location.search);
     const hash = window.location.hash.replace("#", "").toLowerCase();
 
     const subjectParam = params.get("subject") || hash;
-    if (subjectParam && ["anatomy", "physiology", "biochemistry"].includes(subjectParam)) {
+    if (subjectParam) {
       state.selectedSubject = subjectParam;
     }
 
     const categoryParam = params.get("category");
-    if (categoryParam && ["notes", "assignments", "sdls", "practicals", "other"].includes(categoryParam)) {
-      state.selectedCategory = categoryParam;
+    if (categoryParam) {
+      state.selectedCategory = categoryParam.toLowerCase();
     }
 
     const searchParam = params.get("q");
@@ -109,26 +116,31 @@
     }
   }
 
-  // Render Subject Filter Buttons
+  // Render Subject Filter Buttons (Dynamically discovers any subjects in MBBS_RESOURCES)
   function renderSubjectPills() {
     if (!DOM.subjectFilters) return;
 
-    const subjects = [
-      { id: "all", label: "All Subjects" },
-      { id: "anatomy", label: "Anatomy" },
-      { id: "physiology", label: "Physiology" },
-      { id: "biochemistry", label: "Biochemistry" }
-    ];
+    const foundSubjects = new Set();
+    MBBS_RESOURCES.forEach(r => {
+      if (r.subject) foundSubjects.add(r.subject.toLowerCase());
+    });
 
-    DOM.subjectFilters.innerHTML = subjects.map(sub => {
-      const count = sub.id === "all" 
-        ? MBBS_RESOURCES.length 
-        : MBBS_RESOURCES.filter(r => r.subject === sub.id).length;
-      const isActive = state.selectedSubject === sub.id ? "active" : "";
+    const ordered = ["all"];
+    ["anatomy", "physiology", "biochemistry"].forEach(s => {
+      if (foundSubjects.has(s)) ordered.push(s);
+    });
+    foundSubjects.forEach(s => {
+      if (!ordered.includes(s)) ordered.push(s);
+    });
+
+    DOM.subjectFilters.innerHTML = ordered.map(subId => {
+      const label = subId === "all" ? "All Subjects" : (SUBJECT_INFO[subId]?.name || formatName(subId));
+      const count = subId === "all" ? MBBS_RESOURCES.length : MBBS_RESOURCES.filter(r => r.subject === subId).length;
+      const isActive = state.selectedSubject === subId ? "active" : "";
 
       return `
-        <button type="button" class="filter-pill ${isActive}" data-subject="${sub.id}">
-          ${sub.label}
+        <button type="button" class="filter-pill ${isActive}" data-subject="${subId}">
+          ${label}
           <span class="pill-count">${count}</span>
         </button>
       `;
@@ -139,38 +151,57 @@
         state.selectedSubject = btn.dataset.subject;
         DOM.subjectFilters.querySelectorAll(".filter-pill").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
+        renderCategoryPills(); // Keep categories in sync with the subject!
         applyFilterAndRender();
         updateHash();
       });
     });
   }
 
-  // Render Category Filter Buttons
+  // Render Category Filter Buttons (Dynamically discovers any new categories/folders!)
   function renderCategoryPills() {
     if (!DOM.categoryFilters) return;
 
-    const categories = [
-      { id: "all", label: "All Categories", icon: "" },
-      { id: "notes", label: "Notes", icon: ICONS.notes },
-      { id: "assignments", label: "Assignments", icon: ICONS.assignments },
-      { id: "sdls", label: "SDLs", icon: ICONS.sdls },
-      { id: "practicals", label: "Practicals", icon: ICONS.practicals },
-      { id: "other", label: "Other Resources", icon: ICONS.other }
-    ];
+    const scopeResources = state.selectedSubject === "all"
+      ? MBBS_RESOURCES
+      : MBBS_RESOURCES.filter(r => r.subject === state.selectedSubject);
 
-    DOM.categoryFilters.innerHTML = categories.map(cat => {
-      const count = cat.id === "all"
-        ? (state.selectedSubject === "all" ? MBBS_RESOURCES.length : MBBS_RESOURCES.filter(r => r.subject === state.selectedSubject).length)
-        : (state.selectedSubject === "all" 
-            ? MBBS_RESOURCES.filter(r => r.category === cat.id).length 
-            : MBBS_RESOURCES.filter(r => r.subject === state.selectedSubject && r.category === cat.id).length);
+    const foundCategories = new Set();
+    scopeResources.forEach(r => {
+      if (r.category) foundCategories.add(r.category.toLowerCase());
+    });
 
-      const isActive = state.selectedCategory === cat.id ? "active" : "";
+    const baseCategories = ["notes", "assignments", "sdls", "practicals", "other"];
+    const ordered = ["all"];
+    baseCategories.forEach(c => {
+      if (foundCategories.has(c)) ordered.push(c);
+    });
+    // Dynamically append any new categories (e.g. 'project', 'seminar', etc.)
+    foundCategories.forEach(c => {
+      if (!ordered.includes(c)) ordered.push(c);
+    });
+
+    // If current selected category doesn't exist in current scope, revert to 'all'
+    if (state.selectedCategory !== "all" && !foundCategories.has(state.selectedCategory)) {
+      state.selectedCategory = "all";
+    }
+
+    DOM.categoryFilters.innerHTML = ordered.map(catId => {
+      const meta = CATEGORY_INFO[catId] || {
+        label: formatName(catId),
+        icon: ICONS[catId] || ICONS.notes
+      };
+      const label = catId === "all" ? "All Categories" : meta.label;
+      const icon = catId === "all" ? "" : (meta.icon || ICONS.notes);
+      const count = catId === "all"
+        ? scopeResources.length
+        : scopeResources.filter(r => r.category === catId).length;
+      const isActive = state.selectedCategory === catId ? "active" : "";
 
       return `
-        <button type="button" class="filter-pill ${isActive}" data-category="${cat.id}">
-          ${cat.icon}
-          ${cat.label}
+        <button type="button" class="filter-pill ${isActive}" data-category="${catId}">
+          ${icon}
+          ${label}
           <span class="pill-count">${count}</span>
         </button>
       `;
@@ -339,7 +370,7 @@
     const tags = [];
 
     if (state.selectedSubject !== "all") {
-      const subName = SUBJECT_INFO[state.selectedSubject]?.name || state.selectedSubject;
+      const subName = SUBJECT_INFO[state.selectedSubject]?.name || formatName(state.selectedSubject);
       tags.push(`
         <span class="filter-tag">
           Subject: ${subName}
@@ -349,7 +380,7 @@
     }
 
     if (state.selectedCategory !== "all") {
-      const catName = CATEGORY_INFO[state.selectedCategory]?.label || state.selectedCategory;
+      const catName = CATEGORY_INFO[state.selectedCategory]?.label || formatName(state.selectedCategory);
       tags.push(`
         <span class="filter-tag">
           Type: ${catName}

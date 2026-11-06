@@ -12,6 +12,36 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-histology-1516",
+    title: "Histology",
+    subject: "anatomy",
+    category: "histology",
+    code: "Anatomy / Histology",
+    description: "Uploaded document: Histology.pdf. Organized under Anatomy (Histology).",
+    tags: ["Anatomy", "Histology", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/histology/histology.pdf",
+    fileSize: "1.7 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
+    id: "user-phys-ecg_cardiac_project-1517",
+    title: "Ecg Cardiac Project",
+    subject: "physiology",
+    category: "project",
+    code: "Physiology / Project",
+    description: "Uploaded document: ECG Cardiac Project.pdf. Organized under Physiology (Project).",
+    tags: ["Physiology", "Project", "Mobile Upload"],
+    fileUrl: "assets/docs/physiology/project/ecg_cardiac_project.pdf",
+    fileSize: "28 B",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-anatomy_sdl-0990",
     title: "Anatomy Sdl",
     subject: "anatomy",
