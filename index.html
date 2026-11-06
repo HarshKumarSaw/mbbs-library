@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MBBS Resource Library | Pre-Clinical Medical Repository</title>
+  <meta name="description" content="Free, lightweight, mobile-friendly academic digital library for MBBS students. Access lecture notes, assignments, SDLs, practical manuals and question banks for Anatomy, Physiology and Biochemistry.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231e3a8a'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+</head>
+<body>
+
+  <!-- Top Academic Session Notice -->
+  <aside class="top-bar" aria-label="Announcement">
+    <div class="container top-bar-content">
+      <div class="top-bar-badge">
+        <span class="pulse-dot"></span>
+        <span>MBBS Academic Session 2026-27 • CBME Pre-Clinical Curriculum</span>
+      </div>
+      <div>
+        <span>100% Free & Open Access • Hosted on GitHub Pages</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Navigation Bar -->
+  <header class="navbar" role="banner">
+    <div class="container nav-container">
+      <a href="index.html" class="brand" aria-label="MBBS Resource Library Home">
+        <div class="brand-emblem" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>MBBS Library</h1>
+          <span>Academic Portal</span>
+        </div>
+      </a>
+
+      <button type="button" class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <nav role="navigation">
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="anatomy.html" class="nav-link">Anatomy</a></li>
+          <li><a href="physiology.html" class="nav-link">Physiology</a></li>
+          <li><a href="biochemistry.html" class="nav-link">Biochemistry</a></li>
+          <li><a href="#about-section" class="nav-link">Guidelines</a></li>
+          <li><a href="#catalog-section" class="nav-link nav-cta">Search Library</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-content">
+        <div class="hero-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>Central College Medical Repository</span>
+        </div>
+
+        <h2 id="hero-title">First Year MBBS Resource Library</h2>
+        <p>A centralized, mobile-ready digital library curated for medical students. Explore high-yield lecture notes, lab practicals, CBME self-directed learning modules, and exam question banks.</p>
+
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+          <form class="search-box" id="search-form" role="search" onsubmit="return false;">
+            <span class="search-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input 
+              type="search" 
+              id="search-input" 
+              class="search-input" 
+              placeholder="Search by topic, nerve, cycle, competency code (e.g. Brachial, ECG, Krebs, AN10.1)..." 
+              aria-label="Search resources"
+              autocomplete="off"
+            >
+            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search input">
+              ✕
+            </button>
+            <button type="button" class="search-btn" onclick="document.getElementById('catalog-section').scrollIntoView({behavior: 'smooth'})">
+              <span>Find PDF</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-bar" aria-label="Library statistics">
+          <div class="stat-item">
+            <span class="stat-number" id="stat-total">18</span>
+            <span class="stat-label">PDF Resources</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-anatomy">6</span>
+            <span class="stat-label">Anatomy</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-physiology">6</span>
+            <span class="stat-label">Physiology</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-biochem">6</span>
+            <span class="stat-label">Biochemistry</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Subjects Showcase -->
+    <section class="subjects-overview" aria-labelledby="subjects-title">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Pre-Clinical Disciplines</span>
+          <h2 class="section-title" id="subjects-title">Explore Core MBBS Subjects</h2>
+          <p class="section-subtitle">Select any department to jump directly to its lecture notes, clinical assignments, SDLs, and practical guides.</p>
+        </div>
+
+        <div class="subject-cards-grid">
+          <!-- Anatomy Card -->
+          <article class="subject-card">
+            <div class="subject-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="5" r="3"></circle>
+                <path d="M12 8v8"></path>
+                <path d="m8 11 4 2 4-2"></path>
+                <path d="m9 20 3-4 3 4"></path>
+              </svg>
+            </div>
+            <h3>Human Anatomy</h3>
+            <p>Gross anatomy dissection guides, neuroanatomy pathways, histology microscopic slide manuals, and embryology modules.</p>
+            <div class="subject-modules">
+              <span class="module-pill">Gross Anatomy</span>
+              <span class="module-pill">Histology</span>
+              <span class="module-pill">Embryology</span>
+              <span class="module-pill">Neuroanatomy</span>
+            </div>
+            <div class="subject-card-footer">
+              <span class="subject-count">6 Curated PDFs</span>
+              <a href="anatomy.html" class="subject-btn" data-navigate-subject="anatomy">
+                Open Section →
+              </a>
+            </div>
+          </article>
+
+          <!-- Physiology Card -->
+          <article class="subject-card physio-card">
+            <div class="subject-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                <path d="M3.22 12H9.5l1.5-3 2 6 1.5-3h4.28"></path>
+              </svg>
+            </div>
+            <h3>Human Physiology</h3>
+            <p>Organ system functions, cardiac Wiggers diagram, nerve action potentials, hematology lab manuals, and ABG interpretation.</p>
+            <div class="subject-modules">
+              <span class="module-pill">Cardiovascular</span>
+              <span class="module-pill">Hematology</span>
+              <span class="module-pill">Respiratory</span>
+              <span class="module-pill">Nerve-Muscle</span>
+            </div>
+            <div class="subject-card-footer">
+              <span class="subject-count">6 Curated PDFs</span>
+              <a href="physiology.html" class="subject-btn" data-navigate-subject="physiology">
+                Open Section →
+              </a>
+            </div>
+          </article>
+
+          <!-- Biochemistry Card -->
+          <article class="subject-card biochem-card">
+            <div class="subject-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 2v7.31"></path>
+                <path d="M14 9.3V2"></path>
+                <path d="M8.5 2h7"></path>
+                <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+                <path d="M5.52 16h12.96"></path>
+              </svg>
+            </div>
+            <h3>Medical Biochemistry</h3>
+            <p>Metabolic pathways (Glycolysis, TCA, Gluconeogenesis), clinical enzymology, inborn errors of metabolism, and urine analysis practicals.</p>
+            <div class="subject-modules">
+              <span class="module-pill">Metabolism</span>
+              <span class="module-pill">Enzymology</span>
+              <span class="module-pill">Genetics</span>
+              <span class="module-pill">Clinical Lab</span>
+            </div>
+            <div class="subject-card-footer">
+              <span class="subject-count">6 Curated PDFs</span>
+              <a href="biochemistry.html" class="subject-btn" data-navigate-subject="biochemistry">
+                Open Section →
+              </a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resources Catalog Section -->
+    <section class="resources-section" id="catalog-section" aria-labelledby="catalog-title">
+      <div class="container">
+        
+        <!-- Filter Controls Toolbar -->
+        <div class="filter-toolbar">
+          <div class="filter-row">
+            <div>
+              <span class="filter-group-label">Filter by Subject:</span>
+              <div class="filter-pills" id="subject-filters">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <div>
+              <span class="filter-group-label">Filter by Resource Category:</span>
+              <div class="filter-pills" id="category-filters">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Status Bar -->
+        <div class="results-bar">
+          <div class="results-count" id="results-count">
+            Loading resources...
+          </div>
+          <div class="active-filters-tags" id="active-filters">
+            <!-- Active filter chips -->
+          </div>
+        </div>
+
+        <!-- Resources Cards Grid -->
+        <div class="resources-grid" id="resources-grid" role="region" aria-live="polite">
+          <!-- Dynamically populated via app.js -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Guidelines / About Section -->
+    <section class="info-section" id="about-section" aria-labelledby="guidelines-title">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">College Academic Guidelines</span>
+          <h2 class="section-title" id="guidelines-title">Medical Student Resource Hub</h2>
+          <p class="section-subtitle">Designed to facilitate peer learning, self-directed study and standardized CBME pre-clinical evaluation.</p>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <div class="info-text">
+              <h4>CBME Curriculum Aligned</h4>
+              <p>Every resource is categorized according to National Medical Commission (NMC) Competency Based Medical Education codes.</p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <div class="info-text">
+              <h4>Instant PDF Preview & Download</h4>
+              <p>View documents directly inside your browser or download for offline study during dissection hall and clinical postings.</p>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </div>
+            <div class="info-text">
+              <h4>Free & Open Maintenance</h4>
+              <p>No logins, no passwords, no advertisements. Zero database overhead and completely free hosting via GitHub Pages.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- PDF Viewer Modal -->
+  <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <span class="modal-category" id="modal-subject">Subject • Category</span>
+          <h3 class="modal-title" id="modal-title">Document Title</h3>
+        </div>
+        <div class="modal-actions">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn" title="Open in new browser tab">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            <span class="btn-label-desktop">New Tab</span>
+          </a>
+          <a href="#" download class="modal-btn modal-btn-primary" id="modal-download-btn" title="Download PDF file">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span class="btn-label-desktop">Download</span>
+          </a>
+          <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close document viewer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <iframe id="pdf-frame" class="pdf-frame" src="about:blank" title="PDF Document Viewer"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <h3>MBBS Medical Resource Library</h3>
+          <p>An open-access academic library managed for pre-clinical MBBS students. Supporting rigorous learning across Anatomy, Physiology, and Biochemistry.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Subjects</h4>
+          <ul>
+            <li><a href="anatomy.html">Anatomy Portal</a></li>
+            <li><a href="physiology.html">Physiology Portal</a></li>
+            <li><a href="biochemistry.html">Biochemistry Portal</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Resource Types</h4>
+          <ul>
+            <li><a href="index.html?category=notes">Lecture Notes</a></li>
+            <li><a href="index.html?category=assignments">Assignments</a></li>
+            <li><a href="index.html?category=sdls">SDL Modules</a></li>
+            <li><a href="index.html?category=practicals">Practical Manuals</a></li>
+            <li><a href="index.html?category=other">Question Banks</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Deployment & Free Hosting</h4>
+          <ul>
+            <li><a href="https://pages.github.com/" target="_blank" rel="noopener noreferrer">GitHub Pages</a></li>
+            <li><a href="#about-section">Curriculum Guide</a></li>
+            <li><a href="README.md" target="_blank">Maintainer Guide</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          © 2026 Government Medical College MBBS Academic Library. Built for medical students.
+        </div>
+        <div class="footer-host-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+          <span>100% Free Static Web Architecture</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

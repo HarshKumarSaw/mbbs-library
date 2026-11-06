@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anatomy Section | MBBS Resource Library</title>
+  <meta name="description" content="Human Anatomy resources for MBBS students: Gross Anatomy, Histology, Embryology, Neuroanatomy notes, dissection guides, assignments, SDLs and practical spotters.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231e3a8a'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+</head>
+<body>
+
+  <!-- Top Academic Notice -->
+  <aside class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-badge">
+        <span class="pulse-dot"></span>
+        <span>Department of Anatomy • Pre-Clinical Division</span>
+      </div>
+      <div>
+        <span>CBME Competency Modules AN1.1 - AN82.1</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Navigation Bar -->
+  <header class="navbar" role="banner">
+    <div class="container nav-container">
+      <a href="index.html" class="brand">
+        <div class="brand-emblem" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="3"></circle>
+            <path d="M12 8v8"></path>
+            <path d="m8 11 4 2 4-2"></path>
+            <path d="m9 20 3-4 3 4"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Anatomy Department</h1>
+          <span>MBBS Resource Library</span>
+        </div>
+      </a>
+
+      <button type="button" class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <nav role="navigation">
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html" class="nav-link">← All Subjects</a></li>
+          <li><a href="anatomy.html" class="nav-link active">Anatomy</a></li>
+          <li><a href="physiology.html" class="nav-link">Physiology</a></li>
+          <li><a href="biochemistry.html" class="nav-link">Biochemistry</a></li>
+          <li><a href="#catalog-section" class="nav-link nav-cta">Search Anatomy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <div class="hero-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="3"></circle>
+            <path d="M12 8v8"></path>
+            <path d="m8 11 4 2 4-2"></path>
+            <path d="m9 20 3-4 3 4"></path>
+          </svg>
+          <span>Department Portal</span>
+        </div>
+
+        <h2>Human Anatomy Resources</h2>
+        <p>Dissection hall guides, histology microscopic slide manuals, high-yield neuroanatomy summaries, osteology flashcards, and university question banks.</p>
+
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+          <form class="search-box" id="search-form" onsubmit="return false;">
+            <span class="search-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input 
+              type="search" 
+              id="search-input" 
+              class="search-input" 
+              placeholder="Search Anatomy topics (e.g. Brachial Plexus, Cranial Nerves, Histology)..." 
+              aria-label="Search Anatomy resources"
+            >
+            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">✕</button>
+            <button type="button" class="search-btn" onclick="document.getElementById('catalog-section').scrollIntoView({behavior: 'smooth'})">
+              <span>Search</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Quick Sub-Modules -->
+        <div class="stats-bar">
+          <div class="stat-item">
+            <span class="stat-number">Gross Anatomy</span>
+            <span class="stat-label">Dissection & Relations</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">Histology</span>
+            <span class="stat-label">Microscopic Spotters</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">Embryology</span>
+            <span class="stat-label">Development & Anomalies</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">Neuroanatomy</span>
+            <span class="stat-label">Brain, Tracts & Cranial Nerves</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section class="resources-section" id="catalog-section">
+      <div class="container">
+        
+        <div class="filter-toolbar">
+          <div class="filter-row">
+            <div>
+              <span class="filter-group-label">Filter by Category:</span>
+              <div class="filter-pills" id="category-filters">
+                <!-- Populated via script -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-bar">
+          <div class="results-count" id="results-count">Loading Anatomy documents...</div>
+          <div class="active-filters-tags" id="active-filters"></div>
+        </div>
+
+        <div class="resources-grid" id="resources-grid">
+          <!-- Populated via script -->
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- PDF Viewer Modal -->
+  <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <span class="modal-category" id="modal-subject">Anatomy</span>
+          <h3 class="modal-title" id="modal-title">Document Title</h3>
+        </div>
+        <div class="modal-actions">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            <span class="btn-label-desktop">New Tab</span>
+          </a>
+          <a href="#" download class="modal-btn modal-btn-primary" id="modal-download-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span class="btn-label-desktop">Download</span>
+          </a>
+          <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <iframe id="pdf-frame" class="pdf-frame" src="about:blank" title="Document Viewer"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <div>© 2026 Department of Anatomy • MBBS Academic Resource Portal</div>
+      <div class="footer-host-badge">
+        <a href="index.html" style="color: inherit;">← Back to Main Library</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script>
+    // Force anatomy subject on page load
+    window.location.hash = "anatomy";
+  </script>
+  <script src="js/app.js"></script>
+</body>
+</html>
