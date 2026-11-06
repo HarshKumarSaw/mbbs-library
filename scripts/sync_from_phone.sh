@@ -1,10 +1,11 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==============================================================================
 # MBBS Resource Library - Dynamic Mobile Phone Auto-Sync & Organize Engine
-# 1. Supports ANY custom folders/subfolders created on your phone!
-#    Example: Physiology/Project/ -> creates 'Project' category automatically!
-# 2. Automatically organizes root files into appropriate subject folders.
-# 3. Catalogs new files and publishes live to GitHub Pages.
+# 1. Strips duplicate version suffixes like (1), (2), _1, - Copy, etc.
+#    and keeps ONLY the latest revised file!
+# 2. Supports ANY custom folders/subfolders created on your phone (e.g. Physiology/Project/).
+# 3. Automatically organizes root files into appropriate subject folders.
+# 4. Catalogs new & updated files and publishes live to GitHub Pages.
 # ==============================================================================
 
 set -euo pipefail
@@ -54,6 +55,25 @@ to_safe_id() {
     echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '_' | sed 's/__*/_/g; s/^_//; s/_$//'
 }
 
+# Clean version duplicate suffix like (1), (2), _1, - Copy
+get_canonical_name() {
+    local full_name="$1"
+    local ext="${full_name##*.}"
+    local name_no_ext="${full_name%.*}"
+
+    local cleaned="$name_no_ext"
+    local prev=""
+    while [ "$cleaned" != "$prev" ]; do
+        prev="$cleaned"
+        cleaned=$(echo "$cleaned" | sed -E \
+            -e 's/[[:space:]]*\([0-9]+\)[[:space:]]*$//' \
+            -e 's/_[0-9]+$//' \
+            -e 's/[[:space:]]*-[[:space:]]*[Cc]opy[[:space:]]*$//')
+    done
+
+    echo "${cleaned}.${ext}"
+}
+
 # Format display label (Title Case with spaces)
 format_display() {
     echo "$1" | sed -E 's/[_\-]+/ /g; s/\.[^.]+$//; s/\s+/ /g; s/^\s+|\s+$//' | awk '{
@@ -98,6 +118,56 @@ detect_category_from_name() {
         echo "other"
     fi
 }
+
+# ==============================================================================
+# PHASE 0: Version Normalization & Deduplication (Strip (1), (2) & Keep Latest)
+# ==============================================================================
+DEDUP_FILES=()
+while IFS= read -r -d '' f; do
+    DEDUP_FILES+=("$f")
+done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+
+DEDUP_SUMMARY=()
+for file in "${DEDUP_FILES[@]}"; do
+    [ -f "$file" ] || continue
+    base_name=$(basename "$file")
+    dir_name=$(dirname "$file")
+    canonical_name=$(get_canonical_name "$base_name")
+
+    if [ "$base_name" != "$canonical_name" ]; then
+        # Check if canonical file already exists in same dir or globally
+        target_path="$dir_name/$canonical_name"
+        if [ ! -f "$target_path" ]; then
+            existing_match=$(find "$PHONE_DIR" -type f -name "$canonical_name" | head -n 1)
+            if [ -n "$existing_match" ]; then
+                target_path="$existing_match"
+            fi
+        fi
+
+        if [ -f "$target_path" ] && [ "$file" != "$target_path" ]; then
+            file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+            target_mtime=$(stat -c %Y "$target_path" 2>/dev/null || echo 0)
+
+            if [ "$file_mtime" -ge "$target_mtime" ]; then
+                mv -f "$file" "$target_path"
+                DEDUP_SUMMARY+=("Updated $canonical_name (kept newer version, replaced $base_name)")
+            else
+                rm -f "$file"
+                DEDUP_SUMMARY+=("Removed older duplicate $base_name (kept $canonical_name)")
+            fi
+        else
+            mv "$file" "$target_path"
+            DEDUP_SUMMARY+=("Renamed $base_name ➔ $canonical_name")
+        fi
+    fi
+done
+
+if [ "${#DEDUP_SUMMARY[@]}" -gt 0 ]; then
+    echo -e "${CYAN}🔄 [MBBS Library] Resolved ${#DEDUP_SUMMARY[@]} file version(s) / duplicate(s):${RESET}"
+    for item in "${DEDUP_SUMMARY[@]}"; do
+        echo -e "   ${GREEN}✔${RESET} $item"
+    done
+fi
 
 # ==============================================================================
 # PHASE 1: Auto-Organize Phone Files in Root into Subject Folders
@@ -179,7 +249,14 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
                 if cmp -s "$file" "$target_phone_dest"; then
                     rm -f "$file"
                 else
-                    mv "$file" "$PHONE_DIR/$subj_dir/${base_name%.*}_$(date +%s).${base_name##*.}"
+                    # Replace with latest if newer
+                    file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+                    target_mtime=$(stat -c %Y "$target_phone_dest" 2>/dev/null || echo 0)
+                    if [ "$file_mtime" -ge "$target_mtime" ]; then
+                        mv -f "$file" "$target_phone_dest"
+                    else
+                        rm -f "$file"
+                    fi
                 fi
             else
                 mv "$file" "$target_phone_dest"
@@ -281,7 +358,6 @@ for file in "${ALL_FILES[@]}"; do
             category="practicals"
             cat_display="Practicals"
         else
-            # Dynamic custom category from ANY folder created by user!
             category=$(to_safe_id "$sub_folder")
             cat_display=$(format_display "$sub_folder")
         fi
@@ -350,8 +426,21 @@ EOF
         NEW_FILES_PROCESSED=$((NEW_FILES_PROCESSED + 1))
         PROCESSED_NAMES+=("$base_name ($subj_display / $cat_display)")
     elif [ "$file_copied" -eq 1 ]; then
+        # File was updated! Update fileSize in js/data.js
+        file_bytes=$(wc -c < "$file")
+        new_size=$(format_file_size "$file_bytes")
+        awk -v url="$target_rel_url" -v size="$new_size" '
+        $0 ~ "fileUrl: \"" url "\"" {
+            print
+            getline
+            print "    fileSize: \"" size "\","
+            next
+        }
+        { print }
+        ' "$DATA_FILE" > "$DATA_FILE.tmp" && mv "$DATA_FILE.tmp" "$DATA_FILE"
+
         NEW_FILES_PROCESSED=$((NEW_FILES_PROCESSED + 1))
-        PROCESSED_NAMES+=("$base_name [updated file]")
+        PROCESSED_NAMES+=("$base_name [updated with latest version]")
     fi
 done
 
@@ -376,11 +465,11 @@ CHANGES=$(git status --porcelain)
 
 if [ -z "$CHANGES" ]; then
     if [ "$ON_STARTUP" -eq 1 ]; then
-        if [ "$ORGANIZED_COUNT" -eq 0 ]; then
+        if [ "$ORGANIZED_COUNT" -eq 0 ] && [ "${#DEDUP_SUMMARY[@]}" -eq 0 ]; then
             echo -e "${GREEN}📚 MBBS Library:${RESET} in sync with phone folder ($TOTAL_PHONE_FILES files across folders)."
         fi
     else
-        echo -e "${GREEN}✨ [MBBS Library] All $TOTAL_PHONE_FILES files on phone are organized and synced to website!${RESET}"
+        echo -e "${GREEN}✨ [MBBS Library] All $TOTAL_PHONE_FILES files on phone are organized, deduplicated, and synced to website!${RESET}"
     fi
     exit 0
 fi
@@ -406,9 +495,10 @@ git commit -m "$COMMIT_MSG" >/dev/null
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 cat << EOF >> "$LOG_FILE"
 
-### Auto-Sync & Dynamic Folder Sync: $TIMESTAMP
+### Auto-Sync & Version Deduplication: $TIMESTAMP
+- **Phone Deduplication**: Resolved ${#DEDUP_SUMMARY[@]} version duplicate(s)
 - **Phone Organization**: Organized $ORGANIZED_COUNT file(s) on phone
-- **New Files Uploaded to Site**: $NEW_FILES_PROCESSED
+- **Files Uploaded / Updated**: $NEW_FILES_PROCESSED
 EOF
 for item in "${PROCESSED_NAMES[@]}"; do
     echo "- $item" >> "$LOG_FILE"
