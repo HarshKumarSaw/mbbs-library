@@ -240,3 +240,27 @@
 - **Phone Deduplication**: Resolved 0 version duplicate(s)
 - **Phone Organization**: Organized 0 file(s) on phone
 - **Files Uploaded / Updated**: 0
+
+---
+
+### Session 8: Distraction-Free Content Cleanup & Instant Access Optimization (Nov 6, 2026 ~19:52 - 19:58 UTC)
+1. **User Requirement**:
+   - Clean up website by removing unnecessary introductory content, bloated headings, statistics, and decorative cards from the top.
+   - Remove promotional sections, study guideline cards, and repeated info from the bottom.
+   - Keep only essential header, compact title, and search/filter controls.
+   - Make actual study resources the main focus, immediately visible on screen upon opening the site.
+2. **Top Content Stripped & Streamlined**:
+   - Removed `<aside class="top-bar">` announcement banner across all pages.
+   - Removed bloated introductory paragraphs and multi-level heading tags.
+   - Removed redundant statistics capsules.
+   - Removed the entire `<section class="subjects-overview">` with 3 oversized department cards (since sticky filter pills already provide 1-tap subject switching without page clutter).
+   - Replaced with a compact, minimal `.top-section` featuring a focused title, full-width search bar, and 1-tap quick chips.
+3. **Bottom Content Stripped & Streamlined**:
+   - Removed `<section class="info-section">` (the entire 3-card guidelines/promotional section).
+   - Replaced bloated promotional footer with a minimal, clean, 1-line footer (`© 2026 Harsh Kumar Saw • 1st Year MBBS Library • GitHub`).
+4. **Subpage Harmonization**:
+   - Streamlined `anatomy.html`, `physiology.html`, and `biochemistry.html` identically.
+   - Users on mobile and desktop now see the study catalog immediately within the first viewport!
+5. **Verification & Deployment**:
+   - All PDFs, search filtering, category pill discovery, and mobile modal bottom-sheets verified intact.
+   - Deployed live to GitHub Pages: `https://harshkumarsaw.github.io/mbbs-library/`
