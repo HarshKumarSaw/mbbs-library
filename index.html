@@ -4,23 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>MBBS Masterclass Vault | Pre-Clinical Medical Library</title>
-  <meta name="description" content="Colorful, modern, mobile-first academic library for MBBS students. Access high-yield notes, clinical assignments, SDL modules, and practical manuals for Anatomy, Physiology, and Biochemistry.">
+  <meta name="description" content="Clean, spacious, mobile-first academic library for MBBS students inspired by Ali Abdaal. Access high-yield notes, histology slide workbooks, clinical assignments, and CBME modules.">
   <meta name="theme-color" content="#FAF8F5">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FF6B6B'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23111827'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
 </head>
 <body>
 
-  <!-- Top Announcement Ribbon -->
+  <!-- Top Announcement Ribbon (Uncrowded) -->
   <aside class="top-bar" aria-label="Announcement">
     <div class="container top-bar-content">
       <div class="top-bar-badge">
         <span class="pulse-dot"></span>
-        <span>CBME 2026-27 Pre-Clinical Curriculum</span>
+        <span>1st Year MBBS • 2026 Curriculum</span>
       </div>
-      <div>
-        <span>✨ 100% Free & Open Access • Instant In-Browser PDF Reader</span>
-      </div>
+      <span>✨ 100% Free & Open Access • In-Browser PDF Reader</span>
     </div>
   </aside>
 
@@ -29,7 +30,7 @@
     <div class="container nav-container">
       <a href="index.html" class="brand" aria-label="MBBS Masterclass Vault Home">
         <div class="brand-emblem" aria-hidden="true">
-          <span style="font-size: 1.35rem;">🩺</span>
+          <span style="font-size: 1.4rem;">🩺</span>
         </div>
         <div class="brand-text">
           <h1>MBBS.Vault</h1>
@@ -38,7 +39,7 @@
       </a>
 
       <button type="button" class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation menu">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="4" y1="7" x2="20" y2="7"></line>
           <line x1="4" y1="12" x2="20" y2="12"></line>
           <line x1="4" y1="17" x2="20" y2="17"></line>
@@ -52,35 +53,34 @@
           <li><a href="physiology.html" class="nav-link">🫀 Physiology</a></li>
           <li><a href="biochemistry.html" class="nav-link">🧪 Biochemistry</a></li>
           <li><a href="#about-section" class="nav-link">Guidelines</a></li>
-          <li><a href="#catalog-section" class="nav-link nav-cta">Explore Vault ⚡</a></li>
+          <li><a href="#catalog-section" class="nav-link nav-cta">Search Vault ⚡</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- Hero Section (Vibrant, Artistic & Mobile-Optimized) -->
+    <!-- Hero Section (Ali Abdaal Style: Bold, Friendly, Spacious) -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="container hero-content">
         <div class="hero-tag">
-          <span class="hero-tag-emoji">🎨</span>
-          <span>Curated Pre-Clinical Medical Repository</span>
+          <span>👋 Hey, welcome to your</span>
         </div>
 
         <h2 id="hero-title">
-          Master 1st Year MBBS <br>
-          <span class="gradient-text artistic-highlight">At Masterclass Speed.</span>
+          1st Year MBBS <br>
+          <mark class="hero-highlighter">Masterclass Vault.</mark>
         </h2>
 
         <p>
-          Curated high-yield lecture notes, histology slide workbooks, clinical assignments, and CBME self-directed modules. Tap, read, and ace your exams with zero lag.
+          Curated high-yield lecture notes, histology slide workbooks, clinical assignments, and CBME modules. Study smarter, stress less, and ace your exams.
         </p>
 
-        <!-- Search Bar with Artistic Focus -->
+        <!-- Big Spacious Search Bar (Thumb-First 60px Target) -->
         <div class="search-wrapper">
           <form class="search-box" id="search-form" role="search" onsubmit="return false;">
             <span class="search-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
@@ -89,20 +89,18 @@
               type="search" 
               id="search-input" 
               class="search-input" 
-              placeholder="Search topic, nerve, cycle, code (e.g. Brachial, ECG, Histology, AN10.1)..." 
+              placeholder="Search any topic (e.g. Brachial Plexus, Cardiac Cycle, Histology)..." 
               aria-label="Search resources"
               autocomplete="off"
             >
-            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">
-              ✕
-            </button>
+            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">✕</button>
             <button type="button" class="search-btn" onclick="document.getElementById('catalog-section').scrollIntoView({behavior: 'smooth'})">
               <span>Find PDF</span>
             </button>
           </form>
         </div>
 
-        <!-- Quick Search Pill Chips (Mobile-First 1-Tap Search) -->
+        <!-- Quick Search Topic Chips (Generous 46px Tap Targets) -->
         <div class="quick-chips" aria-label="Popular search topics">
           <button type="button" class="quick-chip" data-search="Histology">🔬 Histology</button>
           <button type="button" class="quick-chip" data-search="Cardiac Cycle">🫀 Cardiac Cycle</button>
@@ -112,45 +110,39 @@
           <button type="button" class="quick-chip" data-search="Project">🎯 Projects</button>
         </div>
 
-        <!-- Floating Stats Capsules -->
+        <!-- Single-Line Stats Ribbon -->
         <div class="stats-bar" aria-label="Library statistics">
           <div class="stat-item">
             <span class="stat-number" id="stat-total">24</span>
-            <span class="stat-label">Master Docs</span>
+            <span>Master Documents</span>
           </div>
-          <div class="stat-item" style="border-top: 3px solid var(--color-anatomy);">
-            <span class="stat-number" id="stat-anatomy" style="color: var(--color-anatomy);">8</span>
-            <span class="stat-label">Anatomy</span>
+          <span class="meta-bullet">•</span>
+          <div class="stat-item">
+            <span>⚡ Instant PDF Reader</span>
           </div>
-          <div class="stat-item" style="border-top: 3px solid var(--color-physiology);">
-            <span class="stat-number" id="stat-physiology" style="color: var(--color-physiology);">10</span>
-            <span class="stat-label">Physiology</span>
-          </div>
-          <div class="stat-item" style="border-top: 3px solid var(--color-biochem);">
-            <span class="stat-number" id="stat-biochem" style="color: var(--color-biochem);">6</span>
-            <span class="stat-label">Biochemistry</span>
+          <span class="meta-bullet">•</span>
+          <div class="stat-item">
+            <span>📱 Mobile Synced</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Subjects Showcase -->
+    <!-- Subjects Showcase (Spacious & Clean) -->
     <section class="subjects-overview" aria-labelledby="subjects-title">
       <div class="container">
         <div class="section-header">
           <span class="section-tag">Pre-Clinical Disciplines</span>
-          <h2 class="section-title" id="subjects-title">Explore Core MBBS Subjects</h2>
-          <p class="section-subtitle">Select any department to jump directly to its lecture notes, clinical assignments, SDLs, and practical guides.</p>
+          <h2 class="section-title" id="subjects-title">Core MBBS Subjects</h2>
+          <p class="section-subtitle">Jump straight to any subject to view lecture notes, slide workbooks, practicals, and SDLs.</p>
         </div>
 
         <div class="subject-cards-grid">
           <!-- Anatomy Card -->
           <article class="subject-card anatomy">
-            <div class="subject-icon" aria-hidden="true">
-              🦴
-            </div>
+            <div class="subject-icon" aria-hidden="true">🦴</div>
             <h3>Human Anatomy</h3>
-            <p>Gross anatomy dissection guides, neuroanatomy pathways, histology microscopic slide manuals, and embryology modules.</p>
+            <p>Dissection hall relations, neuroanatomy tracts, histology microscopic slide workbooks, and embryological stages.</p>
             <div class="subject-modules">
               <span class="module-pill">Gross Anatomy</span>
               <span class="module-pill">Histology</span>
@@ -158,51 +150,50 @@
               <span class="module-pill">Neuroanatomy</span>
             </div>
             <div class="subject-card-footer">
-              <span class="subject-count" style="color: var(--color-anatomy);">● CBME AN1.1 - AN82.1</span>
+              <span class="subject-count" id="stat-anatomy">-- Docs</span>
               <a href="anatomy.html" class="subject-btn" data-navigate-subject="anatomy">
-                Open Section →
+                <span>View Anatomy</span>
+                <span>➔</span>
               </a>
             </div>
           </article>
 
           <!-- Physiology Card -->
           <article class="subject-card physiology">
-            <div class="subject-icon" aria-hidden="true">
-              🫀
-            </div>
+            <div class="subject-icon" aria-hidden="true">🫀</div>
             <h3>Human Physiology</h3>
-            <p>Organ system functions, cardiac Wiggers diagrams, action potentials, hematology manuals, and clinical project reports.</p>
+            <p>Cardiac cycle hemodynamics, nerve-muscle action potentials, hematology lab protocols, and spirometry curves.</p>
             <div class="subject-modules">
               <span class="module-pill">Cardiovascular</span>
+              <span class="module-pill">Nerve-Muscle</span>
               <span class="module-pill">Hematology</span>
               <span class="module-pill">Respiratory</span>
-              <span class="module-pill">Projects</span>
             </div>
             <div class="subject-card-footer">
-              <span class="subject-count" style="color: var(--color-physiology);">● CBME PY1.1 - PY11.14</span>
+              <span class="subject-count" id="stat-physiology">-- Docs</span>
               <a href="physiology.html" class="subject-btn" data-navigate-subject="physiology">
-                Open Section →
+                <span>View Physiology</span>
+                <span>➔</span>
               </a>
             </div>
           </article>
 
           <!-- Biochemistry Card -->
           <article class="subject-card biochemistry">
-            <div class="subject-icon" aria-hidden="true">
-              🧪
-            </div>
+            <div class="subject-icon" aria-hidden="true">🧪</div>
             <h3>Medical Biochemistry</h3>
-            <p>Metabolic pathways (Glycolysis, TCA, Urea cycle), clinical enzymology, inborn errors of metabolism, and lab diagnostic tests.</p>
+            <p>Metabolic cycles, clinical enzymology, inborn errors of metabolism, and practical diagnostic urine tests.</p>
             <div class="subject-modules">
               <span class="module-pill">Metabolism</span>
               <span class="module-pill">Enzymology</span>
-              <span class="module-pill">Genetics</span>
-              <span class="module-pill">Clinical Lab</span>
+              <span class="module-pill">Molecular Biology</span>
+              <span class="module-pill">Clinical Tests</span>
             </div>
             <div class="subject-card-footer">
-              <span class="subject-count" style="color: var(--color-biochem);">● CBME BI1.1 - BI11.24</span>
+              <span class="subject-count" id="stat-biochem">-- Docs</span>
               <a href="biochemistry.html" class="subject-btn" data-navigate-subject="biochemistry">
-                Open Section →
+                <span>View Biochem</span>
+                <span>➔</span>
               </a>
             </div>
           </article>
@@ -210,93 +201,90 @@
       </div>
     </section>
 
-    <!-- Resources Catalog Section -->
-    <section class="resources-section" id="catalog-section" aria-labelledby="catalog-title">
+    <!-- Resources Directory & Filter Section (Spacious Mobile-First) -->
+    <section class="resources-section" id="catalog-section" aria-label="Document directory">
       <div class="container">
         
         <div class="catalog-header">
           <div>
-            <span class="section-tag">Digital Repository</span>
-            <h2 class="catalog-title" id="catalog-title">All Academic Materials</h2>
+            <h2 class="catalog-title">Study Resources</h2>
+            <p class="catalog-subtitle">Tap any filter below to browse notes, clinical assignments, and lab guides.</p>
           </div>
-          <p class="catalog-subtitle">Instant filtering across subjects, categories, and custom phone folders.</p>
         </div>
 
-        <!-- Sticky Filter Controls Toolbar (Touch-Swipeable on Mobile) -->
+        <!-- Sticky Filter Track (Thumb-Zone Friendly) -->
         <div class="filter-toolbar">
           <div class="filter-row">
             <div>
-              <span class="filter-group-label">Subject:</span>
-              <div class="filter-pills" id="subject-filters">
-                <!-- Dynamically populated via app.js -->
+              <span class="filter-group-label">Filter by Subject:</span>
+              <div class="filter-pills" id="subject-filters" role="tablist">
+                <!-- Populated dynamically via JS -->
               </div>
             </div>
 
             <div>
-              <span class="filter-group-label">Category:</span>
-              <div class="filter-pills" id="category-filters">
-                <!-- Dynamically populated via app.js -->
+              <span class="filter-group-label">Filter by Category:</span>
+              <div class="filter-pills" id="category-filters" role="tablist">
+                <!-- Populated dynamically via JS -->
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Results Info Bar -->
+        <!-- Results Counter & Active Badges -->
         <div class="results-info-bar">
-          <div class="results-count" id="results-count">
-            Loading resources...
-          </div>
-          <div class="active-filters" id="active-filters">
-            <!-- Active filter chips -->
-          </div>
+          <div class="results-count" id="results-count">Loading resources...</div>
+          <div class="active-filters" id="active-filters"></div>
         </div>
 
-        <!-- Resources Cards Grid (Mobile-First Tactile Cards) -->
-        <div class="resources-grid" id="resources-grid" role="region" aria-live="polite">
-          <!-- Dynamically populated via app.js -->
+        <!-- Cards Grid (1 Column on Mobile, Spacious & Editorial) -->
+        <div class="resources-grid" id="resources-grid">
+          <!-- Populated dynamically via JS -->
         </div>
 
       </div>
     </section>
 
-    <!-- Guidelines / Learning Philosophy -->
+    <!-- Student Study Guidelines Section -->
     <section class="info-section" id="about-section" aria-labelledby="guidelines-title">
       <div class="container">
         <div class="section-header">
-          <span class="section-tag">Learning Philosophy</span>
-          <h2 class="section-title" id="guidelines-title">How to Use This Vault</h2>
-          <p class="section-subtitle">Designed for fast revision before ward postings, dissection practicals, and university exams.</p>
+          <span class="section-tag">CBME Guidelines</span>
+          <h2 class="section-title" id="guidelines-title">Pre-Clinical Study Framework</h2>
+          <p class="section-subtitle">How to make the most of this digital repository throughout your 1st Year MBBS journey.</p>
         </div>
 
         <div class="guidelines-grid">
-          <div class="guideline-card">
-            <h4>🎯 Active Recall & CBME</h4>
-            <p>Every note and assignment is mapped to National Medical Commission (NMC) competency codes for targeted exam mastery.</p>
-          </div>
-          <div class="guideline-card">
-            <h4>⚡ Instant Browser Reading</h4>
-            <p>Tap "Read PDF" on any card to view documents instantly in a full-screen mobile reader without cluttering downloads.</p>
-          </div>
-          <div class="guideline-card">
-            <h4>📲 Auto-Sync From Phone</h4>
-            <p>Save notes into your phone's <code>mbbs-library</code> folder; the system auto-organizes and updates your site whenever Termux opens.</p>
-          </div>
+          <article class="guideline-card">
+            <h4>💡 High-Yield First</h4>
+            <p>Focus on core high-yield topics first: Brachial Plexus, Cardiac Cycle, Action Potentials, and Enzyme Kinetics before deep-diving into secondary tables.</p>
+          </article>
+
+          <article class="guideline-card">
+            <h4>🔬 Microscopic Spotters</h4>
+            <p>Histology slide spotters are categorized separately. Review the labeled cell structures and identifying points before every histology practical exam.</p>
+          </article>
+
+          <article class="guideline-card">
+            <h4>📱 Mobile Synced</h4>
+            <p>Any PDF added to the phone library folder is automatically organized subject-wise and uploaded live to this website without writing code.</p>
+          </article>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Full-Screen Mobile PDF Viewer Modal -->
+  <!-- Mobile Bottom-Sheet PDF Modal -->
   <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-container">
       <div class="modal-header">
         <div class="modal-title-area">
-          <span class="modal-category" id="modal-subject">Subject • Category</span>
+          <span class="modal-category" id="modal-subject">Document Viewer</span>
           <h3 class="modal-title" id="modal-title">Document Title</h3>
         </div>
         <div class="modal-actions">
-          <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn" title="Open in new browser tab">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn" title="Open in dedicated tab">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
@@ -304,16 +292,14 @@
             <span>External</span>
           </a>
           <a href="#" download class="modal-btn modal-btn-primary" id="modal-download-btn" title="Download PDF file">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
             <span>Save</span>
           </a>
-          <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close document viewer">
-            ✕
-          </button>
+          <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close document viewer">✕</button>
         </div>
       </div>
 
@@ -323,7 +309,7 @@
     </div>
   </div>
 
-  <!-- Footer -->
+  <!-- Footer (Warm, Clean & Approachable) -->
   <footer class="footer">
     <div class="container">
       <div class="footer-content">
@@ -331,7 +317,7 @@
           🩺 MBBS Masterclass Vault
         </div>
         <p class="footer-text">
-          Open-access academic digital repository for pre-clinical medical students. Built for rapid learning, revision, and clinical readiness.
+          Open-access academic digital repository for 1st Year MBBS students. Built for rapid learning, revision, and clinical readiness.
         </p>
       </div>
 

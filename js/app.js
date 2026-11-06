@@ -295,54 +295,45 @@
     DOM.resourcesGrid.innerHTML = list.map(item => {
       const catMeta = CATEGORY_INFO[item.category] || { label: item.category, badgeClass: "badge-other", icon: "other" };
       const subMeta = SUBJECT_INFO[item.subject] || { name: item.subject };
-      const categoryIcon = ICONS[item.category] || ICONS.notes;
+      
+      const subjectEmojis = {
+        anatomy: "🦴",
+        physiology: "🫀",
+        biochemistry: "🧪",
+        community_medicine: "🏥",
+        aetcom: "🩺"
+      };
+      const emoji = subjectEmojis[item.subject] || "📚";
 
       return `
         <article class="resource-card" data-id="${item.id}">
-          <div class="card-top">
+          <div class="card-header">
             <span class="subject-badge ${item.subject}">
-              ● ${subMeta.name}
+              ${emoji} ${subMeta.name}
             </span>
             <span class="category-badge ${catMeta.badgeClass}">
-              ${categoryIcon}
               ${catMeta.label}
             </span>
           </div>
 
-          <span class="card-code">${escapeHtml(item.code)}</span>
           <h3 class="card-title">${highlightQuery(item.title, state.searchQuery)}</h3>
           <p class="card-desc">${highlightQuery(item.description, state.searchQuery)}</p>
 
-          <div class="card-tags">
-            ${item.tags.map(tag => `<span class="card-tag">#${escapeHtml(tag)}</span>`).join("")}
-          </div>
-
           <div class="card-meta">
-            <div class="meta-group">
-              <span class="meta-item" title="File Size">
-                ${ICONS.file}
-                ${item.fileSize}
-              </span>
-              <span class="meta-item" title="Page Count">
-                ${item.pages}
-              </span>
-            </div>
-            <div class="meta-group">
-              <span class="meta-item" title="Academic Year">
-                ${ICONS.calendar}
-                ${item.date}
-              </span>
-            </div>
+            <span class="meta-item">📄 ${item.pages || "PDF Document"}</span>
+            <span class="meta-bullet">•</span>
+            <span class="meta-item">💾 ${item.fileSize}</span>
+            <span class="meta-bullet">•</span>
+            <span class="meta-item">📅 ${item.date || "2026"}</span>
           </div>
 
           <div class="card-actions">
-            <button type="button" class="btn-view" data-action="view" data-id="${item.id}" aria-label="View ${escapeHtml(item.title)}">
-              ${ICONS.view}
-              <span>View PDF</span>
+            <button type="button" class="btn-read" data-action="view" data-id="${item.id}" aria-label="Read ${escapeHtml(item.title)}">
+              <span>Read PDF</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
-            <a href="${item.fileUrl}" download class="btn-download" aria-label="Download ${escapeHtml(item.title)}">
-              ${ICONS.download}
-              <span>Download</span>
+            <a href="${item.fileUrl}" download class="btn-download-action" aria-label="Download ${escapeHtml(item.title)}" title="Download PDF">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </a>
           </div>
         </article>
