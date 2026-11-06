@@ -12,6 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-bioc-biochemistry_enzymes_notes-0634",
+    title: "Biochemistry Enzymes Notes",
+    subject: "biochemistry",
+    category: "notes",
+    code: "CBME Mobile",
+    description: "Uploaded document: Biochemistry Enzymes Notes.pdf. Reference study material.",
+    tags: ["Biochemistry", "Notes", "Mobile Upload"],
+    fileUrl: "assets/docs/biochemistry/biochemistry_enzymes_notes.pdf",
+    fileSize: "32 B",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-histology-0419",
     title: "Histology",
     subject: "anatomy",
