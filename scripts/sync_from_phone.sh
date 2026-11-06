@@ -1,10 +1,10 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==============================================================================
-# MBBS Resource Library - Two-Way Auto-Sync, Version Normalization & Deletion Engine
+# MBBS Resource Library - High-Performance Two-Way Auto-Sync & Deletion Engine
 # 
 # 1. PHASE 0: Normalizes duplicates: strips (1), (2), _1, - Copy and keeps LATEST.
 # 2. PHASE 1: Auto-organizes files dropped in phone root into subject folders.
-# 3. PHASE 2: Deletion Sync (Phone -> Website):
+# 3. PHASE 2: Deletion & Obsolete Path Synchronization (Phone -> Website):
 #             Detects any file deleted from the phone folder, automatically deletes
 #             its PDF from assets/docs/ and removes its entry from js/data.js.
 # 4. PHASE 3: Upstream Sync (Phone -> Website):
@@ -13,7 +13,7 @@
 # 5. PHASE 4: Downstream Sync (Website -> Phone):
 #             Syncs all website materials & starter documents down to phone
 #             folders so the entire MBBS library is always available offline.
-# 6. PHASE 5: Manifest Management & Git Push:
+# 6. PHASE 5: Manifest Finalization & Git Live Push:
 #             Maintains persistent .mbbs_sync_manifest tracking phone <-> repo links,
 #             commits changes to Git and pushes live to GitHub Pages.
 # ==============================================================================
@@ -82,12 +82,11 @@ mkdir -p "$PHONE_DIR/Anatomy/Histology" \
          "$PHONE_DIR/Foundation Course" \
          "$PHONE_DIR/Other" 2>/dev/null || true
 
-# Normalize string to safe identifier
+# Helper string functions
 to_safe_id() {
     echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '_' | sed 's/__*/_/g; s/^_//; s/_$//'
 }
 
-# Clean version duplicate suffix like (1), (2), _1, - Copy
 get_canonical_name() {
     local full_name="$1"
     local ext="${full_name##*.}"
@@ -106,7 +105,6 @@ get_canonical_name() {
     echo "${cleaned}.${ext}"
 }
 
-# Format display label (Title Case with spaces)
 format_display() {
     echo "$1" | sed -E 's/[_\-]+/ /g; s/\.[^.]+$//; s/\s+/ /g; s/^\s+|\s+$//' | awk '{
         for (i=1; i<=NF; i++) {
@@ -275,13 +273,13 @@ remove_resource_by_url() {
 # ==============================================================================
 # PHASE 0: Version Normalization & Deduplication (Strip (1), (2) & Keep Latest)
 # ==============================================================================
-DEDUP_FILES=()
+ALL_PHONE_FILES=()
 while IFS= read -r -d '' f; do
-    DEDUP_FILES+=("$f")
+    ALL_PHONE_FILES+=("$f")
 done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 
 DEDUP_SUMMARY=()
-for file in "${DEDUP_FILES[@]}"; do
+for file in "${ALL_PHONE_FILES[@]}"; do
     [ -f "$file" ] || continue
     base_name=$(basename "$file")
     dir_name=$(dirname "$file")
@@ -290,10 +288,13 @@ for file in "${DEDUP_FILES[@]}"; do
     if [ "$base_name" != "$canonical_name" ]; then
         target_path="$dir_name/$canonical_name"
         if [ ! -f "$target_path" ]; then
-            existing_match=$(find "$PHONE_DIR" -type f -name "$canonical_name" | head -n 1)
-            if [ -n "$existing_match" ]; then
-                target_path="$existing_match"
-            fi
+            # Check if canonical exists in memory list
+            for pf in "${ALL_PHONE_FILES[@]}"; do
+                if [ "$(basename "$pf")" = "$canonical_name" ] && [ -f "$pf" ]; then
+                    target_path="$pf"
+                    break
+                fi
+            done
         fi
 
         if [ -f "$target_path" ] && [ "$file" != "$target_path" ]; then
@@ -337,7 +338,6 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
         base_name=$(basename "$file")
         lower_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]')
 
-        # 1. Anatomy subdisciplines
         if [[ "$lower_name" =~ histo ]]; then
             subj_dir="Anatomy/Histology"
         elif [[ "$lower_name" =~ embryo ]]; then
@@ -348,7 +348,6 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
             subj_dir="Anatomy/Genetics"
         elif [[ "$lower_name" =~ gross ]]; then
             subj_dir="Anatomy/Gross Anatomy"
-        # 2. CBME Professional Modules
         elif [[ "$lower_name" =~ aetcom|ethics|communication ]]; then
             subj_dir="AETCOM"
         elif [[ "$lower_name" =~ ece|clinical_exposure|early_clinical ]]; then
@@ -357,7 +356,6 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
             subj_dir="Community Medicine"
         elif [[ "$lower_name" =~ foundation|orientation|bls|first_aid ]]; then
             subj_dir="Foundation Course"
-        # 3. Physiology Subdisciplines
         elif [[ "$lower_name" =~ hemato|blood ]]; then
             subj_dir="Physiology/Hematology"
         elif [[ "$lower_name" =~ cardio|heart|ecg ]]; then
@@ -374,7 +372,6 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
             subj_dir="Physiology/Neurophysiology"
         elif [[ "$lower_name" =~ physiology|physio ]]; then
             subj_dir="Physiology"
-        # 4. Biochemistry Subdisciplines
         elif [[ "$lower_name" =~ enzym|protein|carbo|lipid ]]; then
             subj_dir="Biochemistry/Biomolecules & Enzymes"
         elif [[ "$lower_name" =~ metabol|glycolys|tca|krebs ]]; then
@@ -387,7 +384,6 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
             subj_dir="Biochemistry/Nutrition & Vitamins"
         elif [[ "$lower_name" =~ biochem|chem ]]; then
             subj_dir="Biochemistry"
-        # 5. General Anatomy Keywords
         elif [[ "$lower_name" =~ anat|bone|cranial|plexus|muscle|organ|cadaver|dissect|thorax|abdomen|pelvis|limb|head|neck|brain ]]; then
             subj_dir="Anatomy"
         else
@@ -425,9 +421,14 @@ if [ "$ORGANIZED_COUNT" -gt 0 ]; then
     done
 fi
 
+# Refresh in-memory list of phone files
+ALL_PHONE_FILES=()
+while IFS= read -r -d '' f; do
+    ALL_PHONE_FILES+=("$f")
+done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+
 # ==============================================================================
-# PHASE 2: Deletion Synchronization (Phone -> Website)
-# Detects any file deleted from the phone and cleans it from assets/docs/ & js/data.js
+# PHASE 2: Deletion & Obsolete Path Synchronization (Phone -> Website)
 # ==============================================================================
 TMP_MANIFEST="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/mbbs_manifest_$$.tmp"
 rm -f "$TMP_MANIFEST"
@@ -435,61 +436,37 @@ touch "$TMP_MANIFEST"
 
 DELETED_SUMMARY=()
 
-# Bootstrap manifest if missing
-if [ ! -f "$MANIFEST_FILE" ]; then
-    touch "$MANIFEST_FILE"
-    auto_urls=$(awk -F'"' '/fileUrl:[[:space:]]*"/ { print $2 }' "$DATA_FILE")
-    for a_url in $auto_urls; do
-        is_mobile=$(awk -v url="$a_url" '
-            $0 ~ url { found=1 }
-            found && /tags:/ && /Mobile Upload/ { print "yes"; exit }
-            found && /^\s*\},?\s*$/ { exit }
-        ' "$DATA_FILE" || true)
-
-        if [ "$is_mobile" = "yes" ]; then
-            # Verify if an existing phone file maps to this URL
-            found_rel=""
-            while IFS= read -r -d '' pf; do
-                rel_candidate="${pf#$PHONE_DIR/}"
-                if [ "$(phone_to_repo_url "$rel_candidate")" = "$a_url" ]; then
-                    found_rel="$rel_candidate"
-                    break
-                fi
-            done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
-
-            if [ -n "$found_rel" ]; then
-                echo "$found_rel|$a_url" >> "$MANIFEST_FILE"
-            else
-                # DELETED ON PHONE! Remove from repo and js/data.js
-                if [ -f "$REPO_DIR/$a_url" ]; then
-                    rm -f "$REPO_DIR/$a_url"
-                fi
-                remove_resource_by_url "$a_url"
-                DELETED_SUMMARY+=("$(basename "$a_url") [deleted from phone]")
-            fi
-        fi
-    done
-fi
-
-# Scan existing manifest for deletions
-if [ -s "$MANIFEST_FILE" ]; then
+# Scan existing manifest for deletions or obsolete path mismatches
+if [ -f "$MANIFEST_FILE" ] && [ -s "$MANIFEST_FILE" ]; then
     while IFS='|' read -r phone_rel repo_url || [ -n "$phone_rel" ]; do
         [ -n "$phone_rel" ] || continue
         [ -n "$repo_url" ] || continue
 
         phone_full="$PHONE_DIR/$phone_rel"
         if [ -f "$phone_full" ]; then
-            echo "$phone_rel|$repo_url" >> "$TMP_MANIFEST"
+            # Verify if this repo_url is the canonical URL for this phone path
+            canonical_url=$(phone_to_repo_url "$phone_rel")
+            if [ "$canonical_url" = "$repo_url" ]; then
+                echo "$phone_rel|$repo_url" >> "$TMP_MANIFEST"
+            else
+                # Stale / duplicate URL pointing to same file! Remove obsolete repo entry
+                if [ -f "$REPO_DIR/$repo_url" ]; then
+                    rm -f "$REPO_DIR/$repo_url"
+                fi
+                remove_resource_by_url "$repo_url"
+                DELETED_SUMMARY+=("$repo_url (cleaned obsolete duplicate)")
+            fi
         else
             # File missing at mapped path. Check if it was moved to another subfolder.
             base_fname=$(basename "$phone_rel")
+            base_safe=$(format_safe_filename "$base_fname")
             moved_path=""
-            while IFS= read -r -d '' pf; do
-                if [ "$(basename "$pf")" = "$base_fname" ] || [ "$(format_safe_filename "$(basename "$pf")")" = "$(format_safe_filename "$base_fname")" ]; then
+            for pf in "${ALL_PHONE_FILES[@]}"; do
+                if [ "$(format_safe_filename "$(basename "$pf")")" = "$base_safe" ]; then
                     moved_path="$pf"
                     break
                 fi
-            done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+            done
 
             if [ -n "$moved_path" ]; then
                 new_rel="${moved_path#$PHONE_DIR/}"
@@ -514,7 +491,7 @@ if [ -s "$MANIFEST_FILE" ]; then
 fi
 
 if [ "${#DELETED_SUMMARY[@]}" -gt 0 ]; then
-    echo -e "${RED}${BOLD}🗑️  [MBBS Library] Synced ${#DELETED_SUMMARY[@]} deletion(s) from phone:${RESET}"
+    echo -e "${RED}${BOLD}🗑️  [MBBS Library] Synced ${#DELETED_SUMMARY[@]} deletion(s) / obsolete item(s) from phone:${RESET}"
     for item in "${DELETED_SUMMARY[@]}"; do
         echo -e "   ${YELLOW}✖${RESET} $item"
     done
@@ -523,11 +500,6 @@ fi
 # ==============================================================================
 # PHASE 3: Upstream Sync (Phone -> Website)
 # ==============================================================================
-ALL_PHONE_FILES=()
-while IFS= read -r -d '' f; do
-    ALL_PHONE_FILES+=("$f")
-done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
-
 NEW_FILES_PROCESSED=0
 PROCESSED_NAMES=()
 TMP_ENTRIES="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/mbbs_new_entries_$$.tmp"
@@ -538,7 +510,6 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     base_name=$(basename "$file")
     rel_path="${file#$PHONE_DIR/}"
 
-    # Calculate target repo url
     target_rel_url=$(phone_to_repo_url "$rel_path")
     target_abs_path="$REPO_DIR/$target_rel_url"
     target_dir=$(dirname "$target_abs_path")
@@ -550,7 +521,6 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         file_copied=1
     fi
 
-    # Record in active manifest
     echo "$rel_path|$target_rel_url" >> "$TMP_MANIFEST"
 
     # Check if cataloged in js/data.js
@@ -647,7 +617,6 @@ rm -f "$TMP_ENTRIES"
 
 # ==============================================================================
 # PHASE 4: Downstream Sync (Website -> Phone)
-# Ensures all website materials are also present on the phone for offline use!
 # ==============================================================================
 SEED_SUMMARY=()
 ACTIVE_WEBSITE_URLS=$(awk -F'"' '/fileUrl:[[:space:]]*"/ { print $2 }' "$DATA_FILE")
@@ -656,12 +625,10 @@ for w_url in $ACTIVE_WEBSITE_URLS; do
     repo_physical="$REPO_DIR/$w_url"
     [ -f "$repo_physical" ] || continue
 
-    # Check if already present in manifest
     if grep -q "|$w_url$" "$TMP_MANIFEST"; then
         continue
     fi
 
-    # Determine phone path
     phone_rel_dest=$(repo_to_phone_path "$w_url")
     phone_target_file="$PHONE_DIR/$phone_rel_dest"
 
@@ -670,15 +637,15 @@ for w_url in $ACTIVE_WEBSITE_URLS; do
         continue
     fi
 
-    # Check if file with matching safe name exists anywhere in that subject
+    # Check in-memory list
     w_base=$(basename "$w_url")
     found_on_phone=""
-    while IFS= read -r -d '' pf; do
+    for pf in "${ALL_PHONE_FILES[@]}"; do
         if [ "$(format_safe_filename "$(basename "$pf")")" = "$w_base" ]; then
             found_on_phone="$pf"
             break
         fi
-    done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+    done
 
     if [ -n "$found_on_phone" ]; then
         rel_phone="${found_on_phone#$PHONE_DIR/}"
@@ -686,7 +653,6 @@ for w_url in $ACTIVE_WEBSITE_URLS; do
         continue
     fi
 
-    # Seed down to phone
     mkdir -p "$(dirname "$phone_target_file")"
     cp -p "$repo_physical" "$phone_target_file"
     echo "$phone_rel_dest|$w_url" >> "$TMP_MANIFEST"
@@ -711,7 +677,6 @@ fi
 # Clean empty directories inside assets/docs
 find "$REPO_DIR/assets/docs" -type d -empty -delete 2>/dev/null || true
 
-# Count total offline phone files
 TOTAL_OFFLINE_FILES=$(find "$PHONE_DIR" -type f ! -name ".*" | wc -l)
 
 # ==============================================================================
@@ -731,7 +696,6 @@ if [ -z "$CHANGES" ]; then
     exit 0
 fi
 
-# Print banner for detected uploads
 if [ "$NEW_FILES_PROCESSED" -gt 0 ]; then
     echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}"
     echo -e "${CYAN}${BOLD}📥 [MBBS Library] Uploading $NEW_FILES_PROCESSED new/updated file(s) to website!${RESET}"
@@ -741,7 +705,6 @@ if [ "$NEW_FILES_PROCESSED" -gt 0 ]; then
     echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
 fi
 
-# Stage all changes
 git add -A
 
 COMMIT_PARTS=()
@@ -756,7 +719,6 @@ fi
 
 git commit -m "$COMMIT_MSG" >/dev/null
 
-# Append to PROJECT_LOG.md
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 cat << EOF >> "$LOG_FILE"
 
@@ -784,7 +746,6 @@ EOF
 git add "$LOG_FILE"
 git commit --amend --no-edit >/dev/null 2>&1 || true
 
-# Test internet connectivity before pushing
 echo -e "🚀 ${BOLD}Connecting to GitHub...${RESET}"
 if curl -s --connect-timeout 4 -I https://github.com >/dev/null 2>&1; then
     if git push origin main >/dev/null 2>&1; then

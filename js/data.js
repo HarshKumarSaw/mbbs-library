@@ -117,21 +117,6 @@ const MBBS_RESOURCES = [
     year: "1st Year MBBS"
   },
   {
-    id: "user-anat-histology-0419",
-    title: "Histology",
-    subject: "anatomy",
-    category: "other",
-    code: "CBME Mobile",
-    description: "Uploaded document: Histology.pdf. Reference study material.",
-    tags: ["Anatomy", "Other", "Mobile Upload"],
-    fileUrl: "assets/docs/anatomy/histology.pdf",
-    fileSize: "1.7 MB",
-    pages: "Document",
-    author: "HarshKumarSaw",
-    date: "Nov 2026",
-    year: "1st Year MBBS"
-  },
-  {
     id: "user-anat-anatomy_diagrams-0203",
     title: "Anatomy Diagrams",
     subject: "anatomy",
