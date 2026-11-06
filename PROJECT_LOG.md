@@ -4,12 +4,14 @@
 - **Project**: MBBS Academic Digital Resource Library
 - **Maintainer**: HarshKumarSaw (`harshsaw01@gmail.com`)
 - **Target Platform**: GitHub Pages (Static, 100% Free, Zero Backend)
-- **Repository Path**: `/data/data/com.termux/files/home/mbbs-resource-library`
-- **Remote URL**: `git@github.com:HarshKumarSaw/mbbs-resource-library.git`
+- **Local Directory**: `/data/data/com.termux/files/home/mbbs-resource-library`
+- **GitHub Repository**: [https://github.com/HarshKumarSaw/mbbs-library](https://github.com/HarshKumarSaw/mbbs-library)
+- **Git Remote**: `git@github.com:HarshKumarSaw/mbbs-library.git`
+- **Live Website URL**: `https://harshkumarsaw.github.io/mbbs-library/` (once Pages is enabled)
 
 ---
 
-## Detailed Log of Work Done
+## Detailed Chronological Log
 
 ### Session 1: Project Architecture & Construction (Nov 6, 2026 ~17:24 - 17:46 UTC)
 1. **Environment Setup & Tool Discovery**:
@@ -56,15 +58,16 @@
 
 ---
 
-### Session 2: GitHub Integration & Status Check (Nov 6, 2026 ~18:03 - 18:12 UTC)
+### Session 2: GitHub Repository Setup & Push (Nov 6, 2026 ~18:03 - 18:22 UTC)
 1. **SSH Authentication Verification**:
-   - Checked SSH connection with `ssh -T git@github.com`.
-   - Confirmed authenticated successfully as **`HarshKumarSaw`**.
+   - Confirmed SSH authentication as user **`HarshKumarSaw`**.
 2. **Commit Attribution Update**:
-   - Updated local Git author details to match global configuration: `HarshKumarSaw <harshsaw01@gmail.com>`.
-   - Amended initial commit to ensure GitHub contribution attribution.
+   - Re-attributed commits to `HarshKumarSaw <harshsaw01@gmail.com>`.
 3. **Remote Configuration**:
-   - Set remote origin to `git@github.com:HarshKumarSaw/mbbs-resource-library.git`.
-4. **Current Status & Pending Step**:
-   - Checked remote repository status: repository `HarshKumarSaw/mbbs-resource-library` has not yet been created on GitHub.
-   - Once the repository is created on GitHub, code can be immediately pushed via `git push -u origin main`.
+   - Configured `origin` remote: `git@github.com:HarshKumarSaw/mbbs-library.git`.
+   - Set up SSH command with `core.sshCommand = "ssh -o StrictHostKeyChecking=accept-new"`.
+4. **Code Push**:
+   - Executed `git push -u origin main`.
+   - Successfully uploaded 42 objects, created `main` branch tracking `origin/main`.
+5. **Next Step**:
+   - Enable GitHub Pages under Repository Settings -> Pages (Source: `main`, folder `/root`).
