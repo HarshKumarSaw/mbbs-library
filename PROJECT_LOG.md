@@ -203,3 +203,35 @@
 - **Phone Deduplication**: Resolved 0 version duplicate(s)
 - **Phone Organization**: Organized 0 file(s) on phone
 - **Files Uploaded / Updated**: 0
+
+---
+
+### Session 7: Strict Mobile-First Responsive Architecture Overhaul (Nov 6, 2026 ~19:40 - 19:47 UTC)
+1. **User Requirement**:
+   - Rebuild layout strictly from the mobile viewport up (360px–430px) rather than scaling down desktop components.
+   - True single-column layout on mobile with full-width cards, vertical stacking of subject cards and study resources.
+   - Fix search input cramping on narrow phones, touch-friendly filters, and compact navigation.
+   - Eliminate horizontal scrolling, overflowing components, and awkward wrapping.
+   - Clean multi-column grids scaling smoothly on tablets (768px) and desktop (1024px+).
+2. **Mobile-First CSS Architecture (`css/style.css`)**:
+   - **Boundary Enforcement**: Set `html, body { width: 100%; max-width: 100%; overflow-x: hidden; }` to eliminate any horizontal page wobble.
+   - **Mobile Padding**: Standardized container mobile padding at `1rem` (16px), providing optimal usable width (328px on 360px, 358px on 390px, 398px on 430px).
+   - **Vertical Stacking**:
+     - `.subject-cards-grid`: Flex column on mobile (<768px); 3-column grid on desktop.
+     - `.resources-grid`: Flex column on mobile (<768px); 2-column grid on tablet; 3-column grid on desktop.
+     - `.guidelines-grid`: Flex column on mobile (<768px); 3-column grid on desktop.
+   - **Search Experience**:
+     - Mobile (<640px): Full-width search input with magnifying glass and clear button; "Find PDF" button hidden on small screens because typing live-filters in real-time. Desktop (>=640px) displays full button.
+   - **Touch Controls**:
+     - Quick chips: Smooth horizontal touch carousel on mobile; wrapped on desktop.
+     - Filter toolbar: Sticky top with blur, 42px touch-friendly pills with hidden scrollbars.
+     - Resource cards: Full width on mobile with 48px high "Read PDF" button and 48px download action.
+   - **Responsive Stats**:
+     - Mobile: Clean 3-column capsule dashboard with stacked numbers/emojis and labels.
+     - Desktop: Inline flex ribbon with bullet dividers.
+3. **Template Synchronization**:
+   - Updated `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html` to share the compact header and responsive stats markup.
+4. **Verification**:
+   - Tested HTTP 200 on all static endpoints.
+   - Verified that automated phone sync (`mbbs-sync`) deployed live to GitHub Pages.
+   - Live URL: `https://harshkumarsaw.github.io/mbbs-library/`
