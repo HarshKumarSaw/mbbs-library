@@ -1,8 +1,12 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==============================================================================
 # MBBS Resource Library - Automatic Mobile Phone Upload & Sync Script
-# Scans /storage/emulated/0/mbbs-library on your phone, organizes new files,
-# updates the website catalog, and pushes to GitHub Pages automatically.
+# 1. Automatically organizes unorganized files on phone into subject folders:
+#    - Anatomy/
+#    - Physiology/
+#    - Biochemistry/
+#    - Other/
+# 2. Automatically catalogs and uploads all files to GitHub Pages website.
 # ==============================================================================
 
 set -euo pipefail
@@ -47,19 +51,74 @@ if [ ! -d "$PHONE_DIR" ]; then
     exit 0
 fi
 
-# Detect subject from path and filename
+# Ensure standard subject folders exist on phone
+mkdir -p "$PHONE_DIR/Anatomy" "$PHONE_DIR/Physiology" "$PHONE_DIR/Biochemistry" "$PHONE_DIR/Other"
+
+# ==============================================================================
+# PHASE 1: Auto-Organize Phone Files Subject-Wise
+# ==============================================================================
+ORGANIZED_COUNT=0
+ORGANIZED_SUMMARY=()
+
+UNORGANIZED_FILES=()
+while IFS= read -r -d '' f; do
+    UNORGANIZED_FILES+=("$f")
+done < <(find "$PHONE_DIR" -maxdepth 1 -type f ! -name ".*" -print0)
+
+if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
+    for file in "${UNORGANIZED_FILES[@]}"; do
+        base_name=$(basename "$file")
+        lower_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]')
+
+        # Detect subject for folder organization
+        if [[ "$lower_name" =~ physiology|physio|cardio|heart|ecg|respirat|lung|renal|kidney|hemato|blood|nerve|reflex|endocrine ]]; then
+            subj_dir="Physiology"
+        elif [[ "$lower_name" =~ biochem|metabol|enzym|lipid|carbo|protein|amino|vitamin|mineral|inborn|genetic|dna|rna|urine|lft ]]; then
+            subj_dir="Biochemistry"
+        elif [[ "$lower_name" =~ anat|gross|histo|embryo|bone|neuroanat|cranial|plexus|muscle|organ|cadaver|dissect|thorax|abdomen|pelvis|limb|head|neck|brain ]]; then
+            subj_dir="Anatomy"
+        else
+            subj_dir="Other"
+        fi
+
+        target_phone_dest="$PHONE_DIR/$subj_dir/$base_name"
+        if [ "$file" != "$target_phone_dest" ]; then
+            if [ -f "$target_phone_dest" ]; then
+                if cmp -s "$file" "$target_phone_dest"; then
+                    rm -f "$file"
+                else
+                    mv "$file" "$PHONE_DIR/$subj_dir/${base_name%.*}_$(date +%s).${base_name##*.}"
+                fi
+            else
+                mv "$file" "$target_phone_dest"
+            fi
+            ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
+            ORGANIZED_SUMMARY+=("$base_name ➔ $subj_dir/")
+        fi
+    done
+fi
+
+if [ "$ORGANIZED_COUNT" -gt 0 ]; then
+    echo -e "${CYAN}📁 [MBBS Library] Organized $ORGANIZED_COUNT file(s) into subject folders on phone:${RESET}"
+    for item in "${ORGANIZED_SUMMARY[@]}"; do
+        echo -e "   ${GREEN}✔${RESET} $item"
+    done
+fi
+
+# ==============================================================================
+# Helper Detection Functions
+# ==============================================================================
 detect_subject() {
     local path_lower="$1"
-    if [[ "$path_lower" =~ physiology|physio|cardio|heart|ecg|respirat|lung|renal|kidney|hemato|blood|nerve|reflex|endocrine ]]; then
+    if [[ "$path_lower" =~ /physiology/|physiology|physio|cardio|heart|ecg|respirat|lung|renal|kidney|hemato|blood|nerve|reflex|endocrine ]]; then
         echo "physiology"
-    elif [[ "$path_lower" =~ biochem|metabol|enzym|lipid|carbo|protein|amino|vitamin|mineral|inborn|genetic|dna|rna|urine|lft ]]; then
+    elif [[ "$path_lower" =~ /biochemistry/|biochem|metabol|enzym|lipid|carbo|protein|amino|vitamin|mineral|inborn|genetic|dna|rna|urine|lft ]]; then
         echo "biochemistry"
     else
         echo "anatomy"
     fi
 }
 
-# Detect category from path and filename
 detect_category() {
     local path_lower="$1"
     if [[ "$path_lower" =~ note|lecture|slide|theory|summary|class|concept|review|handout ]]; then
@@ -75,7 +134,6 @@ detect_category() {
     fi
 }
 
-# Format human readable file size
 format_file_size() {
     local bytes="$1"
     if [ "$bytes" -ge 1048576 ]; then
@@ -87,10 +145,8 @@ format_file_size() {
     fi
 }
 
-# Clean title for card display
 format_title() {
     local raw="$1"
-    # Replace separators with spaces, remove bracketed junk, squeeze spaces
     echo "$raw" | sed -E 's/[_\-]+/ /g; s/\.[^.]+$//; s/\s+/ /g; s/^\s+|\s+$//' | awk '{
         for (i=1; i<=NF; i++) {
             $i = toupper(substr($i,1,1)) tolower(substr($i,2))
@@ -99,7 +155,6 @@ format_title() {
     }'
 }
 
-# Format safe web filename
 format_safe_filename() {
     local base="$1"
     local ext="${base##*.}"
@@ -109,18 +164,19 @@ format_safe_filename() {
     echo "${safe}.${ext,,}"
 }
 
-# Find all files in phone folder
-FILES=()
+# ==============================================================================
+# PHASE 2: Scan All Organized Files and Sync to Website
+# ==============================================================================
+ALL_FILES=()
 while IFS= read -r -d '' f; do
-    FILES+=("$f")
+    ALL_FILES+=("$f")
 done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 
-TOTAL_PHONE_FILES=${#FILES[@]}
+TOTAL_PHONE_FILES=${#ALL_FILES[@]}
 
 if [ "$TOTAL_PHONE_FILES" -eq 0 ]; then
     if [ "$ON_STARTUP" -eq 0 ]; then
         echo -e "${CYAN}ℹ️  [MBBS Library] No files in phone folder ($PHONE_DIR).${RESET}"
-        echo -e "   Place any PDF or document there to upload it to your website!"
     fi
     exit 0
 fi
@@ -131,7 +187,7 @@ TMP_ENTRIES="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/mbbs_new_entries_$$.
 rm -f "$TMP_ENTRIES"
 touch "$TMP_ENTRIES"
 
-for file in "${FILES[@]}"; do
+for file in "${ALL_FILES[@]}"; do
     base_name=$(basename "$file")
     rel_path="${file#$PHONE_DIR/}"
     lower_path=$(echo "$rel_path" | tr '[:upper:]' '[:lower:]')
@@ -210,16 +266,18 @@ CHANGES=$(git status --porcelain)
 
 if [ -z "$CHANGES" ]; then
     if [ "$ON_STARTUP" -eq 1 ]; then
-        echo -e "${GREEN}📚 MBBS Library:${RESET} in sync with phone folder ($TOTAL_PHONE_FILES files on phone)."
+        if [ "$ORGANIZED_COUNT" -eq 0 ]; then
+            echo -e "${GREEN}📚 MBBS Library:${RESET} in sync with phone folder ($TOTAL_PHONE_FILES files across subject folders)."
+        fi
     else
-        echo -e "${GREEN}✨ [MBBS Library] Everything is up to date! No new files to sync.${RESET}"
+        echo -e "${GREEN}✨ [MBBS Library] All $TOTAL_PHONE_FILES files on phone are organized and synced to website!${RESET}"
     fi
     exit 0
 fi
 
 # Print banner for detected new uploads
 echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}"
-echo -e "${CYAN}${BOLD}📥 [MBBS Library] Detected $NEW_FILES_PROCESSED new/updated file(s) on phone!${RESET}"
+echo -e "${CYAN}${BOLD}📥 [MBBS Library] Uploading $NEW_FILES_PROCESSED new/updated file(s) to website!${RESET}"
 for item in "${PROCESSED_NAMES[@]}"; do
     echo -e "   ${GREEN}➜${RESET} $item"
 done
@@ -238,8 +296,9 @@ git commit -m "$COMMIT_MSG" >/dev/null
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 cat << EOF >> "$LOG_FILE"
 
-### Auto-Sync from Phone: $TIMESTAMP
-- **New Files Uploaded**: $NEW_FILES_PROCESSED
+### Auto-Sync & Organization: $TIMESTAMP
+- **Phone Organization**: Organized $ORGANIZED_COUNT unorganized files into subject folders
+- **New Files Uploaded to Site**: $NEW_FILES_PROCESSED
 EOF
 for item in "${PROCESSED_NAMES[@]}"; do
     echo "- $item" >> "$LOG_FILE"
