@@ -27,21 +27,6 @@ const MBBS_RESOURCES = [
     year: "1st Year MBBS"
   },
   {
-    id: "user-anat-anatomy_try-2409",
-    title: "Anatomy Try",
-    subject: "anatomy",
-    category: "other",
-    code: "Anatomy / Other",
-    description: "Uploaded document: Anatomy try.pdf. Organized under Anatomy (Other).",
-    tags: ["Anatomy", "Other", "Mobile Upload"],
-    fileUrl: "assets/docs/anatomy/anatomy_try.pdf",
-    fileSize: "573 KB",
-    pages: "Document",
-    author: "HarshKumarSaw",
-    date: "Nov 2026",
-    year: "1st Year MBBS"
-  },
-  {
     id: "user-bioc-biochemistry_practical-2198",
     title: "Biochemistry Practical",
     subject: "biochemistry",

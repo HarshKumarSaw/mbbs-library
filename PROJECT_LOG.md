@@ -272,3 +272,12 @@
 - **Files Uploaded / Updated from Phone**: 0
 - **Offline Files Seeded to Phone**: 19
 - **Total In-Sync Files**: 28
+
+### Two-Way Auto-Sync & Deletion: 2026-11-06 20:12:58 UTC
+- **Phone Deduplication**: Resolved 0 duplicate(s)
+- **Phone Organization**: Organized 0 root file(s)
+- **Phone Deletions Synced to Website**: 1 file(s)
+  - Anatomy/Anatomy Try.pdf (deleted from phone)
+- **Files Uploaded / Updated from Phone**: 0
+- **Offline Files Seeded to Phone**: 0
+- **Total In-Sync Files**: 27
