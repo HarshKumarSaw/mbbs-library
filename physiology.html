@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Physiology Vault | 1st Year MBBS</title>
-  <meta name="description" content="Human Physiology resources for MBBS students: Cardiac cycle, Nerve & Muscle physiology, Hematology practicals, Respiratory, and Renal mechanisms.">
+  <title>Physiology Resources | 1st Year MBBS</title>
+  <meta name="description" content="Clean, distraction-free Human Physiology resources for MBBS students: Cardiac cycle, Nerve & Muscle physiology, Hematology practicals, and Respiratory mechanisms.">
   <meta name="theme-color" content="#FAF8F5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,27 +14,16 @@
 </head>
 <body>
 
-  <!-- Top Announcement Ribbon -->
-  <aside class="top-bar" aria-label="Department Notice">
-    <div class="container top-bar-content">
-      <div class="top-bar-badge">
-        <span class="pulse-dot"></span>
-        <span>Department of Physiology • Pre-Clinical Division</span>
-      </div>
-      <span>CBME PY1.1 - PY11.14 • Mechanisms, Labs & Practical Values</span>
-    </div>
-  </aside>
-
-  <!-- Sticky Glassmorphic Navbar -->
+  <!-- Minimal Sticky Navbar -->
   <header class="navbar" role="banner">
     <div class="container nav-container">
-      <a href="index.html" class="brand" aria-label="MBBS Masterclass Vault Home">
+      <a href="index.html" class="brand" aria-label="MBBS Library Home">
         <div class="brand-emblem" aria-hidden="true" style="background: #5F3DC4;">
-          <span style="font-size: 1.4rem;">🫀</span>
+          <span>🫀</span>
         </div>
         <div class="brand-text">
-          <h1>Physiology.Vault</h1>
-          <span>Mechanisms & Labs</span>
+          <h1>Physiology</h1>
+          <span>1st Year Resources</span>
         </div>
       </a>
 
@@ -52,34 +41,25 @@
           <li><a href="anatomy.html" class="nav-link">🦴 Anatomy</a></li>
           <li><a href="physiology.html" class="nav-link active">🫀 Physiology</a></li>
           <li><a href="biochemistry.html" class="nav-link">🧪 Biochemistry</a></li>
-          <li><a href="#catalog-section" class="nav-link nav-cta">Search Physiology ⚡</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- Department Hero Section -->
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="container hero-content">
-        <div class="hero-tag">
-          <span>🫀 Human Physiology Division • PY1.1 - PY11.14</span>
+    <!-- Compact Header: Title & Instant Search -->
+    <section class="top-section">
+      <div class="container">
+        <div class="header-compact">
+          <h2 class="page-title">Human Physiology</h2>
+          <p class="page-subtitle">Cardiac cycle, nerve-muscle physiology, hematology practical procedures & spirometry.</p>
         </div>
 
-        <h2 id="hero-title">
-          Human Physiology <br>
-          <mark class="hero-highlighter highlighter-purple">Mechanisms & Labs</mark> Vault.
-        </h2>
-
-        <p>
-          Master cardiac cycles, nerve action potential dynamics, hematology procedures, spirometry curves, and clinical viva reference values with crystal clarity.
-        </p>
-
-        <!-- Big Search Bar -->
+        <!-- Search Bar -->
         <div class="search-wrapper">
           <form class="search-box" id="search-form" role="search" onsubmit="return false;">
             <span class="search-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
@@ -93,54 +73,30 @@
               autocomplete="off"
             >
             <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">✕</button>
-            <button type="button" class="search-btn" onclick="document.getElementById('catalog-section').scrollIntoView({behavior: 'smooth'})">
-              <span>Find PDF</span>
-            </button>
           </form>
         </div>
 
-        <!-- Quick Search Pill Chips -->
-        <div class="quick-chips" aria-label="Popular physiology search topics">
+        <!-- Quick Topic Chips -->
+        <div class="quick-chips" aria-label="Popular physiology topics">
           <button type="button" class="quick-chip" data-search="Cardiac Cycle">🫀 Cardiac Cycle</button>
           <button type="button" class="quick-chip" data-search="Action Potential">⚡ Action Potential</button>
           <button type="button" class="quick-chip" data-search="ECG">📈 ECG Waves</button>
-          <button type="button" class="quick-chip" data-search="Hematology">🩸 Hematology Labs</button>
+          <button type="button" class="quick-chip" data-search="Hematology">🩸 Hematology</button>
           <button type="button" class="quick-chip" data-search="Spirometry">🫁 Spirometry</button>
           <button type="button" class="quick-chip" data-search="SDL">💡 SDLs</button>
-        </div>
-
-        <!-- Single-Line Stats Ribbon -->
-        <div class="stats-bar" aria-label="Physiology statistics">
-          <div class="stat-item">
-            <span class="stat-number">🫀</span>
-            <span>Cardiovascular</span>
-          </div>
-          <span class="meta-bullet">•</span>
-          <div class="stat-item">
-            <span class="stat-number">⚡</span>
-            <span>Nerve & Muscle</span>
-          </div>
-          <span class="meta-bullet">•</span>
-          <div class="stat-item">
-            <span class="stat-number">🩸</span>
-            <span>Blood & Labs</span>
-          </div>
         </div>
       </div>
     </section>
 
-    <!-- Resources Section -->
-    <section class="resources-section" id="catalog-section" aria-label="Physiology resource directory">
+    <!-- Resources Section (Direct Immediate Focus!) -->
+    <section class="resources-section" id="catalog-section" aria-label="Physiology study catalog">
       <div class="container">
         
         <!-- Category Filter Track -->
         <div class="filter-toolbar">
           <div class="filter-row">
-            <div>
-              <span class="filter-group-label">Filter by Document Type:</span>
-              <div class="filter-pills" id="category-filters" role="tablist">
-                <!-- Populated dynamically via JS -->
-              </div>
+            <div class="filter-pills" id="category-filters" role="tablist" aria-label="Filter by category">
+              <!-- Populated dynamically via JS -->
             </div>
           </div>
         </div>
@@ -151,7 +107,7 @@
           <div class="active-filters" id="active-filters"></div>
         </div>
 
-        <!-- Cards Grid (1 Column on Mobile) -->
+        <!-- Cards Grid -->
         <div class="resources-grid" id="resources-grid">
           <!-- Populated dynamically via JS -->
         </div>
@@ -195,30 +151,16 @@
     </div>
   </div>
 
-  <!-- Footer -->
+  <!-- Minimal Clean Footer -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-brand">
-          🫀 Physiology Masterclass Vault
-        </div>
-        <p class="footer-text">
-          High-yield academic physiological mechanisms, lab practical procedures, and CBME modules for medical undergraduates.
-        </p>
-      </div>
-
-      <div class="footer-bottom">
-        <div>© 2026 Harsh Kumar Saw • Pre-Clinical Medical Division</div>
-        <div class="footer-host-badge">
-          <a href="index.html" style="color: inherit; text-decoration: none; font-weight: 700;">← Back to Main Library</a>
-        </div>
-      </div>
+    <div class="container footer-content">
+      <p>© 2026 Harsh Kumar Saw • Physiology Department</p>
+      <a href="index.html" class="footer-link">← All Subjects</a>
     </div>
   </footer>
 
   <script src="js/data.js"></script>
   <script>
-    // Pre-lock view to Physiology
     window.location.hash = "physiology";
   </script>
   <script src="js/app.js"></script>

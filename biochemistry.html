@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Biochemistry Vault | 1st Year MBBS</title>
-  <meta name="description" content="Medical Biochemistry resources for MBBS students: Carbohydrate & Lipid Metabolism, Clinical Enzymology, Genetics, Practical Urine Analysis, and Diagnostic Markers.">
+  <title>Biochemistry Resources | 1st Year MBBS</title>
+  <meta name="description" content="Clean, distraction-free Medical Biochemistry resources for MBBS students: Carbohydrate & Lipid Metabolism, Clinical Enzymology, Genetics, and Urine Analysis.">
   <meta name="theme-color" content="#FAF8F5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,27 +14,16 @@
 </head>
 <body>
 
-  <!-- Top Announcement Ribbon -->
-  <aside class="top-bar" aria-label="Department Notice">
-    <div class="container top-bar-content">
-      <div class="top-bar-badge">
-        <span class="pulse-dot"></span>
-        <span>Department of Biochemistry • Pre-Clinical Division</span>
-      </div>
-      <span>CBME BI1.1 - BI11.24 • Metabolism, Enzymology & Clinical Lab</span>
-    </div>
-  </aside>
-
-  <!-- Sticky Glassmorphic Navbar -->
+  <!-- Minimal Sticky Navbar -->
   <header class="navbar" role="banner">
     <div class="container nav-container">
-      <a href="index.html" class="brand" aria-label="MBBS Masterclass Vault Home">
+      <a href="index.html" class="brand" aria-label="MBBS Library Home">
         <div class="brand-emblem" aria-hidden="true" style="background: #0CA678;">
-          <span style="font-size: 1.4rem;">🧪</span>
+          <span>🧪</span>
         </div>
         <div class="brand-text">
-          <h1>Biochem.Vault</h1>
-          <span>Pathways & Clinical</span>
+          <h1>Biochemistry</h1>
+          <span>1st Year Resources</span>
         </div>
       </a>
 
@@ -52,34 +41,25 @@
           <li><a href="anatomy.html" class="nav-link">🦴 Anatomy</a></li>
           <li><a href="physiology.html" class="nav-link">🫀 Physiology</a></li>
           <li><a href="biochemistry.html" class="nav-link active">🧪 Biochemistry</a></li>
-          <li><a href="#catalog-section" class="nav-link nav-cta">Search Biochem ⚡</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- Department Hero Section -->
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="container hero-content">
-        <div class="hero-tag">
-          <span>🧪 Medical Biochemistry Division • BI1.1 - BI11.24</span>
+    <!-- Compact Header: Title & Instant Search -->
+    <section class="top-section">
+      <div class="container">
+        <div class="header-compact">
+          <h2 class="page-title">Medical Biochemistry</h2>
+          <p class="page-subtitle">Metabolic pathways, enzyme kinetics, inborn errors of metabolism, and diagnostic urine tests.</p>
         </div>
 
-        <h2 id="hero-title">
-          Medical Biochemistry <br>
-          <mark class="hero-highlighter highlighter-mint">Pathways & Tests</mark> Vault.
-        </h2>
-
-        <p>
-          Master metabolic pathways, enzyme inhibition kinetics, inborn errors of metabolism, practical urine test reagents, and organ function tests.
-        </p>
-
-        <!-- Big Search Bar -->
+        <!-- Search Bar -->
         <div class="search-wrapper">
           <form class="search-box" id="search-form" role="search" onsubmit="return false;">
             <span class="search-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
@@ -93,14 +73,11 @@
               autocomplete="off"
             >
             <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">✕</button>
-            <button type="button" class="search-btn" onclick="document.getElementById('catalog-section').scrollIntoView({behavior: 'smooth'})">
-              <span>Find PDF</span>
-            </button>
           </form>
         </div>
 
-        <!-- Quick Search Pill Chips -->
-        <div class="quick-chips" aria-label="Popular biochemistry search topics">
+        <!-- Quick Topic Chips -->
+        <div class="quick-chips" aria-label="Popular biochemistry topics">
           <button type="button" class="quick-chip" data-search="Enzyme Kinetics">🧪 Enzyme Kinetics</button>
           <button type="button" class="quick-chip" data-search="Metabolism">🔄 Metabolism</button>
           <button type="button" class="quick-chip" data-search="Urine Analysis">🧪 Urine Analysis</button>
@@ -108,39 +85,18 @@
           <button type="button" class="quick-chip" data-search="Vitamin">💊 Vitamins</button>
           <button type="button" class="quick-chip" data-search="SDL">💡 SDLs</button>
         </div>
-
-        <!-- Single-Line Stats Ribbon -->
-        <div class="stats-bar" aria-label="Biochemistry statistics">
-          <div class="stat-item">
-            <span class="stat-number">🔄</span>
-            <span>Metabolism</span>
-          </div>
-          <span class="meta-bullet">•</span>
-          <div class="stat-item">
-            <span class="stat-number">🧪</span>
-            <span>Enzymology</span>
-          </div>
-          <span class="meta-bullet">•</span>
-          <div class="stat-item">
-            <span class="stat-number">🧬</span>
-            <span>Diagnostics</span>
-          </div>
-        </div>
       </div>
     </section>
 
-    <!-- Resources Section -->
-    <section class="resources-section" id="catalog-section" aria-label="Biochemistry resource directory">
+    <!-- Resources Section (Direct Immediate Focus!) -->
+    <section class="resources-section" id="catalog-section" aria-label="Biochemistry study catalog">
       <div class="container">
         
         <!-- Category Filter Track -->
         <div class="filter-toolbar">
           <div class="filter-row">
-            <div>
-              <span class="filter-group-label">Filter by Document Type:</span>
-              <div class="filter-pills" id="category-filters" role="tablist">
-                <!-- Populated dynamically via JS -->
-              </div>
+            <div class="filter-pills" id="category-filters" role="tablist" aria-label="Filter by category">
+              <!-- Populated dynamically via JS -->
             </div>
           </div>
         </div>
@@ -151,7 +107,7 @@
           <div class="active-filters" id="active-filters"></div>
         </div>
 
-        <!-- Cards Grid (1 Column on Mobile) -->
+        <!-- Cards Grid -->
         <div class="resources-grid" id="resources-grid">
           <!-- Populated dynamically via JS -->
         </div>
@@ -195,30 +151,16 @@
     </div>
   </div>
 
-  <!-- Footer -->
+  <!-- Minimal Clean Footer -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-brand">
-          🧪 Biochemistry Masterclass Vault
-        </div>
-        <p class="footer-text">
-          High-yield academic biochemical pathways, clinical enzymology modules, and laboratory diagnostic guides for medical undergraduates.
-        </p>
-      </div>
-
-      <div class="footer-bottom">
-        <div>© 2026 Harsh Kumar Saw • Pre-Clinical Medical Division</div>
-        <div class="footer-host-badge">
-          <a href="index.html" style="color: inherit; text-decoration: none; font-weight: 700;">← Back to Main Library</a>
-        </div>
-      </div>
+    <div class="container footer-content">
+      <p>© 2026 Harsh Kumar Saw • Biochemistry Department</p>
+      <a href="index.html" class="footer-link">← All Subjects</a>
     </div>
   </footer>
 
   <script src="js/data.js"></script>
   <script>
-    // Pre-lock view to Biochemistry
     window.location.hash = "biochemistry";
   </script>
   <script src="js/app.js"></script>
