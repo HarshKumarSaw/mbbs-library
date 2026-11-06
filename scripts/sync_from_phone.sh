@@ -1,11 +1,21 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==============================================================================
-# MBBS Resource Library - Dynamic Mobile Phone Auto-Sync & Organize Engine
-# 1. Strips duplicate version suffixes like (1), (2), _1, - Copy, etc.
-#    and keeps ONLY the latest revised file!
-# 2. Supports ANY custom folders/subfolders created on your phone (e.g. Physiology/Project/).
-# 3. Automatically organizes root files into appropriate subject folders.
-# 4. Catalogs new & updated files and publishes live to GitHub Pages.
+# MBBS Resource Library - Two-Way Auto-Sync, Version Normalization & Deletion Engine
+# 
+# 1. PHASE 0: Normalizes duplicates: strips (1), (2), _1, - Copy and keeps LATEST.
+# 2. PHASE 1: Auto-organizes files dropped in phone root into subject folders.
+# 3. PHASE 2: Deletion Sync (Phone -> Website):
+#             Detects any file deleted from the phone folder, automatically deletes
+#             its PDF from assets/docs/ and removes its entry from js/data.js.
+# 4. PHASE 3: Upstream Sync (Phone -> Website):
+#             Syncs new/updated phone files, organizes by subject/subfolder,
+#             and registers in js/data.js.
+# 5. PHASE 4: Downstream Sync (Website -> Phone):
+#             Syncs all website materials & starter documents down to phone
+#             folders so the entire MBBS library is always available offline.
+# 6. PHASE 5: Manifest Management & Git Push:
+#             Maintains persistent .mbbs_sync_manifest tracking phone <-> repo links,
+#             commits changes to Git and pushes live to GitHub Pages.
 # ==============================================================================
 
 set -euo pipefail
@@ -16,6 +26,8 @@ GREEN="\033[0;32m"
 BLUE="\033[0;34m"
 CYAN="\033[0;36m"
 YELLOW="\033[1;33m"
+RED="\033[0;31m"
+PURPLE="\033[0;35m"
 RESET="\033[0m"
 
 ON_STARTUP=0
@@ -26,6 +38,7 @@ fi
 PHONE_DIR="/storage/emulated/0/mbbs-library"
 REPO_DIR="/data/data/com.termux/files/home/mbbs-resource-library"
 DATA_FILE="$REPO_DIR/js/data.js"
+MANIFEST_FILE="$REPO_DIR/.mbbs_sync_manifest"
 LOG_FILE="$REPO_DIR/PROJECT_LOG.md"
 
 # Verify repository exists
@@ -49,6 +62,25 @@ if [ ! -d "$PHONE_DIR" ]; then
     fi
     exit 0
 fi
+
+# Ensure core MBBS subject directories exist on phone
+mkdir -p "$PHONE_DIR/Anatomy/Histology" \
+         "$PHONE_DIR/Anatomy/Gross Anatomy" \
+         "$PHONE_DIR/Anatomy/Embryology" \
+         "$PHONE_DIR/Anatomy/Neuroanatomy" \
+         "$PHONE_DIR/Physiology/Hematology" \
+         "$PHONE_DIR/Physiology/Cardiovascular" \
+         "$PHONE_DIR/Physiology/Respiratory" \
+         "$PHONE_DIR/Physiology/Renal" \
+         "$PHONE_DIR/Physiology/Neurophysiology" \
+         "$PHONE_DIR/Biochemistry/Clinical Biochemistry" \
+         "$PHONE_DIR/Biochemistry/Metabolism" \
+         "$PHONE_DIR/Biochemistry/Molecular Biology" \
+         "$PHONE_DIR/Community Medicine" \
+         "$PHONE_DIR/AETCOM" \
+         "$PHONE_DIR/ECE (Early Clinical Exposure)" \
+         "$PHONE_DIR/Foundation Course" \
+         "$PHONE_DIR/Other" 2>/dev/null || true
 
 # Normalize string to safe identifier
 to_safe_id() {
@@ -104,6 +136,98 @@ format_safe_filename() {
     echo "${safe}.${ext,,}"
 }
 
+get_phone_subject_name() {
+    local subj="$1"
+    local lower
+    lower=$(echo "$subj" | tr '[:upper:]' '[:lower:]')
+    if [[ "$lower" =~ anat ]]; then
+        echo "Anatomy"
+    elif [[ "$lower" =~ physio ]]; then
+        echo "Physiology"
+    elif [[ "$lower" =~ biochem ]]; then
+        echo "Biochemistry"
+    elif [[ "$lower" =~ community ]]; then
+        echo "Community Medicine"
+    elif [[ "$lower" =~ aetcom ]]; then
+        echo "AETCOM"
+    elif [[ "$lower" =~ ece ]]; then
+        echo "ECE (Early Clinical Exposure)"
+    elif [[ "$lower" =~ foundation ]]; then
+        echo "Foundation Course"
+    else
+        format_display "$subj"
+    fi
+}
+
+get_repo_subject_id() {
+    local top="$1"
+    local top_l
+    top_l=$(echo "$top" | tr '[:upper:]' '[:lower:]')
+    if [[ "$top_l" =~ anatomy|anat ]]; then
+        echo "anatomy"
+    elif [[ "$top_l" =~ physiology|physio ]]; then
+        echo "physiology"
+    elif [[ "$top_l" =~ biochemistry|biochem ]]; then
+        echo "biochemistry"
+    elif [[ "$top_l" =~ community ]]; then
+        echo "community_medicine"
+    elif [[ "$top_l" =~ aetcom ]]; then
+        echo "aetcom"
+    elif [[ "$top_l" =~ ece ]]; then
+        echo "ece"
+    elif [[ "$top_l" =~ foundation ]]; then
+        echo "foundation"
+    else
+        to_safe_id "$top"
+    fi
+}
+
+phone_to_repo_url() {
+    local rel_path="$1"
+    IFS='/' read -r -a parts <<< "$rel_path"
+    local num=${#parts[@]}
+    local subj
+    subj=$(get_repo_subject_id "${parts[0]}")
+
+    if [ "$num" -ge 3 ]; then
+        local sub
+        sub=$(to_safe_id "${parts[1]}")
+        local fname
+        fname=$(format_safe_filename "${parts[2]}")
+        echo "assets/docs/$subj/$sub/$fname"
+    elif [ "$num" -eq 2 ]; then
+        local fname
+        fname=$(format_safe_filename "${parts[1]}")
+        echo "assets/docs/$subj/$fname"
+    else
+        local fname
+        fname=$(format_safe_filename "${parts[0]}")
+        echo "assets/docs/other/$fname"
+    fi
+}
+
+repo_to_phone_path() {
+    local repo_url="$1"
+    local doc_path="${repo_url#assets/docs/}"
+    IFS='/' read -r -a parts <<< "$doc_path"
+    local num=${#parts[@]}
+    local top="${parts[0]}"
+    local phone_subj
+    phone_subj=$(get_phone_subject_name "$top")
+    local raw_base
+    raw_base=$(basename "$repo_url")
+    local phone_fname
+    phone_fname="$(format_display "$raw_base").pdf"
+    if [ "$num" -ge 3 ]; then
+        local sub="${parts[1]}"
+        local phone_sub
+        phone_sub=$(format_display "$sub")
+        echo "$phone_subj/$phone_sub/$phone_fname"
+    else
+        echo "$phone_subj/$phone_fname"
+    fi
+}
+
 detect_category_from_name() {
     local lower="$1"
     if [[ "$lower" =~ sdl ]]; then
@@ -117,6 +241,35 @@ detect_category_from_name() {
     else
         echo "other"
     fi
+}
+
+remove_resource_by_url() {
+    local target_url="$1"
+    local tmp_data="${DATA_FILE}.tmp.$$"
+    awk -v target="$target_url" '
+    BEGIN { in_obj = 0; obj_buf = "" }
+    /^[[:space:]]*\{/ {
+        in_obj = 1
+        obj_buf = $0 "\n"
+        has_target = 0
+        next
+    }
+    in_obj {
+        obj_buf = obj_buf $0 "\n"
+        if (index($0, target) > 0) {
+            has_target = 1
+        }
+        if ($0 ~ /^[[:space:]]*\},?[[:space:]]*$/) {
+            if (!has_target) {
+                printf "%s", obj_buf
+            }
+            in_obj = 0
+            obj_buf = ""
+        }
+        next
+    }
+    { print }
+    ' "$DATA_FILE" > "$tmp_data" && mv "$tmp_data" "$DATA_FILE"
 }
 
 # ==============================================================================
@@ -135,7 +288,6 @@ for file in "${DEDUP_FILES[@]}"; do
     canonical_name=$(get_canonical_name "$base_name")
 
     if [ "$base_name" != "$canonical_name" ]; then
-        # Check if canonical file already exists in same dir or globally
         target_path="$dir_name/$canonical_name"
         if [ ! -f "$target_path" ]; then
             existing_match=$(find "$PHONE_DIR" -type f -name "$canonical_name" | head -n 1)
@@ -249,7 +401,6 @@ if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
                 if cmp -s "$file" "$target_phone_dest"; then
                     rm -f "$file"
                 else
-                    # Replace with latest if newer
                     file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
                     target_mtime=$(stat -c %Y "$target_phone_dest" 2>/dev/null || echo 0)
                     if [ "$file_mtime" -ge "$target_mtime" ]; then
@@ -275,21 +426,107 @@ if [ "$ORGANIZED_COUNT" -gt 0 ]; then
 fi
 
 # ==============================================================================
-# PHASE 2: Dynamic Scan of All Folders & Auto-Sync to Website
+# PHASE 2: Deletion Synchronization (Phone -> Website)
+# Detects any file deleted from the phone and cleans it from assets/docs/ & js/data.js
 # ==============================================================================
-ALL_FILES=()
-while IFS= read -r -d '' f; do
-    ALL_FILES+=("$f")
-done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+TMP_MANIFEST="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/mbbs_manifest_$$.tmp"
+rm -f "$TMP_MANIFEST"
+touch "$TMP_MANIFEST"
 
-TOTAL_PHONE_FILES=${#ALL_FILES[@]}
+DELETED_SUMMARY=()
 
-if [ "$TOTAL_PHONE_FILES" -eq 0 ]; then
-    if [ "$ON_STARTUP" -eq 0 ]; then
-        echo -e "${CYAN}ℹ️  [MBBS Library] No files in phone folder ($PHONE_DIR).${RESET}"
-    fi
-    exit 0
+# Bootstrap manifest if missing
+if [ ! -f "$MANIFEST_FILE" ]; then
+    touch "$MANIFEST_FILE"
+    auto_urls=$(awk -F'"' '/fileUrl:[[:space:]]*"/ { print $2 }' "$DATA_FILE")
+    for a_url in $auto_urls; do
+        is_mobile=$(awk -v url="$a_url" '
+            $0 ~ url { found=1 }
+            found && /tags:/ && /Mobile Upload/ { print "yes"; exit }
+            found && /^\s*\},?\s*$/ { exit }
+        ' "$DATA_FILE" || true)
+
+        if [ "$is_mobile" = "yes" ]; then
+            # Verify if an existing phone file maps to this URL
+            found_rel=""
+            while IFS= read -r -d '' pf; do
+                rel_candidate="${pf#$PHONE_DIR/}"
+                if [ "$(phone_to_repo_url "$rel_candidate")" = "$a_url" ]; then
+                    found_rel="$rel_candidate"
+                    break
+                fi
+            done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+
+            if [ -n "$found_rel" ]; then
+                echo "$found_rel|$a_url" >> "$MANIFEST_FILE"
+            else
+                # DELETED ON PHONE! Remove from repo and js/data.js
+                if [ -f "$REPO_DIR/$a_url" ]; then
+                    rm -f "$REPO_DIR/$a_url"
+                fi
+                remove_resource_by_url "$a_url"
+                DELETED_SUMMARY+=("$(basename "$a_url") [deleted from phone]")
+            fi
+        fi
+    done
 fi
+
+# Scan existing manifest for deletions
+if [ -s "$MANIFEST_FILE" ]; then
+    while IFS='|' read -r phone_rel repo_url || [ -n "$phone_rel" ]; do
+        [ -n "$phone_rel" ] || continue
+        [ -n "$repo_url" ] || continue
+
+        phone_full="$PHONE_DIR/$phone_rel"
+        if [ -f "$phone_full" ]; then
+            echo "$phone_rel|$repo_url" >> "$TMP_MANIFEST"
+        else
+            # File missing at mapped path. Check if it was moved to another subfolder.
+            base_fname=$(basename "$phone_rel")
+            moved_path=""
+            while IFS= read -r -d '' pf; do
+                if [ "$(basename "$pf")" = "$base_fname" ] || [ "$(format_safe_filename "$(basename "$pf")")" = "$(format_safe_filename "$base_fname")" ]; then
+                    moved_path="$pf"
+                    break
+                fi
+            done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+
+            if [ -n "$moved_path" ]; then
+                new_rel="${moved_path#$PHONE_DIR/}"
+                new_repo_url=$(phone_to_repo_url "$new_rel")
+                if [ "$new_repo_url" != "$repo_url" ]; then
+                    if [ -f "$REPO_DIR/$repo_url" ]; then
+                        rm -f "$REPO_DIR/$repo_url"
+                    fi
+                    remove_resource_by_url "$repo_url"
+                fi
+                echo "$new_rel|$new_repo_url" >> "$TMP_MANIFEST"
+            else
+                # FILE WAS DELETED BY USER ON PHONE!
+                if [ -f "$REPO_DIR/$repo_url" ]; then
+                    rm -f "$REPO_DIR/$repo_url"
+                fi
+                remove_resource_by_url "$repo_url"
+                DELETED_SUMMARY+=("$phone_rel (deleted from phone)")
+            fi
+        fi
+    done < "$MANIFEST_FILE"
+fi
+
+if [ "${#DELETED_SUMMARY[@]}" -gt 0 ]; then
+    echo -e "${RED}${BOLD}🗑️  [MBBS Library] Synced ${#DELETED_SUMMARY[@]} deletion(s) from phone:${RESET}"
+    for item in "${DELETED_SUMMARY[@]}"; do
+        echo -e "   ${YELLOW}✖${RESET} $item"
+    done
+fi
+
+# ==============================================================================
+# PHASE 3: Upstream Sync (Phone -> Website)
+# ==============================================================================
+ALL_PHONE_FILES=()
+while IFS= read -r -d '' f; do
+    ALL_PHONE_FILES+=("$f")
+done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 
 NEW_FILES_PROCESSED=0
 PROCESSED_NAMES=()
@@ -297,105 +534,56 @@ TMP_ENTRIES="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/mbbs_new_entries_$$.
 rm -f "$TMP_ENTRIES"
 touch "$TMP_ENTRIES"
 
-for file in "${ALL_FILES[@]}"; do
+for file in "${ALL_PHONE_FILES[@]}"; do
     base_name=$(basename "$file")
     rel_path="${file#$PHONE_DIR/}"
 
-    # Split rel_path into directory hierarchy
-    IFS='/' read -r -a path_parts <<< "$rel_path"
-    num_parts=${#path_parts[@]}
-
-    # Top folder is the Subject
-    top_folder="${path_parts[0]}"
-    top_lower=$(echo "$top_folder" | tr '[:upper:]' '[:lower:]')
-
-    if [[ "$top_lower" =~ anatomy|anat ]]; then
-        subject="anatomy"
-        subj_display="Anatomy"
-    elif [[ "$top_lower" =~ physiology|physio ]]; then
-        subject="physiology"
-        subj_display="Physiology"
-    elif [[ "$top_lower" =~ biochemistry|biochem ]]; then
-        subject="biochemistry"
-        subj_display="Biochemistry"
-    elif [[ "$top_lower" =~ community ]]; then
-        subject="community_medicine"
-        subj_display="Community Medicine"
-    elif [[ "$top_lower" =~ aetcom ]]; then
-        subject="aetcom"
-        subj_display="AETCOM"
-    elif [[ "$top_lower" =~ ece ]]; then
-        subject="ece"
-        subj_display="ECE"
-    elif [[ "$top_lower" =~ foundation ]]; then
-        subject="foundation"
-        subj_display="Foundation Course"
-    else
-        subject=$(to_safe_id "$top_folder")
-        subj_display=$(format_display "$top_folder")
-    fi
-
-    # Subfolder determines Category dynamically!
-    sub_folder=""
-    category=""
-    cat_display=""
-
-    if [ "$num_parts" -ge 3 ]; then
-        # File is inside e.g. "Physiology/Project/file.pdf"
-        sub_folder="${path_parts[1]}"
-        sub_lower=$(echo "$sub_folder" | tr '[:upper:]' '[:lower:]')
-
-        if [[ "$sub_lower" =~ ^note ]]; then
-            category="notes"
-            cat_display="Notes"
-        elif [[ "$sub_lower" =~ ^assign ]]; then
-            category="assignments"
-            cat_display="Assignments"
-        elif [[ "$sub_lower" =~ ^sdl ]]; then
-            category="sdls"
-            cat_display="SDLs"
-        elif [[ "$sub_lower" =~ ^pract ]]; then
-            category="practicals"
-            cat_display="Practicals"
-        else
-            category=$(to_safe_id "$sub_folder")
-            cat_display=$(format_display "$sub_folder")
-        fi
-    else
-        # Directly under Subject folder: infer from filename
-        category=$(detect_category_from_name "$base_name")
-        cat_display=$(format_display "$category")
-    fi
-
-    safe_filename=$(format_safe_filename "$base_name")
-
-    # Target relative path preserving subfolder structure
-    if [ -n "$sub_folder" ]; then
-        target_rel_url="assets/docs/$subject/$(to_safe_id "$sub_folder")/$safe_filename"
-    else
-        target_rel_url="assets/docs/$subject/$safe_filename"
-    fi
-
+    # Calculate target repo url
+    target_rel_url=$(phone_to_repo_url "$rel_path")
     target_abs_path="$REPO_DIR/$target_rel_url"
     target_dir=$(dirname "$target_abs_path")
     mkdir -p "$target_dir"
 
     file_copied=0
-    # Check if physical file exists and is identical
     if [ ! -f "$target_abs_path" ] || ! cmp -s "$file" "$target_abs_path"; then
         cp -p "$file" "$target_abs_path"
         file_copied=1
     fi
 
+    # Record in active manifest
+    echo "$rel_path|$target_rel_url" >> "$TMP_MANIFEST"
+
     # Check if cataloged in js/data.js
     if ! grep -q "$target_rel_url" "$DATA_FILE"; then
+        IFS='/' read -r -a path_parts <<< "$rel_path"
+        num_parts=${#path_parts[@]}
+        top_folder="${path_parts[0]}"
+        subject=$(get_repo_subject_id "$top_folder")
+        subj_display=$(get_phone_subject_name "$subject")
+
+        category=""
+        cat_display=""
+        if [ "$num_parts" -ge 3 ]; then
+            sub_folder="${path_parts[1]}"
+            sub_lower=$(echo "$sub_folder" | tr '[:upper:]' '[:lower:]')
+            if [[ "$sub_lower" =~ ^note ]]; then category="notes"; cat_display="Notes"
+            elif [[ "$sub_lower" =~ ^assign ]]; then category="assignments"; cat_display="Assignments"
+            elif [[ "$sub_lower" =~ ^sdl ]]; then category="sdls"; cat_display="SDLs"
+            elif [[ "$sub_lower" =~ ^pract ]]; then category="practicals"; cat_display="Practicals"
+            else category=$(to_safe_id "$sub_folder"); cat_display=$(format_display "$sub_folder")
+            fi
+        else
+            category=$(detect_category_from_name "$base_name")
+            cat_display=$(format_display "$category")
+        fi
+
+        safe_filename=$(format_safe_filename "$base_name")
         title=$(format_display "$base_name")
         file_bytes=$(wc -c < "$file")
         file_size=$(format_file_size "$file_bytes")
         current_date=$(date +"%b %Y")
         unique_id="user-${subject:0:4}-${safe_filename%.*}-$(date +%s | tail -c 5)"
 
-        # Tags builder
         tags_json="\"$subj_display\""
         if [ -n "$cat_display" ] && [ "$cat_display" != "$subj_display" ]; then
             tags_json="$tags_json, \"$cat_display\""
@@ -426,7 +614,6 @@ EOF
         NEW_FILES_PROCESSED=$((NEW_FILES_PROCESSED + 1))
         PROCESSED_NAMES+=("$base_name ($subj_display / $cat_display)")
     elif [ "$file_copied" -eq 1 ]; then
-        # File was updated! Update fileSize in js/data.js
         file_bytes=$(wc -c < "$file")
         new_size=$(format_file_size "$file_bytes")
         awk -v url="$target_rel_url" -v size="$new_size" '
@@ -444,7 +631,6 @@ EOF
     fi
 done
 
-# If there are new entries to insert into js/data.js
 if [ -s "$TMP_ENTRIES" ]; then
     ENTRIES_CONTENT=$(cat "$TMP_ENTRIES")
     awk -v entries="$ENTRIES_CONTENT" '
@@ -459,50 +645,141 @@ if [ -s "$TMP_ENTRIES" ]; then
 fi
 rm -f "$TMP_ENTRIES"
 
-# Check git status for changes
+# ==============================================================================
+# PHASE 4: Downstream Sync (Website -> Phone)
+# Ensures all website materials are also present on the phone for offline use!
+# ==============================================================================
+SEED_SUMMARY=()
+ACTIVE_WEBSITE_URLS=$(awk -F'"' '/fileUrl:[[:space:]]*"/ { print $2 }' "$DATA_FILE")
+
+for w_url in $ACTIVE_WEBSITE_URLS; do
+    repo_physical="$REPO_DIR/$w_url"
+    [ -f "$repo_physical" ] || continue
+
+    # Check if already present in manifest
+    if grep -q "|$w_url$" "$TMP_MANIFEST"; then
+        continue
+    fi
+
+    # Determine phone path
+    phone_rel_dest=$(repo_to_phone_path "$w_url")
+    phone_target_file="$PHONE_DIR/$phone_rel_dest"
+
+    if [ -f "$phone_target_file" ]; then
+        echo "$phone_rel_dest|$w_url" >> "$TMP_MANIFEST"
+        continue
+    fi
+
+    # Check if file with matching safe name exists anywhere in that subject
+    w_base=$(basename "$w_url")
+    found_on_phone=""
+    while IFS= read -r -d '' pf; do
+        if [ "$(format_safe_filename "$(basename "$pf")")" = "$w_base" ]; then
+            found_on_phone="$pf"
+            break
+        fi
+    done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+
+    if [ -n "$found_on_phone" ]; then
+        rel_phone="${found_on_phone#$PHONE_DIR/}"
+        echo "$rel_phone|$w_url" >> "$TMP_MANIFEST"
+        continue
+    fi
+
+    # Seed down to phone
+    mkdir -p "$(dirname "$phone_target_file")"
+    cp -p "$repo_physical" "$phone_target_file"
+    echo "$phone_rel_dest|$w_url" >> "$TMP_MANIFEST"
+    SEED_SUMMARY+=("$(basename "$phone_rel_dest") ➔ $(dirname "$phone_rel_dest")/")
+done
+
+if [ "${#SEED_SUMMARY[@]}" -gt 0 ]; then
+    echo -e "${PURPLE}${BOLD}📲 [MBBS Library] Synced ${#SEED_SUMMARY[@]} website resource(s) down to phone for offline reading:${RESET}"
+    for item in "${SEED_SUMMARY[@]}"; do
+        echo -e "   ${GREEN}✔${RESET} $item"
+    done
+fi
+
+# ==============================================================================
+# PHASE 5: Manifest Finalization & Cleanup
+# ==============================================================================
+if [ -f "$TMP_MANIFEST" ]; then
+    sort -u "$TMP_MANIFEST" > "$MANIFEST_FILE"
+    rm -f "$TMP_MANIFEST"
+fi
+
+# Clean empty directories inside assets/docs
+find "$REPO_DIR/assets/docs" -type d -empty -delete 2>/dev/null || true
+
+# Count total offline phone files
+TOTAL_OFFLINE_FILES=$(find "$PHONE_DIR" -type f ! -name ".*" | wc -l)
+
+# ==============================================================================
+# PHASE 6: Git Commit & GitHub Pages Live Push
+# ==============================================================================
 cd "$REPO_DIR"
 CHANGES=$(git status --porcelain)
 
 if [ -z "$CHANGES" ]; then
     if [ "$ON_STARTUP" -eq 1 ]; then
-        if [ "$ORGANIZED_COUNT" -eq 0 ] && [ "${#DEDUP_SUMMARY[@]}" -eq 0 ]; then
-            echo -e "${GREEN}📚 MBBS Library:${RESET} in sync with phone folder ($TOTAL_PHONE_FILES files across folders)."
+        if [ "$ORGANIZED_COUNT" -eq 0 ] && [ "${#DEDUP_SUMMARY[@]}" -eq 0 ] && [ "${#DELETED_SUMMARY[@]}" -eq 0 ] && [ "${#SEED_SUMMARY[@]}" -eq 0 ]; then
+            echo -e "${GREEN}📚 MBBS Library:${RESET} in full two-way sync with phone ($TOTAL_OFFLINE_FILES files offline & online)."
         fi
     else
-        echo -e "${GREEN}✨ [MBBS Library] All $TOTAL_PHONE_FILES files on phone are organized, deduplicated, and synced to website!${RESET}"
+        echo -e "${GREEN}✨ [MBBS Library] Complete two-way sync verified! All $TOTAL_OFFLINE_FILES files are synchronized across phone & website.${RESET}"
     fi
     exit 0
 fi
 
-# Print banner for detected new uploads
-echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}"
-echo -e "${CYAN}${BOLD}📥 [MBBS Library] Uploading $NEW_FILES_PROCESSED new/updated file(s) to website!${RESET}"
-for item in "${PROCESSED_NAMES[@]}"; do
-    echo -e "   ${GREEN}➜${RESET} $item"
-done
-echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
+# Print banner for detected uploads
+if [ "$NEW_FILES_PROCESSED" -gt 0 ]; then
+    echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}"
+    echo -e "${CYAN}${BOLD}📥 [MBBS Library] Uploading $NEW_FILES_PROCESSED new/updated file(s) to website!${RESET}"
+    for item in "${PROCESSED_NAMES[@]}"; do
+        echo -e "   ${GREEN}➜${RESET} $item"
+    done
+    echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
+fi
 
 # Stage all changes
-git add .
+git add -A
 
-COMMIT_MSG="feat: auto-upload from phone: ${PROCESSED_NAMES[0]:-materials}"
-if [ "${#PROCESSED_NAMES[@]}" -gt 1 ]; then
-    COMMIT_MSG="feat: auto-upload ${#PROCESSED_NAMES[@]} files from phone (${PROCESSED_NAMES[0]}, ...)"
+COMMIT_PARTS=()
+[ "${#DELETED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("synced ${#DELETED_SUMMARY[@]} phone deletion(s)")
+[ "$NEW_FILES_PROCESSED" -gt 0 ] && COMMIT_PARTS+=("uploaded $NEW_FILES_PROCESSED file(s)")
+[ "${#SEED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("seeded ${#SEED_SUMMARY[@]} offline doc(s)")
+
+COMMIT_MSG="feat(sync): $(IFS=', '; echo "${COMMIT_PARTS[*]}")"
+if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" = "feat(sync): " ]; then
+    COMMIT_MSG="feat(sync): two-way offline & deletion synchronization"
 fi
+
 git commit -m "$COMMIT_MSG" >/dev/null
 
 # Append to PROJECT_LOG.md
 TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 cat << EOF >> "$LOG_FILE"
 
-### Auto-Sync & Version Deduplication: $TIMESTAMP
-- **Phone Deduplication**: Resolved ${#DEDUP_SUMMARY[@]} version duplicate(s)
-- **Phone Organization**: Organized $ORGANIZED_COUNT file(s) on phone
-- **Files Uploaded / Updated**: $NEW_FILES_PROCESSED
+### Two-Way Auto-Sync & Deletion: $TIMESTAMP
+- **Phone Deduplication**: Resolved ${#DEDUP_SUMMARY[@]} duplicate(s)
+- **Phone Organization**: Organized $ORGANIZED_COUNT root file(s)
+- **Phone Deletions Synced to Website**: ${#DELETED_SUMMARY[@]} file(s)
+EOF
+for item in "${DELETED_SUMMARY[@]}"; do
+    echo "  - $item" >> "$LOG_FILE"
+done
+
+cat << EOF >> "$LOG_FILE"
+- **Files Uploaded / Updated from Phone**: $NEW_FILES_PROCESSED
 EOF
 for item in "${PROCESSED_NAMES[@]}"; do
-    echo "- $item" >> "$LOG_FILE"
+    echo "  - $item" >> "$LOG_FILE"
 done
+
+cat << EOF >> "$LOG_FILE"
+- **Offline Files Seeded to Phone**: ${#SEED_SUMMARY[@]}
+- **Total In-Sync Files**: $TOTAL_OFFLINE_FILES
+EOF
 
 git add "$LOG_FILE"
 git commit --amend --no-edit >/dev/null 2>&1 || true
@@ -511,7 +788,7 @@ git commit --amend --no-edit >/dev/null 2>&1 || true
 echo -e "🚀 ${BOLD}Connecting to GitHub...${RESET}"
 if curl -s --connect-timeout 4 -I https://github.com >/dev/null 2>&1; then
     if git push origin main >/dev/null 2>&1; then
-        echo -e "${GREEN}${BOLD}✅ Successfully uploaded to GitHub Pages!${RESET}"
+        echo -e "${GREEN}${BOLD}✅ Successfully synchronized with GitHub Pages!${RESET}"
         echo -e "   🌐 Live site: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
     else
         echo -e "${YELLOW}⚠️  Git push failed. Changes are saved locally and will push next time.${RESET}"
