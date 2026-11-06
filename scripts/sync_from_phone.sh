@@ -705,6 +705,12 @@ if [ "$NEW_FILES_PROCESSED" -gt 0 ]; then
     echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
 fi
 
+# Update cache-busting version query across all HTML pages to force instant browser refreshes
+CACHE_BUST_VER=$(date +%s)
+for h_file in "$REPO_DIR"/*.html; do
+    sed -i -E "s/(data\.js|app\.js|style\.css)(\?v=[0-9]+)?/\1?v=$CACHE_BUST_VER/g" "$h_file"
+done
+
 git add -A
 
 COMMIT_PARTS=()
