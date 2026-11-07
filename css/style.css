@@ -599,6 +599,8 @@ input {
   padding: 0.75rem 0 0.15rem;
   text-align: center;
   width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
@@ -608,7 +610,151 @@ input {
 }
 
 .header-compact {
+  position: relative;
   margin-bottom: 0.85rem;
+}
+
+/* ==========================================================================
+   Distinctive Subject Visual Identity System (Anatomy, Physiology, Biochem)
+   Lightweight, Scientific, Non-Intrusive Educational Aesthetics
+   ========================================================================== */
+.subject-header {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto 0.85rem;
+  padding: 0.4rem 0.5rem 0.2rem;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .subject-header {
+    padding: 0.85rem 1.25rem 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Ambient Radial Glows (Soft, subtle backdrop behind header text) */
+.subject-header-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 110px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(28px);
+  -webkit-filter: blur(28px);
+  z-index: 0;
+  opacity: 0.42;
+}
+
+.subject-header-anatomy .subject-header-glow {
+  background: var(--accent-anatomy);
+}
+
+.subject-header-physiology .subject-header-glow {
+  background: var(--accent-physiology);
+}
+
+.subject-header-biochemistry .subject-header-glow {
+  background: var(--accent-biochem);
+}
+
+@media (min-width: 768px) {
+  .subject-header-glow {
+    width: 380px;
+    height: 140px;
+    filter: blur(40px);
+    -webkit-filter: blur(40px);
+    opacity: 0.5;
+  }
+}
+
+/* Flanking Scientific Illustration Motifs (Subtle line-art, zero interference) */
+.subject-motif {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.subject-motif-svg {
+  display: block;
+}
+
+/* Mobile: Watermark placement at top corners, subtle opacity (0.35) */
+@media (max-width: 767px) {
+  .subject-motif {
+    top: -4px;
+    opacity: 0.35;
+  }
+  .subject-motif-left {
+    left: -6px;
+  }
+  .subject-motif-right {
+    right: -6px;
+  }
+  .subject-motif-svg {
+    width: 52px;
+    height: 58px;
+  }
+}
+
+/* Desktop & Tablets: Elegant framing flanking the header */
+@media (min-width: 768px) {
+  .subject-motif {
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.78;
+  }
+  .subject-motif-left {
+    left: -24px;
+  }
+  .subject-motif-right {
+    right: -24px;
+  }
+  .subject-motif-svg {
+    width: 86px;
+    height: 98px;
+  }
+}
+
+@media (min-width: 992px) {
+  .subject-motif-left {
+    left: -52px;
+  }
+  .subject-motif-right {
+    right: -52px;
+  }
+  .subject-motif-svg {
+    width: 104px;
+    height: 116px;
+  }
+}
+
+/* Layered text content (crisp, readable, high contrast above background motifs) */
+.subject-header-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Subject Title Motif Underline Doodle (Scientific, elegant, educational) */
+.subject-title-motif {
+  display: block;
+  margin: 0.25rem auto 0.45rem;
+  width: 120px;
+  height: 10px;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .subject-title-motif {
+    width: 150px;
+    height: 12px;
+    margin: 0.35rem auto 0.55rem;
+  }
 }
 
 /* ==========================================================================
@@ -1204,6 +1350,21 @@ input {
   box-shadow: 0 4px 16px rgba(21, 27, 43, 0.08);
 }
 
+.page-anatomy .search-box:focus-within {
+  border-color: var(--anatomy-accent);
+  box-shadow: 0 0 0 3px rgba(242, 191, 193, 0.45), 0 4px 16px rgba(21, 27, 43, 0.08);
+}
+
+.page-physiology .search-box:focus-within {
+  border-color: var(--physiology-accent);
+  box-shadow: 0 0 0 3px rgba(220, 203, 250, 0.45), 0 4px 16px rgba(21, 27, 43, 0.08);
+}
+
+.page-biochemistry .search-box:focus-within {
+  border-color: var(--biochem-accent);
+  box-shadow: 0 0 0 3px rgba(188, 235, 217, 0.45), 0 4px 16px rgba(21, 27, 43, 0.08);
+}
+
 .search-icon {
   color: #9CA3AF;
   flex-shrink: 0;
@@ -1769,6 +1930,19 @@ input {
   color: var(--biochem-text);
 }
 
+/* Subtle subject accent indicator on active category pills in subject pages */
+.page-anatomy .filter-pill.active {
+  box-shadow: inset 0 -2.5px 0 var(--anatomy-accent), 0 4px 14px rgba(21, 27, 43, 0.22);
+}
+
+.page-physiology .filter-pill.active {
+  box-shadow: inset 0 -2.5px 0 var(--physiology-accent), 0 4px 14px rgba(21, 27, 43, 0.22);
+}
+
+.page-biochemistry .filter-pill.active {
+  box-shadow: inset 0 -2.5px 0 var(--biochem-accent), 0 4px 14px rgba(21, 27, 43, 0.22);
+}
+
 .pill-count {
   font-size: 0.74rem;
   font-weight: 800;
@@ -1811,6 +1985,34 @@ input {
 .results-count strong {
   color: var(--text-headline);
   font-weight: 800;
+}
+
+/* Subtle educational subject status dots in results counter */
+.page-anatomy .results-count::before,
+.page-physiology .results-count::before,
+.page-biochemistry .results-count::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 0.45rem;
+  vertical-align: 1px;
+}
+
+.page-anatomy .results-count::before {
+  background: var(--anatomy-text);
+  box-shadow: 0 0 0 2px var(--accent-anatomy);
+}
+
+.page-physiology .results-count::before {
+  background: var(--physiology-text);
+  box-shadow: 0 0 0 2px var(--accent-physiology);
+}
+
+.page-biochemistry .results-count::before {
+  background: var(--biochem-text);
+  box-shadow: 0 0 0 2px var(--accent-biochem);
 }
 
 .active-filters,

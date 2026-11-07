@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=1794076925">
+  <link rel="stylesheet" href="css/style.css?v=1794078964">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -57,10 +57,74 @@
     <!-- Compact Header: Title & Instant Search -->
     <section class="top-section">
       <div class="container">
-        <div class="header-compact">
-          <span class="subject-page-tag tag-anatomy">🦴 Human Anatomy Vault</span>
-          <h2 class="page-title">Human Anatomy</h2>
-          <p class="page-subtitle">Dissection hall guides, histology microscopic slide workbooks, and neuroanatomy.</p>
+        <div class="header-compact subject-header subject-header-anatomy">
+          <!-- Ambient Soft Coral Glow -->
+          <div class="subject-header-glow" aria-hidden="true"></div>
+
+          <!-- Left Scientific Line-Art Motif: Vertebral Column & Bone -->
+          <div class="subject-motif subject-motif-left" aria-hidden="true">
+            <svg class="subject-motif-svg" viewBox="0 0 110 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="55" cy="60" r="45" fill="var(--accent-anatomy)" fill-opacity="0.15"/>
+              <g stroke="var(--anatomy-text)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+                <path d="M28 22 C23 16 15 19 16 26 C17 31 23 33 26 36 L27 50"/>
+                <path d="M34 26 C38 23 44 26 43 31 C42 35 37 38 34 41 L33 50"/>
+                <path d="M27 50 L28 72 C28 78 24 82 22 87 C20 92 23 98 28 98 C33 98 34 94 36 91"/>
+                <path d="M33 50 L32 72 C32 78 36 82 38 87 C40 92 37 98 32 98"/>
+                <path d="M22 30 C26 31 32 30 36 29" stroke-dasharray="2 2" stroke-width="1.1"/>
+                <path d="M24 90 C28 89 33 89 36 90" stroke-dasharray="2 2" stroke-width="1.1"/>
+                <path d="M30 58 L29 65" stroke-width="1"/>
+              </g>
+              <g stroke="var(--anatomy-text)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+                <rect x="58" y="24" width="28" height="14" rx="4" fill="none"/>
+                <path d="M72 24 L72 16 M64 24 L60 18 M80 24 L84 18"/>
+                <path d="M60 40 C66 42 78 42 84 40" stroke-width="1.6" stroke="var(--accent-anatomy)"/>
+                <rect x="57" y="44" width="30" height="15" rx="4" fill="none"/>
+                <path d="M72 44 L72 38 M87 51 L95 48 M57 51 L49 48"/>
+                <circle cx="72" cy="51.5" r="2.5" fill="var(--accent-anatomy)" stroke="none"/>
+                <path d="M59 61 C67 63 77 63 85 61" stroke-width="1.6" stroke="var(--accent-anatomy)"/>
+                <rect x="56" y="65" width="32" height="16" rx="4" fill="none"/>
+                <path d="M72 81 L72 88 M62 81 L58 87 M82 81 L86 87"/>
+                <path d="M64 73 C68 75 76 75 80 73" stroke-width="1"/>
+                <path d="M72 12 L72 96" stroke-dasharray="2 3" stroke-width="1" opacity="0.45"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Right Scientific Line-Art Motif: Cranium & Osteological Caliper -->
+          <div class="subject-motif subject-motif-right" aria-hidden="true">
+            <svg class="subject-motif-svg" viewBox="0 0 110 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="55" cy="60" r="45" fill="var(--accent-anatomy)" fill-opacity="0.15"/>
+              <g stroke="var(--anatomy-text)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+                <path d="M48 20 C66 20 84 32 84 52 C84 64 78 72 74 76 C70 80 68 84 68 88 L62 88 C60 84 58 82 54 82 L48 82 C44 82 42 78 42 74 L42 66 C38 66 34 62 34 56 C34 50 38 48 40 48 C40 34 44 20 48 20 Z"/>
+                <ellipse cx="48" cy="48" rx="5" ry="6"/>
+                <path d="M54 52 C60 52 66 56 70 56"/>
+                <path d="M56 21 C57 26 55 32 58 36" stroke-dasharray="2 1.5" stroke-width="1.1"/>
+                <path d="M74 30 C72 36 76 42 75 48" stroke-dasharray="2 1.5" stroke-width="1.1"/>
+                <circle cx="66" cy="58" r="2" fill="var(--accent-anatomy)"/>
+              </g>
+              <g stroke="var(--anatomy-text)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.75">
+                <path d="M22 36 C18 48 18 72 26 84"/>
+                <circle cx="22" cy="60" r="3" fill="none"/>
+                <path d="M22 60 L14 60"/>
+                <path d="M19 44 L23 44 M18 52 L22 52 M18 68 L22 68 M19 76 L23 76"/>
+                <path d="M84 66 C90 70 94 78 96 88" stroke-dasharray="2 2" stroke-width="1.1"/>
+                <path d="M80 76 C86 80 90 88 92 96" stroke-dasharray="2 2" stroke-width="1.1"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Central Subject Header Content -->
+          <div class="subject-header-content">
+            <span class="subject-page-tag tag-anatomy">🦴 Human Anatomy Vault</span>
+            <h2 class="page-title">Human Anatomy</h2>
+            <svg class="subject-title-motif" viewBox="0 0 160 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="none">
+              <path d="M4 6 L65 6" stroke="var(--accent-anatomy)" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="80" cy="6" r="4.5" stroke="var(--anatomy-text)" stroke-width="1.3" fill="var(--canvas-bg)"/>
+              <circle cx="80" cy="6" r="1.8" fill="var(--anatomy-text)"/>
+              <path d="M95 6 L156 6" stroke="var(--accent-anatomy)" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <p class="page-subtitle">Dissection hall guides, histology microscopic slide workbooks, and neuroanatomy.</p>
+          </div>
         </div>
 
         <!-- Search Bar -->
@@ -214,10 +278,10 @@
   </footer>
 
   <script src="js/vendor/pdf.min.js"></script>
-  <script src="js/data.js?v=1794076925"></script>
+  <script src="js/data.js?v=1794078964"></script>
   <script>
     window.location.hash = "anatomy";
   </script>
-  <script src="js/app.js?v=1794076925"></script>
+  <script src="js/app.js?v=1794078964"></script>
 </body>
 </html>
