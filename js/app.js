@@ -1433,17 +1433,29 @@
       });
     }
 
-    // Mobile nav hamburger toggle
+    // Mobile nav hamburger toggle with smooth accessible micro-interaction
     if (DOM.mobileToggle && DOM.navLinks) {
       DOM.mobileToggle.addEventListener("click", () => {
-        DOM.navLinks.classList.toggle("show");
+        const isExpanded = DOM.navLinks.classList.toggle("show");
+        DOM.mobileToggle.setAttribute("aria-expanded", isExpanded ? "true" : "false");
       });
 
       // Close mobile menu when clicking nav item
       DOM.navLinks.querySelectorAll(".nav-link").forEach(link => {
         link.addEventListener("click", () => {
           DOM.navLinks.classList.remove("show");
+          DOM.mobileToggle.setAttribute("aria-expanded", "false");
         });
+      });
+
+      // Close mobile menu when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!DOM.mobileToggle.contains(e.target) && !DOM.navLinks.contains(e.target)) {
+          if (DOM.navLinks.classList.contains("show")) {
+            DOM.navLinks.classList.remove("show");
+            DOM.mobileToggle.setAttribute("aria-expanded", "false");
+          }
+        }
       });
     }
 
