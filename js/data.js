@@ -216,8 +216,14 @@ const SUBJECT_INFO = {
 // Category metadata
 const CATEGORY_INFO = {
   notes: { label: "Notes", badgeClass: "badge-notes", icon: "notes", desc: "Lecture slides & high-yield revision" },
+  note: { label: "Notes", badgeClass: "badge-notes", icon: "notes", desc: "Lecture slides & high-yield revision" },
   assignments: { label: "Assignments", badgeClass: "badge-assignments", icon: "assignment", desc: "Worksheets, clinical vignettes & records" },
-  sdls: { label: "SDLs", badgeClass: "badge-sdls", icon: "sdl", desc: "Self-Directed Learning modules & tasks" },
+  assignment: { label: "Assignments", badgeClass: "badge-assignments", icon: "assignment", desc: "Worksheets, clinical vignettes & records" },
+  sdls: { label: "SDL", badgeClass: "badge-sdls", icon: "sdl", desc: "Self-Directed Learning modules & tasks" },
+  sdl: { label: "SDL", badgeClass: "badge-sdls", icon: "sdl", desc: "Self-Directed Learning modules & tasks" },
   practicals: { label: "Practicals", badgeClass: "badge-practicals", icon: "practical", desc: "Lab manuals, procedures & spotters" },
-  other: { label: "Other Resources", badgeClass: "badge-other", icon: "other", desc: "Question banks, flashcards & cheat sheets" }
+  practical: { label: "Practicals", badgeClass: "badge-practicals", icon: "practical", desc: "Lab manuals, procedures & spotters" },
+  other: { label: "Other Resources", badgeClass: "badge-other", icon: "other", desc: "Question banks, flashcards & cheat sheets" },
+  others: { label: "Other Resources", badgeClass: "badge-other", icon: "other", desc: "Question banks, flashcards & cheat sheets" },
+  histology: { label: "Histology", badgeClass: "badge-other", icon: "other", desc: "Histology slides & practical workbooks" }
 };

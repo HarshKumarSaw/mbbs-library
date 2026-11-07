@@ -538,7 +538,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             sub_lower=$(echo "$sub_folder" | tr '[:upper:]' '[:lower:]')
             if [[ "$sub_lower" =~ ^note ]]; then category="notes"; cat_display="Notes"
             elif [[ "$sub_lower" =~ ^assign ]]; then category="assignments"; cat_display="Assignments"
-            elif [[ "$sub_lower" =~ ^sdl ]]; then category="sdls"; cat_display="SDLs"
+            elif [[ "$sub_lower" =~ ^sdl ]]; then category="sdls"; cat_display="SDL"
             elif [[ "$sub_lower" =~ ^pract ]]; then category="practicals"; cat_display="Practicals"
             else category=$(to_safe_id "$sub_folder"); cat_display=$(format_display "$sub_folder")
             fi

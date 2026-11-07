@@ -101,6 +101,15 @@
   // Capitalize & clean name helper
   function formatName(str) {
     if (!str) return "";
+    const lower = str.toLowerCase().trim();
+    if (lower === "sdl" || lower === "sdls") return "SDL";
+    if (lower === "aetcom") return "AETCOM";
+    if (lower === "ece") return "ECE";
+    if (lower === "assignments" || lower === "assignment") return "Assignments";
+    if (lower === "practicals" || lower === "practical") return "Practicals";
+    if (lower === "notes" || lower === "note") return "Notes";
+    if (lower === "other" || lower === "others") return "Other Resources";
+    if (lower === "community_medicine" || lower === "community medicine" || lower === "community") return "Community Medicine";
     return str.replace(/[_\-]+/g, " ")
               .replace(/\b\w/g, char => char.toUpperCase());
   }
@@ -209,11 +218,9 @@
     containers.forEach(container => {
       container.innerHTML = ordered.map(catId => {
         const meta = CATEGORY_INFO[catId] || {
-          label: formatName(catId),
-          icon: ICONS[catId] || ICONS.notes
+          label: formatName(catId)
         };
-        const label = catId === "all" ? "All Categories" : meta.label;
-        const icon = catId === "all" ? "" : (meta.icon || ICONS.notes);
+        const label = catId === "all" ? "All Categories" : (meta.label || formatName(catId));
         const count = catId === "all"
           ? scopeResources.length
           : scopeResources.filter(r => r.category === catId).length;
@@ -221,7 +228,6 @@
 
         return `
           <button type="button" class="filter-pill ${isActive}" data-category="${catId}">
-            ${icon}
             ${label}
             <span class="pill-count">${count}</span>
           </button>
@@ -320,8 +326,8 @@
     }
 
     DOM.resourcesGrid.innerHTML = list.map(item => {
-      const catMeta = CATEGORY_INFO[item.category] || { label: item.category, badgeClass: "badge-other", icon: "other" };
-      const subMeta = SUBJECT_INFO[item.subject] || { name: item.subject };
+      const catMeta = CATEGORY_INFO[item.category] || { label: formatName(item.category), badgeClass: "badge-other", icon: "other" };
+      const subMeta = SUBJECT_INFO[item.subject] || { name: formatName(item.subject) };
       
       const subjectEmojis = {
         anatomy: "🦴",
@@ -625,8 +631,8 @@
 
     if (DOM.modalTitle) DOM.modalTitle.textContent = item.title;
     if (DOM.modalSubject) {
-      const subName = SUBJECT_INFO[item.subject]?.name || item.subject;
-      const catLabel = CATEGORY_INFO[item.category]?.label || item.category;
+      const subName = SUBJECT_INFO[item.subject]?.name || formatName(item.subject);
+      const catLabel = CATEGORY_INFO[item.category]?.label || formatName(item.category);
       DOM.modalSubject.textContent = `${subName} • ${catLabel} • ${item.code}`;
     }
 
