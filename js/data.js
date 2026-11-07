@@ -23,7 +23,7 @@ const MBBS_RESOURCES = [
     fileSize: "4.1 MB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "07 Nov 2026",
     year: "1st Year MBBS"
   },
   {
@@ -38,7 +38,7 @@ const MBBS_RESOURCES = [
     fileSize: "13.9 MB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "07 Nov 2026",
     year: "1st Year MBBS"
   },
   {
@@ -53,7 +53,7 @@ const MBBS_RESOURCES = [
     fileSize: "3.2 MB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "07 Nov 2026",
     year: "1st Year MBBS"
   },
   {
@@ -68,7 +68,7 @@ const MBBS_RESOURCES = [
     fileSize: "16.6 MB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "07 Nov 2026",
     year: "1st Year MBBS"
   },
   {
@@ -83,7 +83,7 @@ const MBBS_RESOURCES = [
     fileSize: "1.7 MB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "07 Nov 2026",
     year: "1st Year MBBS"
   },
   {
@@ -98,7 +98,7 @@ const MBBS_RESOURCES = [
     fileSize: "8.8 MB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "07 Nov 2026",
     year: "1st Year MBBS"
   },
   {
@@ -113,7 +113,7 @@ const MBBS_RESOURCES = [
     fileSize: "1 KB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "07 Nov 2026",
     year: "1st Year MBBS"
   },
   {
@@ -128,7 +128,7 @@ const MBBS_RESOURCES = [
     fileSize: "17.9 MB",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "Nov 2026",
+    date: "06 Nov 2026",
     year: "1st Year MBBS"
   },
   // __AUTO_RESOURCES_END__

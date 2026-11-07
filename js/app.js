@@ -116,6 +116,38 @@
               .replace(/\b\w/g, char => char.toUpperCase());
   }
 
+  // Format exact date as "DD MMM YYYY" (e.g. "07 Nov 2026"), or "Date unavailable"
+  function formatResourceDate(rawDate) {
+    if (!rawDate || typeof rawDate !== "string") return "Date unavailable";
+    const trimmed = rawDate.trim();
+    if (!trimmed || trimmed.toLowerCase() === "date unavailable") return "Date unavailable";
+
+    // Matches exact date: e.g. "07 Nov 2026" or "7 Nov 2026"
+    const dmyMatch = trimmed.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})$/);
+    if (dmyMatch) {
+      const day = dmyMatch[1].padStart(2, "0");
+      const monthStr = dmyMatch[2].substring(0, 3);
+      const cleanMonth = monthStr.charAt(0).toUpperCase() + monthStr.slice(1).toLowerCase();
+      const year = dmyMatch[3];
+      return `${day} ${cleanMonth} ${year}`;
+    }
+
+    // Matches ISO dates like "2026-11-07"
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+      const parsed = new Date(trimmed);
+      if (!isNaN(parsed.getTime())) {
+        const day = String(parsed.getDate()).padStart(2, "0");
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = months[parsed.getMonth()];
+        const year = parsed.getFullYear();
+        return `${day} ${month} ${year}`;
+      }
+    }
+
+    // Incomplete dates like "Nov 2026" or "2026" have no exact day
+    return "Date unavailable";
+  }
+
   // Parse Initial URL State (Hash or Query string)
   function parseUrlParameters() {
     const params = new URLSearchParams(window.location.search);
@@ -397,7 +429,7 @@
             <span class="meta-bullet">•</span>
             <span class="meta-item">💾 ${item.fileSize}</span>
             <span class="meta-bullet">•</span>
-            <span class="meta-item">📅 ${item.date || "2026"}</span>
+            <span class="meta-item">📅 ${formatResourceDate(item.date)}</span>
           </div>
 
           <div class="card-actions">

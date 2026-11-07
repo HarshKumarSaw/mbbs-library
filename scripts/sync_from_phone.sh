@@ -573,7 +573,12 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         title=$(format_display "$base_name")
         file_bytes=$(wc -c < "$file")
         file_size=$(format_file_size "$file_bytes")
-        current_date=$(date +"%b %Y")
+        file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+        if [ "$file_mtime" -gt 0 ]; then
+            file_date=$(date -d "@$file_mtime" +"%d %b %Y" 2>/dev/null || date -r "$file" +"%d %b %Y" 2>/dev/null || echo "Date unavailable")
+        else
+            file_date="Date unavailable"
+        fi
         unique_id="user-${subject:0:4}-${safe_filename%.*}-$(date +%s | tail -c 5)"
 
         tags_json="\"$subj_display\""
@@ -599,7 +604,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     fileSize: "$file_size",
     pages: "Document",
     author: "HarshKumarSaw",
-    date: "$current_date",
+    date: "$file_date",
     year: "1st Year MBBS"
   },
 EOF
@@ -608,11 +613,30 @@ EOF
     elif [ "$file_copied" -eq 1 ]; then
         file_bytes=$(wc -c < "$file")
         new_size=$(format_file_size "$file_bytes")
-        awk -v url="$target_rel_url" -v size="$new_size" '
+        file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+        if [ "$file_mtime" -gt 0 ]; then
+            new_date=$(date -d "@$file_mtime" +"%d %b %Y" 2>/dev/null || date -r "$file" +"%d %b %Y" 2>/dev/null || echo "Date unavailable")
+        else
+            new_date="Date unavailable"
+        fi
+        awk -v url="$target_rel_url" -v size="$new_size" -v fdate="$new_date" '
         $0 ~ "fileUrl: \"" url "\"" {
+            in_item = 1
             print
-            getline
+            next
+        }
+        in_item && $0 ~ /fileSize:[[:space:]]*"[^"]*"/ {
             print "    fileSize: \"" size "\","
+            next
+        }
+        in_item && $0 ~ /date:[[:space:]]*"[^"]*"/ {
+            print "    date: \"" fdate "\","
+            in_item = 0
+            next
+        }
+        in_item && $0 ~ /^[[:space:]]*\},?[[:space:]]*$/ {
+            in_item = 0
+            print
             next
         }
         { print }
