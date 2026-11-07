@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=1794041306">
+  <link rel="stylesheet" href="css/style.css?v=1794053558">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -195,7 +195,10 @@
         </div>
 
         <div class="pdf-viewer-container" id="pdf-viewer-container" tabindex="0">
-          <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+          <div class="pdf-single-page-view" id="pdf-single-page-view">
+            <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+          </div>
+          <div class="pdf-pages-stack" id="pdf-pages-stack" style="display: none;"></div>
         </div>
       </div>
     </div>
@@ -210,10 +213,10 @@
   </footer>
 
   <script src="js/vendor/pdf.min.js"></script>
-  <script src="js/data.js?v=1794041306"></script>
+  <script src="js/data.js?v=1794053558"></script>
   <script>
     window.location.hash = "biochemistry";
   </script>
-  <script src="js/app.js?v=1794041306"></script>
+  <script src="js/app.js?v=1794053558"></script>
 </body>
 </html>
