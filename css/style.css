@@ -509,6 +509,244 @@ input {
   margin-bottom: 0.85rem;
 }
 
+/* ==========================================================================
+   Playful, Colourful Ali Abdaal-Inspired Homepage Intro
+   ========================================================================== */
+.home-intro {
+  position: relative;
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 1.15rem;
+  padding: 0.25rem 0.5rem 0;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .home-intro {
+    padding: 0.5rem 1rem 0;
+    margin-bottom: 1.4rem;
+  }
+}
+
+/* Subtle Ambient Pastel Shapes (Abstract, soft background glow) */
+.intro-shape {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(28px);
+  -webkit-filter: blur(28px);
+  opacity: 0.6;
+  z-index: -1;
+}
+
+.intro-shape-yellow {
+  width: 90px;
+  height: 90px;
+  background: rgba(254, 240, 138, 0.7);
+  top: -15px;
+  left: 6%;
+}
+
+.intro-shape-lavender {
+  width: 95px;
+  height: 95px;
+  background: rgba(233, 213, 255, 0.65);
+  top: 10px;
+  right: 5%;
+}
+
+.intro-shape-mint {
+  width: 80px;
+  height: 80px;
+  background: rgba(167, 243, 208, 0.55);
+  bottom: 0;
+  left: 30%;
+}
+
+@media (min-width: 768px) {
+  .intro-shape-yellow {
+    width: 140px;
+    height: 140px;
+    top: -20px;
+    left: 2%;
+  }
+  .intro-shape-lavender {
+    width: 150px;
+    height: 150px;
+    top: 5px;
+    right: 2%;
+  }
+  .intro-shape-mint {
+    width: 115px;
+    height: 115px;
+  }
+}
+
+/* Friendly Personal Study Desk Badge */
+.intro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-headline);
+  margin-bottom: 0.65rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: transform var(--transition-fast);
+}
+
+.intro-badge:hover {
+  transform: translateY(-1px);
+}
+
+.intro-badge-icon {
+  color: #8B5CF6; /* Gentle violet sparkle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main Heading */
+.home-title {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: var(--text-headline);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
+}
+
+@media (min-width: 768px) {
+  .home-title {
+    font-size: 2.75rem;
+    line-height: 1.12;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Ali Abdaal Highlighter with playful hand-drawn underline */
+.title-highlight {
+  position: relative;
+  display: inline-block;
+  color: var(--text-headline);
+  padding: 0 0.12em;
+  background: linear-gradient(120deg, rgba(254, 240, 138, 0.5) 0%, rgba(253, 224, 71, 0.6) 100%);
+  border-radius: 4px;
+}
+
+.title-underline-doodle {
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 8px;
+  pointer-events: none;
+}
+
+/* Subtitle */
+.home-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #1F2937;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.45rem;
+}
+
+@media (min-width: 768px) {
+  .home-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 0.55rem;
+  }
+}
+
+/* Short Description */
+.home-desc {
+  font-size: 0.88rem;
+  color: #4B5563;
+  line-height: 1.5;
+  max-width: 580px;
+  margin: 0 auto 0.85rem;
+}
+
+@media (min-width: 768px) {
+  .home-desc {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Playful Pastel Educational Doodle Chips */
+.intro-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .intro-chips {
+    gap: 0.6rem;
+  }
+}
+
+.intro-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform var(--transition-fast);
+}
+
+@media (min-width: 768px) {
+  .intro-chip {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+  }
+}
+
+.intro-chip:hover {
+  transform: translateY(-1px);
+}
+
+.intro-chip.chip-yellow {
+  background: #FEF9C3;
+  color: #854D0E;
+  border: 1.5px solid #FDE047;
+}
+
+.intro-chip.chip-lavender {
+  background: #F3E8FF;
+  color: #6B21A8;
+  border: 1.5px solid #DDD6FE;
+}
+
+.intro-chip.chip-coral {
+  background: #FFE4E6;
+  color: #9F1239;
+  border: 1.5px solid #FECDD3;
+}
+
+.intro-chip.chip-mint {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1.5px solid #A7F3D0;
+}
+
 .page-title {
   font-family: var(--font-display);
   font-size: 1.65rem;
