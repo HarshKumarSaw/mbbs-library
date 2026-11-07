@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=1794040259">
+  <link rel="stylesheet" href="css/style.css?v=1794041306">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -142,8 +142,61 @@
         </div>
       </div>
 
-      <div class="modal-body">
-        <iframe id="pdf-frame" class="pdf-frame" src="about:blank" title="PDF Document Viewer"></iframe>
+      <!-- PDF Navigation & Controls Toolbar -->
+      <div class="pdf-toolbar" id="pdf-toolbar">
+        <div class="pdf-toolbar-group pdf-nav-group">
+          <button type="button" class="pdf-tool-btn" id="pdf-prev-btn" aria-label="Previous Page" title="Previous page (Left Arrow)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <div class="pdf-page-display">
+            <span>Page</span>
+            <input type="number" id="pdf-page-input" class="pdf-page-input" min="1" value="1" aria-label="Page number">
+            <span class="pdf-page-slash">/</span>
+            <span id="pdf-total-pages">-</span>
+          </div>
+          <button type="button" class="pdf-tool-btn" id="pdf-next-btn" aria-label="Next Page" title="Next page (Right Arrow)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div class="pdf-toolbar-group pdf-zoom-group">
+          <button type="button" class="pdf-tool-btn" id="pdf-zoom-out-btn" aria-label="Zoom out" title="Zoom out (-)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <button type="button" class="pdf-tool-btn pdf-btn-fit" id="pdf-zoom-fit-btn" aria-label="Fit to width" title="Fit to width">Fit</button>
+          <button type="button" class="pdf-tool-btn" id="pdf-zoom-in-btn" aria-label="Zoom in" title="Zoom in (+)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <span class="pdf-scale-indicator" id="pdf-scale-indicator">100%</span>
+        </div>
+      </div>
+
+      <div class="modal-body" id="modal-body">
+        <div class="pdf-loading-overlay" id="pdf-loading-overlay">
+          <div class="pdf-spinner"></div>
+          <div class="pdf-loading-text" id="pdf-loading-text">Loading document...</div>
+          <div class="pdf-progress-track">
+            <div class="pdf-progress-bar" id="pdf-progress-bar"></div>
+          </div>
+        </div>
+
+        <div class="pdf-error-overlay" id="pdf-error-overlay" style="display: none;">
+          <p class="pdf-error-message">Unable to render PDF inline.</p>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn modal-btn-primary" id="pdf-error-open-btn">Open in External Tab</a>
+        </div>
+
+        <div class="pdf-viewer-container" id="pdf-viewer-container" tabindex="0">
+          <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -156,10 +209,11 @@
     </div>
   </footer>
 
-  <script src="js/data.js?v=1794040259"></script>
+  <script src="js/vendor/pdf.min.js"></script>
+  <script src="js/data.js?v=1794041306"></script>
   <script>
     window.location.hash = "anatomy";
   </script>
-  <script src="js/app.js?v=1794040259"></script>
+  <script src="js/app.js?v=1794041306"></script>
 </body>
 </html>
