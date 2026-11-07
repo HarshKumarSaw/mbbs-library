@@ -152,7 +152,7 @@ const SUBJECT_INFO = {
     name: "Anatomy",
     fullName: "Human Anatomy, Embryology & Histology",
     icon: "anatomy",
-    accent: "#1e3a8a",
+    accent: "#F2BFC1",
     description: "Study of human body architecture, regional dissection, microanatomy, and development.",
     modules: ["Gross Anatomy", "Histology", "Embryology", "Neuroanatomy", "Genetics"],
     statTotal: "AN1.1 - AN82.1"
@@ -161,7 +161,7 @@ const SUBJECT_INFO = {
     name: "Physiology",
     fullName: "Human Physiology & Biophysics",
     icon: "physiology",
-    accent: "#0369a1",
+    accent: "#DCCBFA",
     description: "Understanding bodily organ systems, dynamic functions, homeostatic regulation, and clinical reflexes.",
     modules: ["Hematology", "Cardiovascular", "Respiratory", "Renal", "Neurophysiology", "Endocrine"],
     statTotal: "PY1.1 - PY11.14"
@@ -170,7 +170,7 @@ const SUBJECT_INFO = {
     name: "Biochemistry",
     fullName: "Medical Biochemistry & Molecular Biology",
     icon: "biochemistry",
-    accent: "#1d4ed8",
+    accent: "#BCEBD9",
     description: "Molecular mechanisms of life, metabolic pathways, enzyme kinetics, genetics, and clinical diagnostics.",
     modules: ["Biomolecules", "Metabolism", "Enzymology", "Molecular Biology", "Clinical Chemistry"],
     statTotal: "BI1.1 - BI11.24"

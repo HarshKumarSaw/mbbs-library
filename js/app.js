@@ -453,10 +453,11 @@
       const emoji = subjectEmojis[item.subject] || "📚";
 
       return `
-        <article class="resource-card" data-id="${item.id}">
+        <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
           <div class="card-header">
             <span class="subject-badge ${item.subject}">
-              ${emoji} ${subMeta.name}
+              <span class="subject-badge-icon" aria-hidden="true">${emoji}</span>
+              <span class="subject-badge-name">${subMeta.name}</span>
             </span>
             <span class="category-badge ${catMeta.badgeClass}">
               ${catMeta.label}
@@ -633,7 +634,7 @@
       const emoji = subjectEmojis[state.selectedSubject] || "📚";
       const subName = SUBJECT_INFO[state.selectedSubject]?.name || formatName(state.selectedSubject);
       chips.push(`
-        <span class="active-chip">
+        <span class="active-chip active-chip-${state.selectedSubject}">
           <span>${emoji} ${subName}</span>
           <button type="button" class="active-chip-remove" data-clear="subject" aria-label="Remove ${subName} filter">✕</button>
         </span>
@@ -1621,7 +1622,7 @@
     if (!query || !query.trim()) return escapeHtml(text);
     const escapedText = escapeHtml(text);
     const regex = new RegExp(`(${escapeRegex(query.trim())})`, "gi");
-    return escapedText.replace(regex, `<mark style="background-color: #fef08a; padding: 0.1em 0.25em; border-radius: 2px;">$1</mark>`);
+    return escapedText.replace(regex, `<mark class="search-highlight" style="background-color: #F9E88A; color: #151B2B; padding: 0.1em 0.25em; border-radius: 3px;">$1</mark>`);
   }
 
   function escapeHtml(string) {

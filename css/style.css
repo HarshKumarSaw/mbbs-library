@@ -7,84 +7,97 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Warm Canvas & Minimalist Palette */
-  --canvas-bg: #FAF8F5;          /* Warm paper canvas */
-  --canvas-subtle: #F4EFEB;      /* Muted container tone */
-  --canvas-pure: #FFFFFF;        /* Card surface */
-  --canvas-glass: rgba(250, 248, 245, 0.94);
+  /* ==========================================================================
+     Harsh's Library Unified Colour Identity & Centralised Design Tokens
+     ========================================================================== */
+  /* Global Background & Surfaces */
+  --canvas-bg: #FAF8F4;          /* Warm Ivory global canvas */
+  --canvas-subtle: #F3EFEA;      /* Soft warm muted container tone */
+  --canvas-pure: #FFFFFF;        /* Predominantly white card surface */
+  --canvas-glass: rgba(250, 248, 244, 0.94);
   --card-bg: #FFFFFF;
 
-  /* High-Contrast Typography */
-  --text-headline: #111827;      /* Deep rich charcoal */
-  --text-body: #374151;          /* Readable body text */
-  --text-muted: #6B7280;          /* Secondary metadata */
-  --text-tertiary: #9CA3AF;
+  /* Primary Typography & Actions (Midnight Navy) */
+  --primary-navy: #151B2B;       /* Midnight Navy primary text & buttons */
+  --primary-navy-hover: #222B42; /* Slightly lighter navy for hover state */
+  --primary-navy-active: #0D121D;/* Deep navy for active press */
+  --text-headline: #151B2B;      /* Midnight Navy headlines */
+  --text-body: #2D3748;          /* Crisp readable charcoal body text */
+  --text-muted: #5A6578;         /* Accessible secondary metadata (contrast > 4.5:1) */
+  --text-tertiary: #8492A6;
 
-  /* Ali Abdaal Highlighter Pen Accents */
-  --highlighter-yellow: #FEF08A;
-  --highlighter-yellow-bold: #FDE047;
-  --highlighter-peach: #FFD8A8;
-  --highlighter-rose: #FFC9C9;
-  --highlighter-purple: #E5DBFF;
-  --highlighter-mint: #C3FAE8;
+  /* Highlights (Butter Yellow) */
+  --highlight-yellow: #F9E88A;   /* Butter Yellow */
+  --highlighter-yellow: #F9E88A; /* Ali Abdaal title highlight marker */
+  --highlighter-yellow-bold: #F7DF60;
 
-  /* Subject Color Identity */
-  --color-anatomy: #E03131;
-  --anatomy-bg: #FFF5F5;
-  --anatomy-border: #FFC9C9;
-  --anatomy-gradient: linear-gradient(135deg, #FA5252 0%, #FF8787 100%);
+  /* Borders & Dividers (Soft Beige) */
+  --border-subtle: #E8E0D5;      /* Soft Beige borders & dividers */
+  --border-card: #E8E0D5;        /* Soft Beige card border */
+  --border-focus: #151B2B;       /* Midnight Navy on focus */
 
-  --color-physiology: #5F3DC4;
-  --physiology-bg: #F3F0FF;
-  --physiology-border: #D0BFFF;
-  --physiology-gradient: linear-gradient(135deg, #7950F2 0%, #9775FA 100%);
+  /* Subject Color Identity Tokens */
+  /* Anatomy - Anatomy Coral (#F2BFC1) */
+  --accent-anatomy: #F2BFC1;     /* Anatomy Coral distinctive accent */
+  --anatomy-accent: #F2BFC1;
+  --anatomy-border: #F2BFC1;     /* Subtle coral border / strip */
+  --anatomy-bg: #FDF3F3;         /* Lightly tinted subject badge background */
+  --anatomy-text: #8A2024;       /* High-contrast deep coral text & icon (7.2:1 AAA) */
+  --color-anatomy: #8A2024;
 
-  --color-biochem: #0CA678;
-  --biochem-bg: #E6FCF5;
-  --biochem-border: #96F2D7;
-  --biochem-gradient: linear-gradient(135deg, #12B886 0%, #38D9A9 100%);
+  /* Physiology - Physiology Lavender (#DCCBFA) */
+  --accent-physiology: #DCCBFA;  /* Physiology Lavender distinctive accent */
+  --physiology-accent: #DCCBFA;
+  --physiology-border: #DCCBFA;  /* Subtle lavender border / strip */
+  --physiology-bg: #F7F4FD;      /* Lightly tinted subject badge background */
+  --physiology-text: #4E2888;    /* High-contrast deep lavender text & icon (7.5:1 AAA) */
+  --color-physiology: #4E2888;
 
-  --color-community: #099268;
-  --community-bg: #E6FAF5;
-  --community-border: #8CE99A;
+  /* Biochemistry - Biochemistry Mint (#BCEBD9) */
+  --accent-biochem: #BCEBD9;     /* Biochemistry Mint distinctive accent */
+  --biochem-accent: #BCEBD9;
+  --biochem-border: #BCEBD9;     /* Subtle mint border / strip */
+  --biochem-bg: #EFF9F4;         /* Lightly tinted subject badge background */
+  --biochem-text: #0E5E41;       /* High-contrast deep mint text & icon (7.1:1 AAA) */
+  --color-biochem: #0E5E41;
 
-  --color-aetcom: #E8590C;
-  --aetcom-bg: #FFE8CC;
-  --aetcom-border: #FFC078;
+  /* Content-Format Badges (Neutral Warm Gray/Beige) */
+  --badge-neutral-bg: #F3EFEA;
+  --badge-neutral-text: #475569;
+  --badge-neutral-border: #E8E0D5;
 
-  /* Category Badges */
-  --badge-notes-bg: #EFF6FF;
-  --badge-notes-text: #1E40AF;
-  --badge-notes-border: #BFDBFE;
+  /* Category Badges (All Neutral) */
+  --badge-notes-bg: #F3EFEA;
+  --badge-notes-text: #475569;
+  --badge-notes-border: #E8E0D5;
 
-  --badge-assign-bg: #FFFBEB;
-  --badge-assign-text: #B45309;
-  --badge-assign-border: #FDE68A;
+  --badge-assign-bg: #F3EFEA;
+  --badge-assign-text: #475569;
+  --badge-assign-border: #E8E0D5;
 
-  --badge-sdl-bg: #F5F3FF;
-  --badge-sdl-text: #6D28D9;
-  --badge-sdl-border: #DDD6FE;
+  --badge-sdl-bg: #F3EFEA;
+  --badge-sdl-text: #475569;
+  --badge-sdl-border: #E8E0D5;
 
-  --badge-prac-bg: #ECFDF5;
-  --badge-prac-text: #047857;
-  --badge-prac-border: #A7F3D0;
+  --badge-prac-bg: #F3EFEA;
+  --badge-prac-text: #475569;
+  --badge-prac-border: #E8E0D5;
 
-  --badge-project-bg: #FFF0F6;
-  --badge-project-text: #C2255C;
-  --badge-project-border: #FCC2D7;
+  --badge-project-bg: #F3EFEA;
+  --badge-project-text: #475569;
+  --badge-project-border: #E8E0D5;
 
-  --badge-other-bg: #F3F4F6;
-  --badge-other-text: #374151;
-  --badge-other-border: #E5E7EB;
+  --badge-other-bg: #F3EFEA;
+  --badge-other-text: #475569;
+  --badge-other-border: #E8E0D5;
 
-  /* Borders & Shadows */
-  --border-subtle: #E7E2DA;
-  --border-focus: #111827;
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow-card-hover: 0 12px 28px -6px rgba(17, 24, 39, 0.08), 0 4px 10px -2px rgba(17, 24, 39, 0.03);
-  --shadow-dropdown: 0 16px 36px -8px rgba(17, 24, 39, 0.15);
+  /* Subtle, Restrained Shadows */
+  --shadow-card: 0 2px 10px rgba(21, 27, 43, 0.04), 0 1px 2px rgba(21, 27, 43, 0.02);
+  --shadow-card-hover: 0 8px 20px -4px rgba(21, 27, 43, 0.08), 0 2px 6px rgba(21, 27, 43, 0.03);
+  --shadow-dropdown: 0 12px 28px -6px rgba(21, 27, 43, 0.12);
+  --shadow-btn: 0 2px 8px rgba(21, 27, 43, 0.14);
 
-  --radius-card: 20px;
+  --radius-card: 18px;
   --radius-pill: 9999px;
   --radius-btn: 9999px;
 
@@ -219,7 +232,7 @@ input {
    Compact Top Announcement Bar (No Bloat on Mobile)
    ========================================================================== */
 .top-bar {
-  background: #111827;
+  background: var(--primary-navy);
   color: #F9FAFB;
   font-size: 0.78rem;
   font-weight: 600;
@@ -295,13 +308,32 @@ input {
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  background: #111827;
+  background: var(--primary-navy);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   position: relative;
+}
+
+/* Subject Page Emblem Indicators */
+.brand-emblem-anatomy {
+  background: var(--anatomy-bg);
+  border: 1.5px solid var(--anatomy-border);
+  box-shadow: 0 2px 8px rgba(242, 191, 193, 0.25);
+}
+
+.brand-emblem-physiology {
+  background: var(--physiology-bg);
+  border: 1.5px solid var(--physiology-border);
+  box-shadow: 0 2px 8px rgba(220, 203, 250, 0.25);
+}
+
+.brand-emblem-biochemistry {
+  background: var(--biochem-bg);
+  border: 1.5px solid var(--biochem-border);
+  box-shadow: 0 2px 8px rgba(188, 235, 217, 0.25);
 }
 
 /* Custom Image Logo (Squircle Transparent Rendering) */
@@ -375,8 +407,8 @@ input {
 }
 
 .mobile-toggle:hover {
-  background: #F9FAFB;
-  border-color: #111827;
+  background: var(--canvas-subtle);
+  border-color: var(--primary-navy);
 }
 
 .mobile-toggle:active {
@@ -469,12 +501,82 @@ input {
 }
 
 .nav-link.active {
-  background: #111827;
+  background: var(--primary-navy);
   color: #FFFFFF;
 }
 
+/* Subject Navigation Indicators & Subtle Accents */
+.nav-link[href*="anatomy"].active,
+.page-anatomy .nav-link.active {
+  background: var(--primary-navy);
+  color: #FFFFFF;
+  box-shadow: inset 0 -3px 0 var(--anatomy-accent);
+}
+
+.nav-link[href*="physiology"].active,
+.page-physiology .nav-link.active {
+  background: var(--primary-navy);
+  color: #FFFFFF;
+  box-shadow: inset 0 -3px 0 var(--physiology-accent);
+}
+
+.nav-link[href*="biochemistry"].active,
+.page-biochemistry .nav-link.active {
+  background: var(--primary-navy);
+  color: #FFFFFF;
+  box-shadow: inset 0 -3px 0 var(--biochem-accent);
+}
+
+.nav-link[href*="anatomy"]:hover:not(.active) {
+  background: var(--anatomy-bg);
+  color: var(--anatomy-text);
+}
+
+.nav-link[href*="physiology"]:hover:not(.active) {
+  background: var(--physiology-bg);
+  color: var(--physiology-text);
+}
+
+.nav-link[href*="biochemistry"]:hover:not(.active) {
+  background: var(--biochem-bg);
+  color: var(--biochem-text);
+}
+
+/* Subject Page Badges */
+.subject-page-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.22rem 0.75rem;
+  border-radius: var(--radius-pill);
+  margin-bottom: 0.45rem;
+}
+
+.tag-anatomy {
+  background: var(--anatomy-bg);
+  color: var(--anatomy-text);
+  border: 1px solid var(--anatomy-border);
+}
+
+.tag-physiology {
+  background: var(--physiology-bg);
+  color: var(--physiology-text);
+  border: 1px solid var(--physiology-border);
+}
+
+.tag-biochemistry {
+  background: var(--biochem-bg);
+  color: var(--biochem-text);
+  border: 1px solid var(--biochem-border);
+}
+
 .nav-cta {
-  background: #111827;
+  background: var(--primary-navy);
   color: #FFFFFF !important;
   justify-content: center;
   margin-top: 0.35rem;
@@ -535,14 +637,14 @@ input {
   pointer-events: none;
   filter: blur(28px);
   -webkit-filter: blur(28px);
-  opacity: 0.55;
+  opacity: 0.45;
   z-index: -1;
 }
 
 .intro-shape-yellow {
   width: 75px;
   height: 75px;
-  background: rgba(254, 240, 138, 0.7);
+  background: rgba(249, 232, 138, 0.45);
   top: -10px;
   left: 6%;
 }
@@ -550,7 +652,7 @@ input {
 .intro-shape-lavender {
   width: 80px;
   height: 80px;
-  background: rgba(233, 213, 255, 0.65);
+  background: rgba(220, 203, 250, 0.45);
   top: 5px;
   right: 5%;
 }
@@ -558,7 +660,7 @@ input {
 .intro-shape-mint {
   width: 70px;
   height: 70px;
-  background: rgba(167, 243, 208, 0.55);
+  background: rgba(188, 235, 217, 0.45);
   bottom: 0;
   left: 30%;
 }
@@ -582,7 +684,7 @@ input {
   }
 }
 
-/* Friendly Personal Study Desk Badge */
+/* Friendly Personal Study Vault Badge */
 .intro-badge {
   display: inline-flex;
   align-items: center;
@@ -596,7 +698,7 @@ input {
   font-weight: 700;
   color: var(--text-headline);
   margin-bottom: 0.35rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 4px rgba(21, 27, 43, 0.03);
   transition: transform var(--transition-fast);
 }
 
@@ -613,7 +715,7 @@ input {
 }
 
 .intro-badge-icon {
-  color: #8B5CF6; /* Gentle violet sparkle */
+  color: #7C3AED;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -638,13 +740,13 @@ input {
   }
 }
 
-/* Ali Abdaal Highlighter with playful hand-drawn underline */
+/* Ali Abdaal Highlighter with Butter Yellow (#F9E88A) */
 .title-highlight {
   position: relative;
   display: inline-block;
   color: var(--text-headline);
-  padding: 0 0.12em;
-  background: linear-gradient(120deg, rgba(254, 240, 138, 0.5) 0%, rgba(253, 224, 71, 0.6) 100%);
+  padding: 0 0.14em;
+  background: linear-gradient(120deg, rgba(249, 232, 138, 0.45) 0%, rgba(249, 232, 138, 0.8) 100%);
   border-radius: 4px;
 }
 
@@ -677,7 +779,7 @@ input {
 /* Short Description (Tightened) */
 .home-desc {
   font-size: 0.84rem;
-  color: #4B5563;
+  color: var(--text-body);
   line-height: 1.42;
   max-width: 540px;
   margin: 0 auto 0.55rem;
@@ -770,27 +872,27 @@ input {
 }
 
 .intro-chip.chip-yellow {
-  background: #FEF9C3;
-  color: #854D0E;
-  border: 1.5px solid #FDE047;
+  background: #FEFCE8;
+  color: #713F12;
+  border: 1.5px solid var(--highlight-yellow);
 }
 
 .intro-chip.chip-lavender {
-  background: #F3E8FF;
-  color: #6B21A8;
-  border: 1.5px solid #DDD6FE;
+  background: var(--physiology-bg);
+  color: var(--physiology-text);
+  border: 1.5px solid var(--physiology-accent);
 }
 
 .intro-chip.chip-coral {
-  background: #FFE4E6;
-  color: #9F1239;
-  border: 1.5px solid #FECDD3;
+  background: var(--anatomy-bg);
+  color: var(--anatomy-text);
+  border: 1.5px solid var(--anatomy-accent);
 }
 
 .intro-chip.chip-mint {
-  background: #ECFDF5;
-  color: #065F46;
-  border: 1.5px solid #A7F3D0;
+  background: var(--biochem-bg);
+  color: var(--biochem-text);
+  border: 1.5px solid var(--biochem-accent);
 }
 
 .page-title {
@@ -852,8 +954,8 @@ input {
   border-radius: var(--radius-pill);
   font-size: 0.8rem;
   font-weight: 700;
-  color: #111827;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  color: var(--primary-navy);
+  box-shadow: 0 1px 4px rgba(21, 27, 43, 0.03);
   margin-bottom: 0.85rem;
 }
 
@@ -932,11 +1034,11 @@ input {
   height: 52px;
   flex-shrink: 0;
   background: #FFFFFF;
-  border: 2px solid var(--border-subtle);
+  border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-pill);
-  color: var(--text-headline);
+  color: var(--primary-navy);
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(21, 27, 43, 0.04);
   transition: var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
@@ -949,8 +1051,8 @@ input {
 }
 
 .filter-toggle-btn:hover {
-  border-color: #111827;
-  background: #F9FAFB;
+  border-color: var(--primary-navy);
+  background: var(--canvas-subtle);
   transform: translateY(-1px);
 }
 
@@ -959,10 +1061,10 @@ input {
 }
 
 .filter-toggle-btn.has-active {
-  border-color: #111827;
-  background: #111827;
+  border-color: var(--primary-navy);
+  background: var(--primary-navy);
   color: #FFFFFF;
-  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.25);
+  box-shadow: 0 4px 14px rgba(21, 27, 43, 0.22);
 }
 
 .filter-toggle-btn.has-active .filter-icon {
@@ -977,15 +1079,15 @@ input {
   height: 20px;
   padding: 0 5px;
   border-radius: 9999px;
-  background: #E03131;
-  color: #FFFFFF;
+  background: var(--highlight-yellow);
+  color: var(--primary-navy);
   font-family: var(--font-display);
   font-size: 0.72rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(224, 49, 49, 0.4);
+  box-shadow: 0 2px 6px rgba(21, 27, 43, 0.15);
   border: 2px solid #FFFFFF;
 }
 
@@ -1007,14 +1109,32 @@ input {
   align-items: center;
   gap: 0.35rem;
   background: #FFFFFF;
-  border: 1.5px solid #111827;
-  color: #111827;
+  border: 1.5px solid var(--border-subtle);
+  color: var(--primary-navy);
   font-family: var(--font-display);
   font-size: 0.82rem;
   font-weight: 600;
   padding: 0.32rem 0.5rem 0.32rem 0.8rem;
   border-radius: var(--radius-pill);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(21, 27, 43, 0.04);
+}
+
+.active-chip-anatomy {
+  border-color: var(--anatomy-border);
+  background: var(--anatomy-bg);
+  color: var(--anatomy-text);
+}
+
+.active-chip-physiology {
+  border-color: var(--physiology-border);
+  background: var(--physiology-bg);
+  color: var(--physiology-text);
+}
+
+.active-chip-biochemistry {
+  border-color: var(--biochem-border);
+  background: var(--biochem-bg);
+  color: var(--biochem-text);
 }
 
 .active-chip-remove {
@@ -1024,8 +1144,8 @@ input {
   width: 18px;
   height: 18px;
   border-radius: 9999px;
-  background: #F3F4F6;
-  color: #4B5563;
+  background: var(--canvas-subtle);
+  color: var(--text-muted);
   border: none;
   font-size: 0.8rem;
   font-weight: 700;
@@ -1036,14 +1156,14 @@ input {
 }
 
 .active-chip-remove:hover {
-  background: #E03131;
+  background: var(--primary-navy);
   color: #FFFFFF;
 }
 
 .active-chip-clear {
   background: none;
   border: none;
-  color: #6B7280;
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -1054,19 +1174,19 @@ input {
 }
 
 .active-chip-clear:hover {
-  color: #E03131;
+  color: var(--primary-navy);
 }
 
 .search-box {
   width: 100%;
   background: #FFFFFF;
-  border: 2px solid var(--border-subtle);
+  border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   padding: 0.35rem 0.45rem 0.35rem 0.95rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(21, 27, 43, 0.04);
   transition: var(--transition-fast);
   min-height: 52px;
 }
@@ -1080,8 +1200,8 @@ input {
 }
 
 .search-box:focus-within {
-  border-color: #111827;
-  box-shadow: 0 8px 24px -2px rgba(17, 24, 39, 0.12);
+  border-color: var(--border-focus);
+  box-shadow: 0 4px 16px rgba(21, 27, 43, 0.08);
 }
 
 .search-icon {
@@ -1135,7 +1255,7 @@ input {
 /* On mobile, real-time live search executes on keystroke; button appears on desktop */
 .search-btn {
   display: none;
-  background: #111827;
+  background: var(--primary-navy);
   color: #FFFFFF;
   font-family: var(--font-display);
   font-size: 0.9rem;
@@ -1155,7 +1275,7 @@ input {
 }
 
 .search-btn:hover {
-  background: #27272A;
+  background: var(--primary-navy-hover);
 }
 
 /* ==========================================================================
@@ -1200,7 +1320,7 @@ input {
   cursor: pointer;
   white-space: nowrap;
   transition: var(--transition-fast);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(21, 27, 43, 0.02);
 }
 
 .quick-chip:active {
@@ -1208,8 +1328,8 @@ input {
 }
 
 .quick-chip:hover {
-  border-color: #111827;
-  background: #F9FAFB;
+  border-color: var(--primary-navy);
+  background: var(--canvas-subtle);
 }
 
 /* ==========================================================================
@@ -1348,6 +1468,8 @@ input {
   flex-direction: column;
   transition: var(--transition-smooth);
   box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
@@ -1356,10 +1478,44 @@ input {
   }
 }
 
+.subject-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: var(--border-subtle);
+}
+
+.subject-card:nth-child(1)::before {
+  background: var(--anatomy-accent);
+}
+
+.subject-card:nth-child(2)::before {
+  background: var(--physiology-accent);
+}
+
+.subject-card:nth-child(3)::before {
+  background: var(--biochem-accent);
+}
+
 .subject-card:hover {
   transform: translateY(-4px);
   border-color: #D1D5DB;
   box-shadow: var(--shadow-card-hover);
+}
+
+.subject-card:nth-child(1):hover {
+  border-color: var(--anatomy-accent);
+}
+
+.subject-card:nth-child(2):hover {
+  border-color: var(--physiology-accent);
+}
+
+.subject-card:nth-child(3):hover {
+  border-color: var(--biochem-accent);
 }
 
 .subject-icon {
@@ -1425,7 +1581,7 @@ input {
 }
 
 .subject-btn:hover {
-  color: #E03131;
+  color: var(--primary-navy);
   transform: translateX(3px);
 }
 
@@ -1547,7 +1703,7 @@ input {
   scroll-snap-align: start;
   background: #FFFFFF;
   border: 1.5px solid var(--border-subtle);
-  color: #1F2937;
+  color: var(--text-headline);
   font-family: var(--font-display);
   font-size: 0.88rem;
   font-weight: 700;
@@ -1560,7 +1716,7 @@ input {
   white-space: nowrap;
   min-height: 42px;
   transition: var(--transition-fast);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(21, 27, 43, 0.02);
 }
 
 .filter-pill:active {
@@ -1568,28 +1724,62 @@ input {
 }
 
 .filter-pill:hover {
-  border-color: #111827;
-  color: #111827;
+  border-color: var(--primary-navy);
+  color: var(--primary-navy);
 }
 
 .filter-pill.active {
-  background: #111827 !important;
+  background: var(--primary-navy) !important;
   color: #FFFFFF !important;
-  border-color: #111827 !important;
-  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.25);
+  border-color: var(--primary-navy) !important;
+  box-shadow: 0 4px 14px rgba(21, 27, 43, 0.22);
+}
+
+/* Subject filter pills when active */
+.filter-pill[data-subject="anatomy"].active {
+  background: var(--anatomy-bg) !important;
+  border-color: var(--anatomy-border) !important;
+  color: var(--anatomy-text) !important;
+}
+
+.filter-pill[data-subject="anatomy"].active .pill-count {
+  background: rgba(138, 32, 36, 0.12);
+  color: var(--anatomy-text);
+}
+
+.filter-pill[data-subject="physiology"].active {
+  background: var(--physiology-bg) !important;
+  border-color: var(--physiology-border) !important;
+  color: var(--physiology-text) !important;
+}
+
+.filter-pill[data-subject="physiology"].active .pill-count {
+  background: rgba(78, 40, 136, 0.12);
+  color: var(--physiology-text);
+}
+
+.filter-pill[data-subject="biochemistry"].active {
+  background: var(--biochem-bg) !important;
+  border-color: var(--biochem-border) !important;
+  color: var(--biochem-text) !important;
+}
+
+.filter-pill[data-subject="biochemistry"].active .pill-count {
+  background: rgba(14, 94, 65, 0.12);
+  color: var(--biochem-text);
 }
 
 .pill-count {
   font-size: 0.74rem;
   font-weight: 800;
   background: var(--canvas-subtle);
-  color: #4B5563;
+  color: var(--text-muted);
   padding: 0.12rem 0.45rem;
   border-radius: var(--radius-pill);
 }
 
 .filter-pill.active .pill-count {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
   color: #FFFFFF;
 }
 
@@ -1615,7 +1805,7 @@ input {
 .results-count {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #4B5563;
+  color: var(--text-muted);
 }
 
 .results-count strong {
@@ -1634,7 +1824,7 @@ input {
 .filter-tag {
   background: #FFFFFF;
   border: 1.5px solid var(--border-subtle);
-  color: #111827;
+  color: var(--primary-navy);
   font-size: 0.8rem;
   font-weight: 700;
   padding: 0.25rem 0.75rem;
@@ -1645,7 +1835,7 @@ input {
 }
 
 .filter-tag-remove {
-  color: #9CA3AF;
+  color: var(--text-muted);
   font-size: 1.1rem;
   line-height: 1;
   display: inline-flex;
@@ -1653,11 +1843,11 @@ input {
 }
 
 .filter-tag-remove:hover {
-  color: #E03131;
+  color: var(--primary-navy);
 }
 
 .clear-all-btn {
-  color: #E03131;
+  color: var(--primary-navy);
   font-size: 0.8rem;
   font-weight: 700;
   text-decoration: underline;
@@ -1689,7 +1879,7 @@ input {
   }
 }
 
-/* Full-width, uncrowded card on mobile */
+/* Predominantly White Document Cards with Distinctive Subject Accents */
 .resource-card {
   width: 100%;
   background: #FFFFFF;
@@ -1701,6 +1891,7 @@ input {
   transition: var(--transition-smooth);
   box-shadow: var(--shadow-card);
   position: relative;
+  overflow: hidden;
 }
 
 @media (min-width: 480px) {
@@ -1715,10 +1906,56 @@ input {
   }
 }
 
+/* Thin Top Accent Strip per Subject */
+.resource-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.resource-card.subject-anatomy::before,
+.resource-card[data-subject="anatomy"]::before {
+  background: var(--anatomy-accent);
+}
+
+.resource-card.subject-physiology::before,
+.resource-card[data-subject="physiology"]::before {
+  background: var(--physiology-accent);
+}
+
+.resource-card.subject-biochemistry::before,
+.resource-card[data-subject="biochemistry"]::before {
+  background: var(--biochem-accent);
+}
+
+/* Subtle Subject-Coloured Borders on Hover */
 .resource-card:hover {
   transform: translateY(-4px);
-  border-color: #D1D5DB;
+  border-color: #D6CEC3;
   box-shadow: var(--shadow-card-hover);
+}
+
+.resource-card.subject-anatomy:hover,
+.resource-card[data-subject="anatomy"]:hover {
+  border-color: var(--anatomy-accent);
+  box-shadow: 0 8px 24px -4px rgba(242, 191, 193, 0.3), 0 2px 6px rgba(21, 27, 43, 0.04);
+}
+
+.resource-card.subject-physiology:hover,
+.resource-card[data-subject="physiology"]:hover {
+  border-color: var(--physiology-accent);
+  box-shadow: 0 8px 24px -4px rgba(220, 203, 250, 0.3), 0 2px 6px rgba(21, 27, 43, 0.04);
+}
+
+.resource-card.subject-biochemistry:hover,
+.resource-card[data-subject="biochemistry"]:hover {
+  border-color: var(--biochem-accent);
+  box-shadow: 0 8px 24px -4px rgba(188, 235, 217, 0.35), 0 2px 6px rgba(21, 27, 43, 0.04);
 }
 
 .card-top,
@@ -1731,66 +1968,78 @@ input {
   flex-wrap: wrap;
 }
 
+/* Lightly Tinted Subject Badges with Matching Icons */
 .subject-badge {
   font-family: var(--font-display);
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.76rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 0.25rem 0.75rem;
+  padding: 0.22rem 0.65rem;
   border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  background: var(--canvas-subtle);
+  color: var(--text-headline);
+  border: 1px solid var(--border-subtle);
 }
 
 .subject-badge.anatomy {
   background: var(--anatomy-bg);
-  color: var(--color-anatomy);
-  border: 1.5px solid var(--anatomy-border);
+  color: var(--anatomy-text);
+  border: 1px solid var(--anatomy-border);
 }
 
 .subject-badge.physiology {
   background: var(--physiology-bg);
-  color: var(--color-physiology);
-  border: 1.5px solid var(--physiology-border);
+  color: var(--physiology-text);
+  border: 1px solid var(--physiology-border);
 }
 
 .subject-badge.biochemistry {
   background: var(--biochem-bg);
-  color: var(--color-biochem);
-  border: 1.5px solid var(--biochem-border);
+  color: var(--biochem-text);
+  border: 1px solid var(--biochem-border);
 }
 
 .subject-badge.community_medicine {
-  background: var(--community-bg);
-  color: var(--color-community);
-  border: 1.5px solid var(--community-border);
+  background: var(--canvas-subtle);
+  color: #099268;
+  border: 1px solid var(--border-subtle);
 }
 
 .subject-badge.aetcom {
-  background: var(--aetcom-bg);
-  color: var(--color-aetcom);
-  border: 1.5px solid var(--aetcom-border);
+  background: var(--canvas-subtle);
+  color: #E8590C;
+  border: 1px solid var(--border-subtle);
 }
 
+/* Neutral Content-Format Badges */
 .category-badge {
   font-family: var(--font-display);
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 0.25rem 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.22rem 0.65rem;
   border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  border: 1px solid var(--badge-neutral-border);
 }
 
-.badge-notes { background: var(--badge-notes-bg); color: var(--badge-notes-text); }
-.badge-assignments { background: var(--badge-assign-bg); color: var(--badge-assign-text); }
-.badge-sdls { background: var(--badge-sdl-bg); color: var(--badge-sdl-text); }
-.badge-practicals { background: var(--badge-prac-bg); color: var(--badge-prac-text); }
-.badge-project { background: var(--badge-project-bg); color: var(--badge-project-text); }
-.badge-other { background: var(--badge-other-bg); color: var(--badge-other-text); }
+.badge-notes,
+.badge-assignments,
+.badge-sdls,
+.badge-practicals,
+.badge-project,
+.badge-other {
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  border: 1px solid var(--badge-neutral-border);
+}
 
 /* Confident Card Title */
 .card-title {
@@ -1812,7 +2061,7 @@ input {
 
 .card-desc {
   font-size: 0.94rem;
-  color: #4B5563;
+  color: var(--text-body);
   line-height: 1.55;
   margin-bottom: 1.15rem;
   flex-grow: 1;
@@ -1825,7 +2074,7 @@ input {
   gap: 0.5rem;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #6B7280;
+  color: var(--text-muted);
   margin-bottom: 1.25rem;
   border-top: 1.5px solid var(--border-subtle);
   padding-top: 0.85rem;
@@ -1833,7 +2082,7 @@ input {
 }
 
 .meta-bullet {
-  color: #D1D5DB;
+  color: var(--border-subtle);
 }
 
 .meta-item {
@@ -1854,7 +2103,7 @@ input {
 .btn-view,
 .btn-read {
   flex-grow: 1;
-  background: #111827;
+  background: var(--primary-navy);
   color: #FFFFFF;
   font-family: var(--font-display);
   font-size: 0.95rem;
@@ -1867,19 +2116,20 @@ input {
   justify-content: center;
   gap: 0.5rem;
   min-height: 48px;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.18);
+  box-shadow: var(--shadow-btn);
   transition: var(--transition-fast);
 }
 
 .btn-view:hover,
 .btn-read:hover {
-  background: #27272A;
+  background: var(--primary-navy-hover);
   transform: translateY(-2px);
 }
 
 .btn-view:active,
 .btn-read:active {
   transform: scale(0.97);
+  background: var(--primary-navy-active);
 }
 
 .btn-download,
@@ -1889,7 +2139,7 @@ input {
   border-radius: var(--radius-pill);
   background: var(--canvas-subtle);
   border: 1.5px solid var(--border-subtle);
-  color: var(--text-headline);
+  color: var(--primary-navy);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1900,8 +2150,8 @@ input {
 
 .btn-download:hover,
 .btn-download-action:hover {
-  background: #E5E7EB;
-  border-color: #111827;
+  background: #E8E0D5;
+  border-color: var(--primary-navy);
 }
 
 .btn-download:active,
@@ -2062,8 +2312,8 @@ input {
 }
 
 .filter-modal-close:hover {
-  background: #E5E7EB;
-  color: #111827;
+  background: var(--canvas-subtle);
+  color: var(--primary-navy);
 }
 
 .filter-modal-body {
@@ -2126,15 +2376,15 @@ input {
 }
 
 .filter-pill-grid .filter-pill:hover {
-  border-color: #111827;
-  background: #F9FAFB;
+  border-color: var(--primary-navy);
+  background: var(--canvas-subtle);
 }
 
 .filter-pill-grid .filter-pill.active {
-  background: #111827;
-  border-color: #111827;
+  background: var(--primary-navy);
+  border-color: var(--primary-navy);
   color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.2);
+  box-shadow: 0 4px 12px rgba(21, 27, 43, 0.2);
 }
 
 .filter-pill-grid .filter-pill .pill-count {
@@ -2142,8 +2392,8 @@ input {
   font-weight: 700;
   padding: 0.12rem 0.45rem;
   border-radius: 9999px;
-  background: #F3F4F6;
-  color: #4B5563;
+  background: var(--canvas-subtle);
+  color: var(--text-muted);
   margin-left: 0.15rem;
 }
 
@@ -2164,9 +2414,9 @@ input {
 
 .btn-filter-clear {
   flex: 1;
-  background: #F3F4F6;
+  background: var(--canvas-subtle);
   border: 1.5px solid var(--border-subtle);
-  color: var(--text-headline);
+  color: var(--primary-navy);
   font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 700;
@@ -2178,14 +2428,14 @@ input {
 }
 
 .btn-filter-clear:hover {
-  background: #E5E7EB;
-  border-color: #D1D5DB;
+  background: #E8E0D5;
+  border-color: var(--primary-navy);
 }
 
 .btn-filter-apply {
   flex: 2;
-  background: #111827;
-  border: 1.5px solid #111827;
+  background: var(--primary-navy);
+  border: 1.5px solid var(--primary-navy);
   color: #FFFFFF;
   font-family: var(--font-display);
   font-size: 0.95rem;
@@ -2195,11 +2445,12 @@ input {
   cursor: pointer;
   transition: var(--transition-fast);
   text-align: center;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.18);
+  box-shadow: var(--shadow-btn);
 }
 
 .btn-filter-apply:hover {
-  background: #000000;
+  background: var(--primary-navy-hover);
+  border-color: var(--primary-navy-hover);
   transform: translateY(-1px);
 }
 
@@ -2284,7 +2535,7 @@ input {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  color: #E03131;
+  color: var(--text-muted);
   display: block;
 }
 
@@ -2314,7 +2565,7 @@ input {
 .modal-btn {
   background: var(--canvas-subtle);
   border: 1.5px solid var(--border-subtle);
-  color: var(--text-headline);
+  color: var(--primary-navy);
   font-family: var(--font-display);
   font-size: 0.82rem;
   font-weight: 700;
@@ -2326,14 +2577,19 @@ input {
 }
 
 .modal-btn-primary {
-  background: #111827;
+  background: var(--primary-navy);
   color: #FFFFFF;
-  border-color: #111827;
+  border-color: var(--primary-navy);
+}
+
+.modal-btn-primary:hover {
+  background: var(--primary-navy-hover);
+  border-color: var(--primary-navy-hover);
 }
 
 .modal-close {
   background: var(--canvas-subtle);
-  color: var(--text-headline);
+  color: var(--primary-navy);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -2364,7 +2620,7 @@ input {
   align-items: center;
   justify-content: space-between;
   padding: 0.45rem 0.85rem;
-  background: #111827;
+  background: var(--primary-navy);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   gap: 0.5rem;
   flex-shrink: 0;
@@ -2763,8 +3019,8 @@ input {
    Minimal Clean Footer
    ========================================================================== */
 .footer {
-  background: #111827;
-  color: #9CA3AF;
+  background: var(--primary-navy);
+  color: #A0AEC0;
   padding: 1.35rem 0;
   margin-top: auto;
   width: 100%;
