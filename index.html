@@ -58,25 +58,37 @@
           <p class="page-subtitle">Instant access to high-yield notes, histology slides, assignments & modules.</p>
         </div>
 
-        <!-- Search Bar (Full Width & Accessible) -->
+        <!-- Search Bar & Compact Filter Button (Single Aligned Row) -->
         <div class="search-wrapper">
-          <form class="search-box" id="search-form" role="search" onsubmit="return false;">
-            <span class="search-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <div class="search-filter-row">
+            <form class="search-box" id="search-form" role="search" onsubmit="return false;">
+              <span class="search-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </span>
+              <input 
+                type="search" 
+                id="search-input" 
+                class="search-input" 
+                placeholder="Search topic, nerve, cycle, code (e.g. Brachial, Histology, ECG)..." 
+                aria-label="Search study resources"
+                autocomplete="off"
+              >
+              <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">✕</button>
+            </form>
+
+            <button type="button" class="filter-toggle-btn" id="filter-toggle-btn" aria-label="Open filter panel" title="Filter by Subject and Category">
+              <svg class="filter-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
               </svg>
-            </span>
-            <input 
-              type="search" 
-              id="search-input" 
-              class="search-input" 
-              placeholder="Search topic, nerve, cycle, code (e.g. Brachial, Histology, ECG)..." 
-              aria-label="Search study resources"
-              autocomplete="off"
-            >
-            <button type="button" id="search-clear" class="search-clear" aria-label="Clear search">✕</button>
-          </form>
+              <span class="filter-badge" id="filter-badge" style="display: none;">0</span>
+            </button>
+          </div>
+
+          <!-- Removable Active Filter Chips (Visible ONLY when filters are active) -->
+          <div class="active-filter-chips" id="active-filter-chips" aria-label="Active filters"></div>
         </div>
       </div>
     </section>
@@ -85,23 +97,9 @@
     <section class="resources-section" id="catalog-section" aria-label="Study resources catalog">
       <div class="container">
         
-        <!-- Sticky Filter Toolbar -->
-        <div class="filter-toolbar">
-          <div class="filter-row">
-            <div class="filter-pills" id="subject-filters" role="tablist" aria-label="Filter by subject">
-              <!-- Populated dynamically via JS -->
-            </div>
-
-            <div class="filter-pills" id="category-filters" role="tablist" aria-label="Filter by category">
-              <!-- Populated dynamically via JS -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Results Counter & Active Badges -->
+        <!-- Results Counter & Info Bar -->
         <div class="results-info-bar">
           <div class="results-count" id="results-count">Loading study materials...</div>
-          <div class="active-filters" id="active-filters"></div>
         </div>
 
         <!-- Resource Cards Grid -->
@@ -112,6 +110,53 @@
       </div>
     </section>
   </main>
+
+  <!-- Filter Modal Panel (Bottom-Sheet on Mobile • Centered Modal on Desktop) -->
+  <div class="filter-modal-overlay" id="filter-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="filter-modal-backdrop" id="filter-modal-backdrop"></div>
+    <div class="filter-modal-container">
+      <div class="filter-sheet-handle" aria-hidden="true"></div>
+
+      <div class="filter-modal-header">
+        <div class="filter-modal-title-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          <h3 class="filter-modal-title">Filter Resources</h3>
+        </div>
+        <button type="button" class="filter-modal-close" id="filter-modal-close" aria-label="Close filter panel">✕</button>
+      </div>
+
+      <div class="filter-modal-body">
+        <!-- Subjects Section -->
+        <div class="filter-group">
+          <div class="filter-group-header">
+            <span class="filter-group-label">Subjects</span>
+            <span class="filter-group-hint">Select a medical subject</span>
+          </div>
+          <div class="filter-pill-grid" id="modal-subject-filters" role="tablist">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Categories Section -->
+        <div class="filter-group">
+          <div class="filter-group-header">
+            <span class="filter-group-label">Resource Type</span>
+            <span class="filter-group-hint">Filter by content format</span>
+          </div>
+          <div class="filter-pill-grid" id="modal-category-filters" role="tablist">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-modal-footer">
+        <button type="button" class="btn-filter-clear" id="filter-clear-all-btn">Clear All</button>
+        <button type="button" class="btn-filter-apply" id="filter-apply-btn">Apply Filters</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Mobile Bottom-Sheet PDF Modal -->
   <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-hidden="true">

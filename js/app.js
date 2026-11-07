@@ -37,7 +37,18 @@
     statTotal: document.getElementById("stat-total"),
     statAnatomy: document.getElementById("stat-anatomy"),
     statPhysiology: document.getElementById("stat-physiology"),
-    statBiochem: document.getElementById("stat-biochem")
+    statBiochem: document.getElementById("stat-biochem"),
+    // Filter Modal & Toggle Elements
+    filterToggleBtn: document.getElementById("filter-toggle-btn"),
+    filterBadge: document.getElementById("filter-badge"),
+    activeFilterChips: document.getElementById("active-filter-chips"),
+    filterModal: document.getElementById("filter-modal"),
+    filterModalBackdrop: document.getElementById("filter-modal-backdrop"),
+    filterModalClose: document.getElementById("filter-modal-close"),
+    filterClearAllBtn: document.getElementById("filter-clear-all-btn"),
+    filterApplyBtn: document.getElementById("filter-apply-btn"),
+    modalSubjectFilters: document.getElementById("modal-subject-filters"),
+    modalCategoryFilters: document.getElementById("modal-category-filters")
   };
 
   // SVG Icons helper
@@ -63,6 +74,7 @@
     updateStatsCounters();
     applyFilterAndRender();
     setupEventListeners();
+    setupFilterModal();
   }
 
   // Load Saved Favorites from localStorage
@@ -116,9 +128,10 @@
     }
   }
 
-  // Render Subject Filter Buttons (Dynamically discovers any subjects in MBBS_RESOURCES)
+  // Render Subject Filter Buttons (Supports both inline track and modal filter sheet)
   function renderSubjectPills() {
-    if (!DOM.subjectFilters) return;
+    const containers = [DOM.subjectFilters, DOM.modalSubjectFilters].filter(Boolean);
+    if (!containers.length) return;
 
     const foundSubjects = new Set();
     MBBS_RESOURCES.forEach(r => {
@@ -133,34 +146,41 @@
       if (!ordered.includes(s)) ordered.push(s);
     });
 
-    DOM.subjectFilters.innerHTML = ordered.map(subId => {
-      const label = subId === "all" ? "All Subjects" : (SUBJECT_INFO[subId]?.name || formatName(subId));
-      const count = subId === "all" ? MBBS_RESOURCES.length : MBBS_RESOURCES.filter(r => r.subject === subId).length;
-      const isActive = state.selectedSubject === subId ? "active" : "";
+    containers.forEach(container => {
+      container.innerHTML = ordered.map(subId => {
+        const label = subId === "all" ? "All Subjects" : (SUBJECT_INFO[subId]?.name || formatName(subId));
+        const count = subId === "all" ? MBBS_RESOURCES.length : MBBS_RESOURCES.filter(r => r.subject === subId).length;
+        const isActive = state.selectedSubject === subId ? "active" : "";
 
-      return `
-        <button type="button" class="filter-pill ${isActive}" data-subject="${subId}">
-          ${label}
-          <span class="pill-count">${count}</span>
-        </button>
-      `;
-    }).join("");
+        return `
+          <button type="button" class="filter-pill ${isActive}" data-subject="${subId}">
+            ${label}
+            <span class="pill-count">${count}</span>
+          </button>
+        `;
+      }).join("");
 
-    DOM.subjectFilters.querySelectorAll(".filter-pill").forEach(btn => {
-      btn.addEventListener("click", () => {
-        state.selectedSubject = btn.dataset.subject;
-        DOM.subjectFilters.querySelectorAll(".filter-pill").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        renderCategoryPills(); // Keep categories in sync with the subject!
-        applyFilterAndRender();
-        updateHash();
+      container.querySelectorAll(".filter-pill").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const subId = btn.dataset.subject;
+          if (state.selectedSubject === subId && subId !== "all") {
+            state.selectedSubject = "all";
+          } else {
+            state.selectedSubject = subId;
+          }
+          renderSubjectPills();
+          renderCategoryPills(); // Keep categories in sync with the subject!
+          applyFilterAndRender();
+          updateHash();
+        });
       });
     });
   }
 
-  // Render Category Filter Buttons (Dynamically discovers any new categories/folders!)
+  // Render Category Filter Buttons (Supports both inline track and modal filter sheet)
   function renderCategoryPills() {
-    if (!DOM.categoryFilters) return;
+    const containers = [DOM.categoryFilters, DOM.modalCategoryFilters].filter(Boolean);
+    if (!containers.length) return;
 
     const scopeResources = state.selectedSubject === "all"
       ? MBBS_RESOURCES
@@ -186,33 +206,39 @@
       state.selectedCategory = "all";
     }
 
-    DOM.categoryFilters.innerHTML = ordered.map(catId => {
-      const meta = CATEGORY_INFO[catId] || {
-        label: formatName(catId),
-        icon: ICONS[catId] || ICONS.notes
-      };
-      const label = catId === "all" ? "All Categories" : meta.label;
-      const icon = catId === "all" ? "" : (meta.icon || ICONS.notes);
-      const count = catId === "all"
-        ? scopeResources.length
-        : scopeResources.filter(r => r.category === catId).length;
-      const isActive = state.selectedCategory === catId ? "active" : "";
+    containers.forEach(container => {
+      container.innerHTML = ordered.map(catId => {
+        const meta = CATEGORY_INFO[catId] || {
+          label: formatName(catId),
+          icon: ICONS[catId] || ICONS.notes
+        };
+        const label = catId === "all" ? "All Categories" : meta.label;
+        const icon = catId === "all" ? "" : (meta.icon || ICONS.notes);
+        const count = catId === "all"
+          ? scopeResources.length
+          : scopeResources.filter(r => r.category === catId).length;
+        const isActive = state.selectedCategory === catId ? "active" : "";
 
-      return `
-        <button type="button" class="filter-pill ${isActive}" data-category="${catId}">
-          ${icon}
-          ${label}
-          <span class="pill-count">${count}</span>
-        </button>
-      `;
-    }).join("");
+        return `
+          <button type="button" class="filter-pill ${isActive}" data-category="${catId}">
+            ${icon}
+            ${label}
+            <span class="pill-count">${count}</span>
+          </button>
+        `;
+      }).join("");
 
-    DOM.categoryFilters.querySelectorAll(".filter-pill").forEach(btn => {
-      btn.addEventListener("click", () => {
-        state.selectedCategory = btn.dataset.category;
-        DOM.categoryFilters.querySelectorAll(".filter-pill").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        applyFilterAndRender();
+      container.querySelectorAll(".filter-pill").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const catId = btn.dataset.category;
+          if (state.selectedCategory === catId && catId !== "all") {
+            state.selectedCategory = "all";
+          } else {
+            state.selectedCategory = catId;
+          }
+          renderCategoryPills();
+          applyFilterAndRender();
+        });
       });
     });
   }
@@ -263,6 +289,7 @@
 
     renderCards(filtered);
     renderActiveFilterTags(filtered.length);
+    renderActiveFilterChips();
   }
 
   // Render Resource Cards Grid
@@ -440,6 +467,153 @@
     } else {
       window.history.replaceState(null, null, window.location.pathname);
     }
+  }
+
+  // Update Filter Toggle Button Badge
+  function updateFilterBadge() {
+    let count = 0;
+    if (state.selectedSubject !== "all") count++;
+    if (state.selectedCategory !== "all") count++;
+
+    if (DOM.filterBadge) {
+      if (count > 0) {
+        DOM.filterBadge.textContent = count;
+        DOM.filterBadge.style.display = "flex";
+      } else {
+        DOM.filterBadge.style.display = "none";
+      }
+    }
+
+    if (DOM.filterToggleBtn) {
+      if (count > 0) {
+        DOM.filterToggleBtn.classList.add("has-active");
+      } else {
+        DOM.filterToggleBtn.classList.remove("has-active");
+      }
+    }
+  }
+
+  // Render Removable Chips Below Search Bar
+  function renderActiveFilterChips() {
+    updateFilterBadge();
+
+    if (!DOM.activeFilterChips) return;
+
+    const chips = [];
+
+    const subjectEmojis = {
+      anatomy: "🦴",
+      physiology: "🫀",
+      biochemistry: "🧪",
+      community_medicine: "🏥",
+      aetcom: "🩺"
+    };
+
+    if (state.selectedSubject !== "all") {
+      const emoji = subjectEmojis[state.selectedSubject] || "📚";
+      const subName = SUBJECT_INFO[state.selectedSubject]?.name || formatName(state.selectedSubject);
+      chips.push(`
+        <span class="active-chip">
+          <span>${emoji} ${subName}</span>
+          <button type="button" class="active-chip-remove" data-clear="subject" aria-label="Remove ${subName} filter">✕</button>
+        </span>
+      `);
+    }
+
+    if (state.selectedCategory !== "all") {
+      const catMeta = CATEGORY_INFO[state.selectedCategory] || { label: formatName(state.selectedCategory) };
+      chips.push(`
+        <span class="active-chip">
+          <span>📁 ${catMeta.label}</span>
+          <button type="button" class="active-chip-remove" data-clear="category" aria-label="Remove ${catMeta.label} filter">✕</button>
+        </span>
+      `);
+    }
+
+    if (chips.length > 0) {
+      chips.push(`<button type="button" class="active-chip-clear" id="active-chip-clear-all" aria-label="Clear all active filters">Clear all</button>`);
+      DOM.activeFilterChips.innerHTML = chips.join("");
+      DOM.activeFilterChips.style.display = "flex";
+
+      DOM.activeFilterChips.querySelectorAll(".active-chip-remove").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const type = btn.dataset.clear;
+          if (type === "subject") {
+            state.selectedSubject = "all";
+            updateHash();
+          } else if (type === "category") {
+            state.selectedCategory = "all";
+          }
+          renderSubjectPills();
+          renderCategoryPills();
+          applyFilterAndRender();
+        });
+      });
+
+      const clearAllBtn = document.getElementById("active-chip-clear-all");
+      if (clearAllBtn) {
+        clearAllBtn.addEventListener("click", () => {
+          state.selectedSubject = "all";
+          state.selectedCategory = "all";
+          renderSubjectPills();
+          renderCategoryPills();
+          applyFilterAndRender();
+          updateHash();
+        });
+      }
+    } else {
+      DOM.activeFilterChips.innerHTML = "";
+      DOM.activeFilterChips.style.display = "none";
+    }
+  }
+
+  // Filter Modal Controls (Bottom Sheet on Mobile, Centered Modal on Desktop)
+  function openFilterModal() {
+    if (!DOM.filterModal) return;
+    DOM.filterModal.classList.add("open");
+    DOM.filterModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeFilterModal() {
+    if (!DOM.filterModal) return;
+    DOM.filterModal.classList.remove("open");
+    DOM.filterModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  function setupFilterModal() {
+    if (DOM.filterToggleBtn) {
+      DOM.filterToggleBtn.addEventListener("click", openFilterModal);
+    }
+    if (DOM.filterModalClose) {
+      DOM.filterModalClose.addEventListener("click", closeFilterModal);
+    }
+    if (DOM.filterModalBackdrop) {
+      DOM.filterModalBackdrop.addEventListener("click", closeFilterModal);
+    }
+    if (DOM.filterApplyBtn) {
+      DOM.filterApplyBtn.addEventListener("click", () => {
+        closeFilterModal();
+      });
+    }
+    if (DOM.filterClearAllBtn) {
+      DOM.filterClearAllBtn.addEventListener("click", () => {
+        state.selectedSubject = "all";
+        state.selectedCategory = "all";
+        renderSubjectPills();
+        renderCategoryPills();
+        applyFilterAndRender();
+        updateHash();
+      });
+    }
+
+    // Escape key listener for filter modal
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && DOM.filterModal && DOM.filterModal.classList.contains("open")) {
+        closeFilterModal();
+      }
+    });
   }
 
   // Open PDF Modal Viewer
