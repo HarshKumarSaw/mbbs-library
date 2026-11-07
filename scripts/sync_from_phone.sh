@@ -674,7 +674,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
 
         # High-Performance PDF Compression & Fast Web View Linearization
         if [[ "${target_abs_path,,}" == *.pdf ]] && command -v gs >/dev/null 2>&1 && command -v qpdf >/dev/null 2>&1; then
-            orig_mtime=$(stat -c %Y "$target_abs_path" 2>/dev/null || echo 0)
+            orig_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
             orig_bytes=$(wc -c < "$target_abs_path")
             tmp_opt="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/opt_sync_$$.pdf"
             tmp_gs="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/gs_sync_$$.pdf"
@@ -684,12 +684,15 @@ for file in "${ALL_PHONE_FILES[@]}"; do
                     opt_bytes=$(wc -c < "$tmp_opt")
                     if [ "$opt_bytes" -lt "$orig_bytes" ]; then
                         mv -f "$tmp_opt" "$target_abs_path"
+                        # Also optimize the offline phone file so phone saves storage, preserving mtime
+                        cp -p "$target_abs_path" "$file" 2>/dev/null || true
                     fi
                 fi
             fi
             rm -f "$tmp_gs" "$tmp_opt"
             if [ "$orig_mtime" -gt 0 ]; then
                 touch -d "@$orig_mtime" "$target_abs_path" 2>/dev/null || true
+                touch -d "@$orig_mtime" "$file" 2>/dev/null || true
             fi
         fi
     fi
@@ -725,11 +728,11 @@ for file in "${ALL_PHONE_FILES[@]}"; do
 
         safe_filename=$(format_safe_filename "$base_name")
         title=$(format_display "$base_name")
-        file_bytes=$(wc -c < "$file")
+        file_bytes=$(wc -c < "$target_abs_path")
         file_size=$(format_file_size "$file_bytes")
-        file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+        file_mtime=$(stat -c %Y "$target_abs_path" 2>/dev/null || echo 0)
         if [ "$file_mtime" -gt 0 ]; then
-            file_date=$(date -d "@$file_mtime" +"%d %b %Y" 2>/dev/null || date -r "$file" +"%d %b %Y" 2>/dev/null || echo "Date unavailable")
+            file_date=$(date -d "@$file_mtime" +"%d %b %Y" 2>/dev/null || date -r "$target_abs_path" +"%d %b %Y" 2>/dev/null || echo "Date unavailable")
         else
             file_date="Date unavailable"
         fi
@@ -765,11 +768,11 @@ EOF
         NEW_FILES_PROCESSED=$((NEW_FILES_PROCESSED + 1))
         PROCESSED_NAMES+=("$base_name ($subj_display / $cat_display)")
     elif [ "$file_copied" -eq 1 ]; then
-        file_bytes=$(wc -c < "$file")
+        file_bytes=$(wc -c < "$target_abs_path")
         new_size=$(format_file_size "$file_bytes")
-        file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+        file_mtime=$(stat -c %Y "$target_abs_path" 2>/dev/null || echo 0)
         if [ "$file_mtime" -gt 0 ]; then
-            new_date=$(date -d "@$file_mtime" +"%d %b %Y" 2>/dev/null || date -r "$file" +"%d %b %Y" 2>/dev/null || echo "Date unavailable")
+            new_date=$(date -d "@$file_mtime" +"%d %b %Y" 2>/dev/null || date -r "$target_abs_path" +"%d %b %Y" 2>/dev/null || echo "Date unavailable")
         else
             new_date="Date unavailable"
         fi
