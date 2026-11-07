@@ -18,6 +18,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <!-- Preload Navbar Brand Logo for instantaneous rendering -->
+  <link rel="preload" as="image" href="navbar-logo.webp" type="image/webp" fetchpriority="high">
 </head>
 <body>
 
@@ -26,7 +28,10 @@
     <div class="container nav-container">
       <a href="index.html" class="brand" aria-label="Harsh's Library Home">
         <div class="brand-emblem brand-emblem-logo" aria-hidden="true">
-          <img src="navbar-logo.png" alt="Harsh's Library Logo" class="brand-logo-img" width="46" height="46">
+          <picture>
+            <source srcset="navbar-logo.webp" type="image/webp">
+            <img src="navbar-logo.png" alt="Harsh's Library Logo" class="brand-logo-img" width="46" height="46" fetchpriority="high" decoding="async">
+          </picture>
         </div>
         <div class="brand-text">
           <h1>Harsh's Library</h1>
