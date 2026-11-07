@@ -432,14 +432,14 @@ input {
    Compact Top Section (Distraction-Free, Instant Access)
    ========================================================================== */
 .top-section {
-  padding: 1.25rem 0 0.5rem;
+  padding: 1.25rem 0 0.25rem;
   text-align: center;
   width: 100%;
 }
 
 @media (min-width: 768px) {
   .top-section {
-    padding: 2.25rem 0 0.85rem;
+    padding: 2rem 0 0.5rem;
   }
 }
 
@@ -556,7 +556,13 @@ input {
 .search-wrapper {
   width: 100%;
   max-width: 640px;
-  margin: 0 auto 1.15rem;
+  margin: 0 auto 0.65rem;
+}
+
+@media (min-width: 768px) {
+  .search-wrapper {
+    margin: 0 auto 0.85rem;
+  }
 }
 
 .search-box {
