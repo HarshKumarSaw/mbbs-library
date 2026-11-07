@@ -319,18 +319,46 @@ input {
   display: block;
 }
 
-/* Mobile Toggle Hamburger (44px Touch Target) */
+/* Mobile Toggle Hamburger (Touch-Optimized, Centered & Far-Right Aligned) */
 .mobile-toggle {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 42px;
   height: 42px;
+  padding: 0;
+  margin: 0;
+  margin-left: auto;
   border-radius: 11px;
   background: var(--canvas-pure);
   border: 1.5px solid var(--border-subtle);
   color: var(--text-headline);
+  cursor: pointer;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-toggle:hover {
+  background: #F9FAFB;
+  border-color: #111827;
+}
+
+.mobile-toggle:active {
+  transform: scale(0.95);
+}
+
+.mobile-toggle svg {
+  display: block;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+@media (max-width: 859px) {
+  .nav-container nav[role="navigation"] {
+    display: contents;
+  }
 }
 
 @media (min-width: 860px) {
