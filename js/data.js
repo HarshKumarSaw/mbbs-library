@@ -12,6 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-anatomy_diagrams-6058",
+    title: "Anatomy Diagrams",
+    subject: "anatomy",
+    category: "diagrams",
+    code: "Anatomy / Diagrams",
+    description: "Uploaded document: Anatomy Diagrams.pdf. Organized under Anatomy (Diagrams).",
+    tags: ["Anatomy", "Diagrams", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/diagrams/anatomy_diagrams.pdf",
+    fileSize: "2.5 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "07 Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-anatomy_diagrams-5956",
     title: "Anatomy Diagrams",
     subject: "anatomy",
