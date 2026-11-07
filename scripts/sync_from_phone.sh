@@ -671,6 +671,27 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     if [ ! -f "$target_abs_path" ] || ! cmp -s "$file" "$target_abs_path"; then
         cp -p "$file" "$target_abs_path"
         file_copied=1
+
+        # High-Performance PDF Compression & Fast Web View Linearization
+        if [[ "${target_abs_path,,}" == *.pdf ]] && command -v gs >/dev/null 2>&1 && command -v qpdf >/dev/null 2>&1; then
+            orig_mtime=$(stat -c %Y "$target_abs_path" 2>/dev/null || echo 0)
+            orig_bytes=$(wc -c < "$target_abs_path")
+            tmp_opt="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/opt_sync_$$.pdf"
+            tmp_gs="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/gs_sync_$$.pdf"
+            rm -f "$tmp_gs" "$tmp_opt"
+            if gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$tmp_gs" "$target_abs_path" 2>/dev/null; then
+                if qpdf --linearize "$tmp_gs" "$tmp_opt" 2>/dev/null; then
+                    opt_bytes=$(wc -c < "$tmp_opt")
+                    if [ "$opt_bytes" -lt "$orig_bytes" ]; then
+                        mv -f "$tmp_opt" "$target_abs_path"
+                    fi
+                fi
+            fi
+            rm -f "$tmp_gs" "$tmp_opt"
+            if [ "$orig_mtime" -gt 0 ]; then
+                touch -d "@$orig_mtime" "$target_abs_path" 2>/dev/null || true
+            fi
+        fi
     fi
 
     echo "$rel_path|$target_rel_url" >> "$TMP_MANIFEST"
