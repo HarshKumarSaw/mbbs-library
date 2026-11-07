@@ -108,6 +108,8 @@
     if (lower === "assignments" || lower === "assignment") return "Assignments";
     if (lower === "practicals" || lower === "practical") return "Practicals";
     if (lower === "notes" || lower === "note") return "Notes";
+    if (lower === "homework") return "Homework";
+    if (lower === "project" || lower === "projects") return "Project";
     if (lower === "other" || lower === "others") return "Other Resources";
     if (lower === "community_medicine" || lower === "community medicine" || lower === "community") return "Community Medicine";
     return str.replace(/[_\-]+/g, " ")
@@ -137,28 +139,46 @@
     }
   }
 
-  // Render Subject Filter Buttons (Supports both inline track and modal filter sheet)
+  // Render Subject Filter Buttons (Dynamically discovered from resources; no empty subjects!)
   function renderSubjectPills() {
     const containers = [DOM.subjectFilters, DOM.modalSubjectFilters].filter(Boolean);
     if (!containers.length) return;
 
-    const foundSubjects = new Set();
+    // Count how many resources exist per subject
+    const subjectCounts = {};
     MBBS_RESOURCES.forEach(r => {
-      if (r.subject) foundSubjects.add(r.subject.toLowerCase());
+      if (r.subject) {
+        const sub = r.subject.toLowerCase().trim();
+        subjectCounts[sub] = (subjectCounts[sub] || 0) + 1;
+      }
     });
 
-    const ordered = ["all"];
+    // Only include subjects that have at least 1 resource (never show empty subjects!)
+    const activeSubjects = Object.keys(subjectCounts).filter(sub => subjectCounts[sub] > 0);
+
+    const ordered = [];
+    if (MBBS_RESOURCES.length > 0) {
+      ordered.push("all");
+    }
+
+    // Preferred order for main subjects
     ["anatomy", "physiology", "biochemistry"].forEach(s => {
-      if (foundSubjects.has(s)) ordered.push(s);
+      if (activeSubjects.includes(s)) ordered.push(s);
     });
-    foundSubjects.forEach(s => {
+    // Dynamically append any other subject that has resources (e.g. 'community_medicine', etc.)
+    activeSubjects.forEach(s => {
       if (!ordered.includes(s)) ordered.push(s);
     });
+
+    // If current selected subject doesn't exist, revert to 'all'
+    if (state.selectedSubject !== "all" && !activeSubjects.includes(state.selectedSubject)) {
+      state.selectedSubject = "all";
+    }
 
     containers.forEach(container => {
       container.innerHTML = ordered.map(subId => {
         const label = subId === "all" ? "All Subjects" : (SUBJECT_INFO[subId]?.name || formatName(subId));
-        const count = subId === "all" ? MBBS_RESOURCES.length : MBBS_RESOURCES.filter(r => r.subject === subId).length;
+        const count = subId === "all" ? MBBS_RESOURCES.length : (subjectCounts[subId] || 0);
         const isActive = state.selectedSubject === subId ? "active" : "";
 
         return `
@@ -178,7 +198,7 @@
             state.selectedSubject = subId;
           }
           renderSubjectPills();
-          renderCategoryPills(); // Keep categories in sync with the subject!
+          renderCategoryPills(); // Keep content formats in sync with the subject!
           applyFilterAndRender();
           updateHash();
         });
@@ -186,44 +206,64 @@
     });
   }
 
-  // Render Category Filter Buttons (Supports both inline track and modal filter sheet)
+  // Render Content Format Filter Buttons (Dynamically discovered from resources; no empty formats!)
   function renderCategoryPills() {
     const containers = [DOM.categoryFilters, DOM.modalCategoryFilters].filter(Boolean);
     if (!containers.length) return;
 
+    // Filter resources based on currently selected subject (or all)
     const scopeResources = state.selectedSubject === "all"
       ? MBBS_RESOURCES
       : MBBS_RESOURCES.filter(r => r.subject === state.selectedSubject);
 
-    const foundCategories = new Set();
+    // Discover all categories that actually have resources in the current scope
+    const categoryCounts = {};
     scopeResources.forEach(r => {
-      if (r.category) foundCategories.add(r.category.toLowerCase());
+      if (r.category) {
+        const cat = r.category.toLowerCase().trim();
+        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+      }
     });
 
-    const baseCategories = ["notes", "assignments", "sdls", "practicals", "other"];
-    const ordered = ["all"];
-    baseCategories.forEach(c => {
-      if (foundCategories.has(c)) ordered.push(c);
+    // Found categories with at least 1 resource (never show empty formats!)
+    const activeCategories = Object.keys(categoryCounts).filter(cat => categoryCounts[cat] > 0);
+
+    // Preferred sort order for standard formats, then alphabetical for dynamic folders
+    const preferredOrder = ["notes", "assignments", "homework", "sdl", "sdls", "practicals", "histology", "project", "other"];
+    activeCategories.sort((a, b) => {
+      const idxA = preferredOrder.indexOf(a);
+      const idxB = preferredOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
     });
-    // Dynamically append any new categories (e.g. 'project', 'seminar', etc.)
-    foundCategories.forEach(c => {
-      if (!ordered.includes(c)) ordered.push(c);
-    });
+
+    const ordered = [];
+    if (scopeResources.length > 0) {
+      ordered.push("all");
+    }
+    activeCategories.forEach(cat => ordered.push(cat));
 
     // If current selected category doesn't exist in current scope, revert to 'all'
-    if (state.selectedCategory !== "all" && !foundCategories.has(state.selectedCategory)) {
+    if (state.selectedCategory !== "all" && !activeCategories.includes(state.selectedCategory)) {
       state.selectedCategory = "all";
     }
 
     containers.forEach(container => {
+      if (ordered.length === 0) {
+        container.innerHTML = `<span class="empty-filter-hint" style="font-size:0.85rem; color:#6B7280; padding:0.5rem 0.2rem;">No format folders available for this subject</span>`;
+        return;
+      }
+
       container.innerHTML = ordered.map(catId => {
         const meta = CATEGORY_INFO[catId] || {
           label: formatName(catId)
         };
-        const label = catId === "all" ? "All Categories" : (meta.label || formatName(catId));
+        const label = catId === "all" ? "All Formats" : (meta.label || formatName(catId));
         const count = catId === "all"
           ? scopeResources.length
-          : scopeResources.filter(r => r.category === catId).length;
+          : (categoryCounts[catId] || 0);
         const isActive = state.selectedCategory === catId ? "active" : "";
 
         return `

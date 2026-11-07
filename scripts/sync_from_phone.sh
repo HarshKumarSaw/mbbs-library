@@ -106,6 +106,19 @@ get_canonical_name() {
 }
 
 format_display() {
+    local lower=$(echo "$1" | tr '[:upper:]' '[:lower:]' | tr -d ' ')
+    if [ "$lower" = "sdl" ] || [ "$lower" = "sdls" ]; then
+        echo "SDL"
+        return
+    fi
+    if [ "$lower" = "aetcom" ]; then
+        echo "AETCOM"
+        return
+    fi
+    if [ "$lower" = "ece" ]; then
+        echo "ECE"
+        return
+    fi
     echo "$1" | sed -E 's/[_\-]+/ /g; s/\.[^.]+$//; s/\s+/ /g; s/^\s+|\s+$//' | awk '{
         for (i=1; i<=NF; i++) {
             $i = toupper(substr($i,1,1)) tolower(substr($i,2))
@@ -229,12 +242,18 @@ repo_to_phone_path() {
 detect_category_from_name() {
     local lower="$1"
     if [[ "$lower" =~ sdl ]]; then
-        echo "sdls"
+        echo "sdl"
     elif [[ "$lower" =~ note|lecture|slide|theory|summary|class|concept|review|handout ]]; then
         echo "notes"
-    elif [[ "$lower" =~ assign|case|problem|homework|worksheet|task|vignette ]]; then
+    elif [[ "$lower" =~ homework ]]; then
+        echo "homework"
+    elif [[ "$lower" =~ project ]]; then
+        echo "project"
+    elif [[ "$lower" =~ assign|case|problem|worksheet|task|vignette ]]; then
         echo "assignments"
-    elif [[ "$lower" =~ pract|lab|manual|spotter|dissect|diagram|sketch|specimen|histology|slide|chart ]]; then
+    elif [[ "$lower" =~ histo ]]; then
+        echo "histology"
+    elif [[ "$lower" =~ pract|lab|manual|spotter|dissect|diagram|sketch|specimen|chart ]]; then
         echo "practicals"
     else
         echo "other"
@@ -538,8 +557,11 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             sub_lower=$(echo "$sub_folder" | tr '[:upper:]' '[:lower:]')
             if [[ "$sub_lower" =~ ^note ]]; then category="notes"; cat_display="Notes"
             elif [[ "$sub_lower" =~ ^assign ]]; then category="assignments"; cat_display="Assignments"
-            elif [[ "$sub_lower" =~ ^sdl ]]; then category="sdls"; cat_display="SDL"
+            elif [[ "$sub_lower" =~ ^homework ]]; then category="homework"; cat_display="Homework"
+            elif [[ "$sub_lower" =~ ^project ]]; then category="project"; cat_display="Project"
+            elif [[ "$sub_lower" =~ ^sdl ]]; then category="sdl"; cat_display="SDL"
             elif [[ "$sub_lower" =~ ^pract ]]; then category="practicals"; cat_display="Practicals"
+            elif [[ "$sub_lower" =~ ^histo ]]; then category="histology"; cat_display="Histology"
             else category=$(to_safe_id "$sub_folder"); cat_display=$(format_display "$sub_folder")
             fi
         else
@@ -674,8 +696,9 @@ if [ -f "$TMP_MANIFEST" ]; then
     rm -f "$TMP_MANIFEST"
 fi
 
-# Clean empty directories inside assets/docs
+# Clean empty directories inside assets/docs and phone folder
 find "$REPO_DIR/assets/docs" -type d -empty -delete 2>/dev/null || true
+find "$PHONE_DIR" -depth -type d -empty -delete 2>/dev/null || true
 
 TOTAL_OFFLINE_FILES=$(find "$PHONE_DIR" -type f ! -name ".*" | wc -l)
 
