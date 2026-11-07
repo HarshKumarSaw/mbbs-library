@@ -400,3 +400,12 @@
   - Physiology Notes.pdf (Physiology / Notes)
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 9
+
+### Two-Way Auto-Sync & Deletion: 2026-11-07 07:40:42 UTC
+- **Phone Deduplication**: Resolved 0 duplicate(s)
+- **Phone Organization**: Organized 0 root file(s)
+- **Phone Deletions Synced to Website**: 1 file(s)
+  - Physiology/Notes/Physiology Notes.pdf (deleted from phone)
+- **Files Uploaded / Updated from Phone**: 0
+- **Offline Files Seeded to Phone**: 0
+- **Total In-Sync Files**: 8

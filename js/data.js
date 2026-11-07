@@ -12,21 +12,6 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
-    id: "user-phys-physiology_notes-7134",
-    title: "Physiology Notes",
-    subject: "physiology",
-    category: "notes",
-    code: "Physiology / Notes",
-    description: "Uploaded document: Physiology Notes.pdf. Organized under Physiology (Notes).",
-    tags: ["Physiology", "Notes", "Mobile Upload"],
-    fileUrl: "assets/docs/physiology/notes/physiology_notes.pdf",
-    fileSize: "4.1 MB",
-    pages: "Document",
-    author: "HarshKumarSaw",
-    date: "07 Nov 2026",
-    year: "1st Year MBBS"
-  },
-  {
     id: "user-anat-anatomy_diagrams-6058",
     title: "Anatomy Diagrams",
     subject: "anatomy",
