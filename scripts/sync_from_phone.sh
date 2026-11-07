@@ -260,6 +260,134 @@ detect_category_from_name() {
     fi
 }
 
+find_matching_subfolder() {
+    local parent_dir="$1"
+    local word="$2"
+    [ -d "$parent_dir" ] || return 1
+    local word_l
+    word_l=$(echo "$word" | tr '[:upper:]' '[:lower:]')
+    local stem="${word_l%s}" # strip trailing s if any
+
+    # 1. Exact case-insensitive match
+    for d in "$parent_dir"/*/; do
+        [ -d "$d" ] || continue
+        local dname=$(basename "$d")
+        local dname_l=$(echo "$dname" | tr '[:upper:]' '[:lower:]')
+        if [ "$dname_l" = "$word_l" ]; then
+            echo "$dname"
+            return 0
+        fi
+    done
+
+    # 2. Singular / Plural stem match (e.g. assignment -> assignments, diagrams -> diagram)
+    for d in "$parent_dir"/*/; do
+        [ -d "$d" ] || continue
+        local dname=$(basename "$d")
+        local dname_l=$(echo "$dname" | tr '[:upper:]' '[:lower:]')
+        local d_stem="${dname_l%s}"
+        if [ -n "$stem" ] && [ "$d_stem" = "$stem" ]; then
+            echo "$dname"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+get_target_phone_rel_path() {
+    local fname="$1"
+    local canonical
+    canonical=$(get_canonical_name "$fname")
+    local name_no_ext="${canonical%.*}"
+    local ext="${canonical##*.}"
+
+    # Clean words: replace underscores, hyphens, and multiple spaces with a single space
+    local cleaned
+    cleaned=$(echo "$name_no_ext" | sed -E 's/[_\-]+/ /g; s/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//')
+
+    local first_word
+    first_word=$(echo "$cleaned" | awk '{print $1}')
+    local second_word
+    second_word=$(echo "$cleaned" | awk '{print $2}')
+
+    local subj_dir=""
+    local sub_dir=""
+
+    # 1. Identify Subject from first word
+    if [ -n "$first_word" ]; then
+        local first_l
+        first_l=$(echo "$first_word" | tr '[:upper:]' '[:lower:]')
+        if [[ "$first_l" =~ ^anat ]]; then
+            subj_dir="Anatomy"
+        elif [[ "$first_l" =~ ^physio ]]; then
+            subj_dir="Physiology"
+        elif [[ "$first_l" =~ ^biochem ]]; then
+            subj_dir="Biochemistry"
+        elif [[ "$first_l" =~ ^community|psm ]]; then
+            subj_dir="Community Medicine"
+        elif [[ "$first_l" =~ ^aetcom ]]; then
+            subj_dir="AETCOM"
+        elif [[ "$first_l" =~ ^ece ]]; then
+            subj_dir="ECE (Early Clinical Exposure)"
+        elif [[ "$first_l" =~ ^foundation ]]; then
+            subj_dir="Foundation Course"
+        fi
+    fi
+
+    # 2. If subject identified and second word exists (Two-Word rule: Word 1 = Subject, Word 2 = Subfolder)
+    if [ -n "$subj_dir" ] && [ -n "$second_word" ]; then
+        sub_dir=$(find_matching_subfolder "$PHONE_DIR/$subj_dir" "$second_word" || echo "")
+        if [ -z "$sub_dir" ]; then
+            sub_dir=$(format_display "$second_word")
+        fi
+        echo "$subj_dir/$sub_dir/$canonical"
+        return
+    fi
+
+    # 3. If subject identified but NO second word:
+    if [ -n "$subj_dir" ] && [ -z "$second_word" ]; then
+        echo "$subj_dir/$canonical"
+        return
+    fi
+
+    # 4. If first word wasn't a subject, fall back to keyword detection on the whole filename:
+    local lower_name
+    lower_name=$(echo "$canonical" | tr '[:upper:]' '[:lower:]')
+    if [[ "$lower_name" =~ histo ]]; then
+        echo "Anatomy/Histology/$canonical"
+    elif [[ "$lower_name" =~ embryo ]]; then
+        echo "Anatomy/Embryology/$canonical"
+    elif [[ "$lower_name" =~ neuroanat ]]; then
+        echo "Anatomy/Neuroanatomy/$canonical"
+    elif [[ "$lower_name" =~ gross ]]; then
+        echo "Anatomy/Gross Anatomy/$canonical"
+    elif [[ "$lower_name" =~ aetcom ]]; then
+        echo "AETCOM/$canonical"
+    elif [[ "$lower_name" =~ ece ]]; then
+        echo "ECE (Early Clinical Exposure)/$canonical"
+    elif [[ "$lower_name" =~ community|psm ]]; then
+        echo "Community Medicine/$canonical"
+    elif [[ "$lower_name" =~ foundation ]]; then
+        echo "Foundation Course/$canonical"
+    elif [[ "$lower_name" =~ hemato|blood ]]; then
+        echo "Physiology/Hematology/$canonical"
+    elif [[ "$lower_name" =~ cardio|heart|ecg ]]; then
+        echo "Physiology/Cardiovascular/$canonical"
+    elif [[ "$lower_name" =~ respirat|lung ]]; then
+        echo "Physiology/Respiratory/$canonical"
+    elif [[ "$lower_name" =~ renal|kidney ]]; then
+        echo "Physiology/Renal/$canonical"
+    elif [[ "$lower_name" =~ physiology|physio ]]; then
+        echo "Physiology/$canonical"
+    elif [[ "$lower_name" =~ enzym|protein|metabol|biochem ]]; then
+        echo "Biochemistry/$canonical"
+    elif [[ "$lower_name" =~ anat|bone ]]; then
+        echo "Anatomy/$canonical"
+    else
+        echo "Other/$canonical"
+    fi
+}
+
 remove_resource_by_url() {
     local target_url="$1"
     local tmp_data="${DATA_FILE}.tmp.$$"
@@ -290,7 +418,7 @@ remove_resource_by_url() {
 }
 
 # ==============================================================================
-# PHASE 0: Version Normalization & Deduplication (Strip (1), (2) & Keep Latest)
+# PHASE 0: Version Normalization (Strip (1), (2), _1, - Copy & Keep Latest)
 # ==============================================================================
 ALL_PHONE_FILES=()
 while IFS= read -r -d '' f; do
@@ -334,107 +462,112 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     fi
 done
 
+# ==============================================================================
+# PHASE 1: Two-Word Auto-Organization & Cross-Folder Deduplication
+# ==============================================================================
+ORGANIZED_COUNT=0
+ORGANIZED_SUMMARY=()
+
+ALL_PHONE_FILES=()
+while IFS= read -r -d '' f; do
+    ALL_PHONE_FILES+=("$f")
+done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
+
+declare -A SEEN_CANONICAL=()
+
+for file in "${ALL_PHONE_FILES[@]}"; do
+    [ -f "$file" ] || continue
+    base_name=$(basename "$file")
+    canonical_name=$(get_canonical_name "$base_name")
+
+    [ "${SEEN_CANONICAL[$canonical_name]:-0}" -eq 1 ] && continue
+    SEEN_CANONICAL[$canonical_name]=1
+
+    # Find ALL instances of this canonical file across the phone
+    matching_instances=()
+    for cand in "${ALL_PHONE_FILES[@]}"; do
+        [ -f "$cand" ] || continue
+        cand_base=$(basename "$cand")
+        cand_canonical=$(get_canonical_name "$cand_base")
+        if [ "$cand_canonical" = "$canonical_name" ]; then
+            matching_instances+=("$cand")
+        fi
+    done
+
+    # Determine canonical target location based on Two-Word rule:
+    # Word 1 = Subject, Word 2 = Subfolder
+    target_rel=$(get_target_phone_rel_path "$canonical_name")
+    target_dest="$PHONE_DIR/$target_rel"
+    mkdir -p "$(dirname "$target_dest")"
+
+    if [ "${#matching_instances[@]}" -gt 1 ]; then
+        # Multiple copies found! Identify the latest revision
+        best_file=""
+        best_mtime=-1
+        best_size=0
+
+        for inst in "${matching_instances[@]}"; do
+            [ -f "$inst" ] || continue
+            mtime=$(stat -c %Y "$inst" 2>/dev/null || echo 0)
+            fsize=$(stat -c %s "$inst" 2>/dev/null || echo 0)
+            if [ "$mtime" -gt "$best_mtime" ]; then
+                best_file="$inst"
+                best_mtime="$mtime"
+                best_size="$fsize"
+            elif [ "$mtime" -eq "$best_mtime" ]; then
+                if [ "$inst" = "$target_dest" ]; then
+                    best_file="$inst"
+                elif [ "$best_file" != "$target_dest" ] && [ "$fsize" -gt "$best_size" ]; then
+                    best_file="$inst"
+                    best_size="$fsize"
+                fi
+            fi
+        done
+
+        # Move best file to canonical target location
+        if [ -n "$best_file" ] && [ "$best_file" != "$target_dest" ]; then
+            mv -f "$best_file" "$target_dest"
+            ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
+            ORGANIZED_SUMMARY+=("$canonical_name ➔ $(dirname "$target_rel")/")
+        fi
+
+        # Delete all other duplicate copies from phone
+        for inst in "${matching_instances[@]}"; do
+            if [ "$inst" != "$target_dest" ] && [ -f "$inst" ]; then
+                rm -f "$inst"
+                DEDUP_SUMMARY+=("Removed duplicate: ${inst#$PHONE_DIR/} (kept latest in $target_rel)")
+            fi
+        done
+    else
+        # Exactly one instance. If it is not in its canonical target subfolder, move it!
+        single_file="${matching_instances[0]}"
+        if [ "$single_file" != "$target_dest" ]; then
+            if [ -f "$target_dest" ]; then
+                file_mtime=$(stat -c %Y "$single_file" 2>/dev/null || echo 0)
+                target_mtime=$(stat -c %Y "$target_dest" 2>/dev/null || echo 0)
+                if [ "$file_mtime" -ge "$target_mtime" ]; then
+                    mv -f "$single_file" "$target_dest"
+                else
+                    rm -f "$single_file"
+                fi
+            else
+                mv "$single_file" "$target_dest"
+            fi
+            ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
+            ORGANIZED_SUMMARY+=("$canonical_name ➔ $(dirname "$target_rel")/")
+        fi
+    fi
+done
+
 if [ "${#DEDUP_SUMMARY[@]}" -gt 0 ]; then
-    echo -e "${CYAN}🔄 [MBBS Library] Resolved ${#DEDUP_SUMMARY[@]} file version(s) / duplicate(s):${RESET}"
+    echo -e "${CYAN}🔄 [MBBS Library] Resolved ${#DEDUP_SUMMARY[@]} file duplicate(s) / version(s):${RESET}"
     for item in "${DEDUP_SUMMARY[@]}"; do
         echo -e "   ${GREEN}✔${RESET} $item"
     done
 fi
 
-# ==============================================================================
-# PHASE 1: Auto-Organize Phone Files in Root into Subject Folders
-# ==============================================================================
-ORGANIZED_COUNT=0
-ORGANIZED_SUMMARY=()
-
-UNORGANIZED_FILES=()
-while IFS= read -r -d '' f; do
-    UNORGANIZED_FILES+=("$f")
-done < <(find "$PHONE_DIR" -maxdepth 1 -type f ! -name ".*" -print0)
-
-if [ "${#UNORGANIZED_FILES[@]}" -gt 0 ]; then
-    for file in "${UNORGANIZED_FILES[@]}"; do
-        base_name=$(basename "$file")
-        lower_name=$(echo "$base_name" | tr '[:upper:]' '[:lower:]')
-
-        if [[ "$lower_name" =~ histo ]]; then
-            subj_dir="Anatomy/Histology"
-        elif [[ "$lower_name" =~ embryo ]]; then
-            subj_dir="Anatomy/Embryology"
-        elif [[ "$lower_name" =~ neuroanat ]]; then
-            subj_dir="Anatomy/Neuroanatomy"
-        elif [[ "$lower_name" =~ genetic ]]; then
-            subj_dir="Anatomy/Genetics"
-        elif [[ "$lower_name" =~ gross ]]; then
-            subj_dir="Anatomy/Gross Anatomy"
-        elif [[ "$lower_name" =~ aetcom|ethics|communication ]]; then
-            subj_dir="AETCOM"
-        elif [[ "$lower_name" =~ ece|clinical_exposure|early_clinical ]]; then
-            subj_dir="ECE (Early Clinical Exposure)"
-        elif [[ "$lower_name" =~ community|psm|epidemiol|field_visit|family_adopt ]]; then
-            subj_dir="Community Medicine"
-        elif [[ "$lower_name" =~ foundation|orientation|bls|first_aid ]]; then
-            subj_dir="Foundation Course"
-        elif [[ "$lower_name" =~ hemato|blood ]]; then
-            subj_dir="Physiology/Hematology"
-        elif [[ "$lower_name" =~ cardio|heart|ecg ]]; then
-            subj_dir="Physiology/Cardiovascular"
-        elif [[ "$lower_name" =~ respirat|lung ]]; then
-            subj_dir="Physiology/Respiratory"
-        elif [[ "$lower_name" =~ renal|kidney ]]; then
-            subj_dir="Physiology/Renal"
-        elif [[ "$lower_name" =~ git|gastro|intest ]]; then
-            subj_dir="Physiology/Gastrointestinal"
-        elif [[ "$lower_name" =~ endocrin|hormon|reproduct ]]; then
-            subj_dir="Physiology/Endocrine & Reproduction"
-        elif [[ "$lower_name" =~ neurophysio|reflex|cns ]]; then
-            subj_dir="Physiology/Neurophysiology"
-        elif [[ "$lower_name" =~ physiology|physio ]]; then
-            subj_dir="Physiology"
-        elif [[ "$lower_name" =~ enzym|protein|carbo|lipid ]]; then
-            subj_dir="Biochemistry/Biomolecules & Enzymes"
-        elif [[ "$lower_name" =~ metabol|glycolys|tca|krebs ]]; then
-            subj_dir="Biochemistry/Metabolism"
-        elif [[ "$lower_name" =~ lft|rft|kft|urine|diagnostic|clinical_chem ]]; then
-            subj_dir="Biochemistry/Clinical Biochemistry"
-        elif [[ "$lower_name" =~ dna|rna|molecular_bio|pcr ]]; then
-            subj_dir="Biochemistry/Molecular Biology"
-        elif [[ "$lower_name" =~ vitamin|nutrition|mineral ]]; then
-            subj_dir="Biochemistry/Nutrition & Vitamins"
-        elif [[ "$lower_name" =~ biochem|chem ]]; then
-            subj_dir="Biochemistry"
-        elif [[ "$lower_name" =~ anat|bone|cranial|plexus|muscle|organ|cadaver|dissect|thorax|abdomen|pelvis|limb|head|neck|brain ]]; then
-            subj_dir="Anatomy"
-        else
-            subj_dir="Other"
-        fi
-
-        target_phone_dest="$PHONE_DIR/$subj_dir/$base_name"
-        mkdir -p "$(dirname "$target_phone_dest")"
-        if [ "$file" != "$target_phone_dest" ]; then
-            if [ -f "$target_phone_dest" ]; then
-                if cmp -s "$file" "$target_phone_dest"; then
-                    rm -f "$file"
-                else
-                    file_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
-                    target_mtime=$(stat -c %Y "$target_phone_dest" 2>/dev/null || echo 0)
-                    if [ "$file_mtime" -ge "$target_mtime" ]; then
-                        mv -f "$file" "$target_phone_dest"
-                    else
-                        rm -f "$file"
-                    fi
-                fi
-            else
-                mv "$file" "$target_phone_dest"
-            fi
-            ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
-            ORGANIZED_SUMMARY+=("$base_name ➔ $subj_dir/")
-        fi
-    done
-fi
-
 if [ "$ORGANIZED_COUNT" -gt 0 ]; then
-    echo -e "${CYAN}📁 [MBBS Library] Organized $ORGANIZED_COUNT file(s) into subject folders on phone:${RESET}"
+    echo -e "${CYAN}📁 [MBBS Library] Organized $ORGANIZED_COUNT file(s) into subfolders on phone:${RESET}"
     for item in "${ORGANIZED_SUMMARY[@]}"; do
         echo -e "   ${GREEN}✔${RESET} $item"
     done
@@ -660,6 +793,18 @@ if [ -s "$TMP_ENTRIES" ]; then
     mv "$DATA_FILE.tmp" "$DATA_FILE"
 fi
 rm -f "$TMP_ENTRIES"
+
+# Safety Audit: Clean any orphaned or duplicate resources from js/data.js that are not in active manifest
+DATA_URLS=$(awk -F'"' '/fileUrl:[[:space:]]*"/ { print $2 }' "$DATA_FILE")
+for d_url in $DATA_URLS; do
+    if [ -n "$d_url" ] && ! grep -q "|$d_url$" "$TMP_MANIFEST"; then
+        if [ -f "$REPO_DIR/$d_url" ]; then
+            rm -f "$REPO_DIR/$d_url"
+        fi
+        remove_resource_by_url "$d_url"
+        DELETED_SUMMARY+=("$d_url (pruned duplicate / obsolete entry)")
+    fi
+done
 
 # ==============================================================================
 # PHASE 4: Downstream Sync (Website -> Phone)
