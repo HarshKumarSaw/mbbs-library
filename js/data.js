@@ -12,6 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-anatomy_diagrams-5956",
+    title: "Anatomy Diagrams",
+    subject: "anatomy",
+    category: "other",
+    code: "Anatomy / Other",
+    description: "Uploaded document: Anatomy Diagrams.pdf. Organized under Anatomy (Other).",
+    tags: ["Anatomy", "Other", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/anatomy_diagrams.pdf",
+    fileSize: "2.5 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "07 Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_homework-3183",
     title: "Physiology Homework",
     subject: "physiology",
