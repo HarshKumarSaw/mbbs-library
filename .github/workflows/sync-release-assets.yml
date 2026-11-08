@@ -3,9 +3,6 @@ name: Sync Release Assets for Direct Device Download
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'steadylink_manifest.json'
-      - '.github/workflows/sync-release-assets.yml'
   workflow_dispatch:
 
 permissions:
