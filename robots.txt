@@ -10,3 +10,4 @@ Disallow: /mbbs-library/404.html
 Disallow: /404.html
 
 Sitemap: https://harshkumarsaw.github.io/mbbs-library/sitemap.xml
+Sitemap: https://harshkumarsaw.github.io/mbbs-library/sitemap.txt

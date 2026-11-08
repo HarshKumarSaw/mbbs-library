@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Core Curriculum Pages -->
   <url>
     <loc>https://harshkumarsaw.github.io/mbbs-library/</loc>
     <lastmod>2026-11-08</lastmod>
@@ -25,8 +24,6 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-
-  <!-- Anatomy Indexable Study Documents -->
   <url>
     <loc>https://harshkumarsaw.github.io/mbbs-library/assets/docs/anatomy/notes/anatomy_notes_johari.pdf</loc>
     <lastmod>2026-11-08</lastmod>
@@ -51,8 +48,6 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-
-  <!-- Physiology Indexable Study Documents -->
   <url>
     <loc>https://harshkumarsaw.github.io/mbbs-library/assets/docs/physiology/homework/physiology_homework.pdf</loc>
     <lastmod>2026-11-07</lastmod>
@@ -77,8 +72,6 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-
-  <!-- Biochemistry Indexable Study Documents -->
   <url>
     <loc>https://harshkumarsaw.github.io/mbbs-library/assets/docs/biochemistry/practicals/biochemistry_practical.pdf</loc>
     <lastmod>2026-11-07</lastmod>
