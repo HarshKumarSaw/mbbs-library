@@ -2034,31 +2034,16 @@ textarea,
   color: var(--anatomy-text) !important;
 }
 
-.filter-pill[data-subject="anatomy"].active .pill-count {
-  background: rgba(138, 32, 36, 0.12);
-  color: var(--anatomy-text);
-}
-
 .filter-pill[data-subject="physiology"].active {
   background: var(--physiology-bg) !important;
   border-color: var(--physiology-border) !important;
   color: var(--physiology-text) !important;
 }
 
-.filter-pill[data-subject="physiology"].active .pill-count {
-  background: rgba(78, 40, 136, 0.12);
-  color: var(--physiology-text);
-}
-
 .filter-pill[data-subject="biochemistry"].active {
   background: var(--biochem-bg) !important;
   border-color: var(--biochem-border) !important;
   color: var(--biochem-text) !important;
-}
-
-.filter-pill[data-subject="biochemistry"].active .pill-count {
-  background: rgba(14, 94, 65, 0.12);
-  color: var(--biochem-text);
 }
 
 /* Subtle subject accent indicator on active category pills in subject pages */
@@ -2083,9 +2068,9 @@ textarea,
   border-radius: var(--radius-pill);
 }
 
-.filter-pill.active .pill-count {
-  background: rgba(255, 255, 255, 0.22);
-  color: #FFFFFF;
+.filter-pill.active .pill-count,
+.filter-pill[data-subject].active .pill-count {
+  display: none !important;
 }
 
 /* Results Count & Active Filter Tags */
@@ -2807,8 +2792,7 @@ textarea,
 }
 
 .filter-pill-grid .filter-pill.active .pill-count {
-  background: rgba(255, 255, 255, 0.2);
-  color: #FFFFFF;
+  display: none !important;
 }
 
 .filter-modal-footer {
