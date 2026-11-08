@@ -785,3 +785,16 @@
 - **Files Uploaded / Updated from Phone**: 0
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 20
+
+### Direct Device Download & In-App Document Reading: 2026-11-08 19:00:00 UTC
+- **Direct Device Download Implementation**:
+  - Implemented `triggerDirectDownload(id)` in `js/app.js` and `js/app.min.js`.
+  - Configured download buttons on all cards and in the modal to point to direct attachment endpoints with `Content-Disposition: attachment`.
+  - Added GitHub Release asset synchronization workflow `.github/workflows/sync-release-assets.yml` for automated release attachment distribution.
+- **In-App Document Reader**:
+  - Removed disruptive `window.open` navigation from `openPdfModal`.
+  - Embedded in-app viewer within `DOM.pdfViewerContainer` for instant, seamless document reading without leaving the web application.
+  - Maintained full toolbar, breadcrumbs, and drag-down-to-dismiss bottom sheet controls.
+- **Deployment**:
+  - Rebuilt production minified CSS and JavaScript bundles.
+  - Pushed commit `04f4d87` to `origin/main` and verified live on GitHub Pages.
