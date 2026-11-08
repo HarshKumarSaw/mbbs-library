@@ -12,6 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-anatomy_notes_johari-4993",
+    title: "Anatomy Notes Johari",
+    subject: "anatomy",
+    category: "notes",
+    code: "Anatomy / Notes",
+    description: "Uploaded document: Anatomy Notes Johari.pdf. Organized under Anatomy (Notes).",
+    tags: ["Anatomy", "Notes", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/notes/anatomy_notes_johari.pdf",
+    fileSize: "52.0 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "08 Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-anatomy_diagrams-6058",
     title: "Anatomy Diagrams",
     subject: "anatomy",

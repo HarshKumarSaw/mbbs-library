@@ -1,21 +1,15 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ==============================================================================
-# MBBS Resource Library - High-Performance Two-Way Auto-Sync & Deletion Engine
+# MBBS Resource Library - Bulletproof Two-Way Auto-Sync & Optimization Engine
 # 
-# 1. PHASE 0: Normalizes duplicates: strips (1), (2), _1, - Copy and keeps LATEST.
-# 2. PHASE 1: Auto-organizes files dropped in phone root into subject folders.
-# 3. PHASE 2: Deletion & Obsolete Path Synchronization (Phone -> Website):
-#             Detects any file deleted from the phone folder, automatically deletes
-#             its PDF from assets/docs/ and removes its entry from js/data.js.
-# 4. PHASE 3: Upstream Sync (Phone -> Website):
-#             Syncs new/updated phone files, organizes by subject/subfolder,
-#             and registers in js/data.js.
-# 5. PHASE 4: Downstream Sync (Website -> Phone):
-#             Syncs all website materials & starter documents down to phone
-#             folders so the entire MBBS library is always available offline.
-# 6. PHASE 5: Manifest Finalization & Git Live Push:
-#             Maintains persistent .mbbs_sync_manifest tracking phone <-> repo links,
-#             commits changes to Git and pushes live to GitHub Pages.
+# 1. CONCURRENCY: Uses kernel flock to ensure exactly ONE sync process runs.
+# 2. STEP FEEDBACK: Clear 5-step numbered progress with live terminal indicators.
+# 3. PDF OPTIMIZATION: Real-time animated progress bar for Ghostscript + qpdf,
+#    enforcing <95MB ceiling for GitHub Pages and Fast Web View linearization.
+# 4. TWO-WAY SYNC: Phone ⇄ Website synchronization with automatic categorization.
+# 5. INTEGRITY: Audits unpushed commits and never gives false "fully synced"
+#    status when changes are pending upload.
+# 6. TRANSPARENT PUSH: Real-time Git push progress with clear error diagnostics.
 # ==============================================================================
 
 set -euo pipefail
@@ -28,23 +22,58 @@ CYAN="\033[0;36m"
 YELLOW="\033[1;33m"
 RED="\033[0;31m"
 PURPLE="\033[0;35m"
+DIM="\033[2m"
 RESET="\033[0m"
 
 ON_STARTUP=0
-if [ "${1:-}" = "--on-startup" ] || [ "${1:-}" = "-q" ]; then
-    ON_STARTUP=1
-fi
+FORCE_SYNC=0
+for arg in "$@"; do
+    case "$arg" in
+        --on-startup|-q) ON_STARTUP=1 ;;
+        --force|-f) FORCE_SYNC=1 ;;
+    esac
+done
 
 PHONE_DIR="/storage/emulated/0/mbbs-library"
 REPO_DIR="/data/data/com.termux/files/home/mbbs-resource-library"
 DATA_FILE="$REPO_DIR/js/data.js"
 MANIFEST_FILE="$REPO_DIR/.mbbs_sync_manifest"
 LOG_FILE="$REPO_DIR/PROJECT_LOG.md"
+TMP_DIR="${TMPDIR:-/data/data/com.termux/files/usr/tmp}"
+mkdir -p "$TMP_DIR"
+LOCK_FILE="$TMP_DIR/mbbs_sync.lock"
+
+# Concurrency Control: Exactly one sync process allowed at a time
+exec 200>"$LOCK_FILE"
+if ! flock -n 200; then
+    other_pid=$(cat "$LOCK_FILE" 2>/dev/null || echo "unknown")
+    if [ "$ON_STARTUP" -eq 1 ]; then
+        echo -e "${YELLOW}ℹ️  [MBBS Sync] Auto-sync already active in background (PID $other_pid).${RESET}"
+        exit 0
+    else
+        echo -e "${YELLOW}⚠️  [MBBS Sync] Another sync process (PID $other_pid) is currently running.${RESET}"
+        echo -e "   Run 'ps -ef | grep mbbs' to inspect or wait for it to complete."
+        exit 0
+    fi
+fi
+echo "$$" > "$LOCK_FILE"
+
+cleanup() {
+    rm -f "$LOCK_FILE" "$TMP_DIR"/mbbs_*_$$* "$TMP_DIR"/gs_*_$$* "$TMP_DIR"/lin_*_$$* 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
+# Startup vs Interactive Banner
+if [ "$ON_STARTUP" -eq 0 ]; then
+    echo -e "${BLUE}${BOLD}╔════════════════════════════════════════════════════════════════╗${RESET}"
+    echo -e "${BLUE}${BOLD}║               🩺 MBBS RESOURCE LIBRARY SYNC ENGINE              ║${RESET}"
+    echo -e "${BLUE}${BOLD}╚════════════════════════════════════════════════════════════════╝${RESET}"
+fi
 
 # Verify repository exists
 if [ ! -d "$REPO_DIR" ]; then
-    echo -e "${YELLOW}⚠️  [MBBS Library] Repository not found at $REPO_DIR${RESET}"
-    exit 0
+    echo -e "${RED}⚠️  [MBBS Library] Repository not found at $REPO_DIR${RESET}"
+    exit 1
 fi
 
 # Fallback for phone directory if /storage/emulated/0 is mapped via Termux storage
@@ -58,12 +87,11 @@ fi
 
 if [ ! -d "$PHONE_DIR" ]; then
     if [ "$ON_STARTUP" -eq 0 ]; then
-        echo -e "${YELLOW}⚠️  [MBBS Library] Phone folder not found. Please run 'termux-setup-storage'.${RESET}"
+        echo -e "${YELLOW}⚠️  [MBBS Library] Phone storage not accessible. Run 'termux-setup-storage'.${RESET}"
     fi
     exit 0
 fi
 
-# Ensure phone directory exists (folders are created on-demand when files exist)
 mkdir -p "$PHONE_DIR" 2>/dev/null || true
 
 # Helper string functions
@@ -250,9 +278,8 @@ find_matching_subfolder() {
     [ -d "$parent_dir" ] || return 1
     local word_l
     word_l=$(echo "$word" | tr '[:upper:]' '[:lower:]')
-    local stem="${word_l%s}" # strip trailing s if any
+    local stem="${word_l%s}"
 
-    # 1. Exact case-insensitive match (skip empty folders during sorting)
     for d in "$parent_dir"/*/; do
         [ -d "$d" ] || continue
         [ -n "$(find "$d" -type f ! -name ".*" -print -quit 2>/dev/null)" ] || continue
@@ -264,7 +291,6 @@ find_matching_subfolder() {
         fi
     done
 
-    # 2. Singular / Plural stem match (skip empty folders during sorting)
     for d in "$parent_dir"/*/; do
         [ -d "$d" ] || continue
         [ -n "$(find "$d" -type f ! -name ".*" -print -quit 2>/dev/null)" ] || continue
@@ -287,7 +313,6 @@ get_target_phone_rel_path() {
     local name_no_ext="${canonical%.*}"
     local ext="${canonical##*.}"
 
-    # Clean words: replace underscores, hyphens, and multiple spaces with a single space
     local cleaned
     cleaned=$(echo "$name_no_ext" | sed -E 's/[_\-]+/ /g; s/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//')
 
@@ -299,7 +324,6 @@ get_target_phone_rel_path() {
     local subj_dir=""
     local sub_dir=""
 
-    # 1. Identify Subject from first word
     if [ -n "$first_word" ]; then
         local first_l
         first_l=$(echo "$first_word" | tr '[:upper:]' '[:lower:]')
@@ -320,7 +344,6 @@ get_target_phone_rel_path() {
         fi
     fi
 
-    # 2. If subject identified and second word exists (Two-Word rule: Word 1 = Subject, Word 2 = Subfolder)
     if [ -n "$subj_dir" ] && [ -n "$second_word" ]; then
         sub_dir=$(find_matching_subfolder "$PHONE_DIR/$subj_dir" "$second_word" || echo "")
         if [ -z "$sub_dir" ]; then
@@ -330,13 +353,11 @@ get_target_phone_rel_path() {
         return
     fi
 
-    # 3. If subject identified but NO second word:
     if [ -n "$subj_dir" ] && [ -z "$second_word" ]; then
         echo "$subj_dir/$canonical"
         return
     fi
 
-    # 4. If first word wasn't a subject, fall back to keyword detection on the whole filename:
     local lower_name
     lower_name=$(echo "$canonical" | tr '[:upper:]' '[:lower:]')
     if [[ "$lower_name" =~ histo ]]; then
@@ -404,8 +425,132 @@ remove_resource_by_url() {
 }
 
 # ==============================================================================
-# PHASE 0: Version Normalization (Strip (1), (2), _1, - Copy & Keep Latest)
+# HIGH-SPEED PDF OPTIMIZATION WITH REAL-TIME PROGRESS BAR
 # ==============================================================================
+optimize_pdf_file() {
+    local target_abs="$1"
+    local display_name="${2:-$(basename "$target_abs")}"
+    local orig_file="${3:-}"
+
+    command -v gs >/dev/null 2>&1 || return 0
+    command -v qpdf >/dev/null 2>&1 || return 0
+    [ -f "$target_abs" ] || return 0
+
+    local orig_bytes
+    orig_bytes=$(wc -c < "$target_abs")
+    local orig_display
+    orig_display=$(format_file_size "$orig_bytes")
+
+    # Fast-path for tiny files: linearize only
+    if [ "$orig_bytes" -lt 307200 ]; then
+        local tmp_lin="$TMP_DIR/lin_$$.pdf"
+        if qpdf --linearize "$target_abs" "$tmp_lin" 2>/dev/null; then
+            mv -f "$tmp_lin" "$target_abs"
+        fi
+        rm -f "$tmp_lin"
+        return 0
+    fi
+
+    local total_pages
+    total_pages=$(qpdf --show-npages "$target_abs" 2>/dev/null || echo 0)
+    [ "$total_pages" -gt 0 ] || return 0
+
+    echo -e "   ⚡ ${BOLD}Optimizing PDF:${RESET} ${CYAN}$display_name${RESET} (${orig_display}, ${total_pages} pages)"
+
+    local tmp_gs="$TMP_DIR/gs_opt_$$.pdf"
+    local tmp_opt="$TMP_DIR/lin_opt_$$.pdf"
+    local tmp_err="$TMP_DIR/gs_err_$$.log"
+    rm -f "$tmp_gs" "$tmp_opt" "$tmp_err"
+
+    local start_time
+    start_time=$(date +%s)
+    local last_sec=0
+    local gs_ok=1
+
+    # High-speed average downsampling (130 DPI) with real-time page progress bar
+    if ! (
+        gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 \
+           -dDownsampleColorImages=true -dColorImageDownsampleType=/Average -dColorImageResolution=130 \
+           -dDownsampleGrayImages=true -dGrayImageDownsampleType=/Average -dGrayImageResolution=130 \
+           -dDownsampleMonoImages=true -dMonoImageResolution=200 \
+           -dNOPAUSE -dBATCH \
+           -sOutputFile="$tmp_gs" "$target_abs" 2>"$tmp_err" | while read -r line; do
+               if [[ "$line" =~ ^Page\ ([0-9]+) ]]; then
+                   curr="${BASH_REMATCH[1]}"
+                   now=$(date +%s)
+                   if [ $((now - last_sec)) -ge 1 ] || [ "$curr" -eq "$total_pages" ]; then
+                       last_sec=$now
+                       pct=$((curr * 100 / total_pages))
+                       bar_filled=$((pct * 20 / 100))
+                       bar_empty=$((20 - bar_filled))
+                       fill_str=""
+                       for ((b=0; b<bar_filled; b++)); do fill_str="${fill_str}█"; done
+                       empty_str=""
+                       for ((b=0; b<bar_empty; b++)); do empty_str="${empty_str}░"; done
+                       elapsed=$((now - start_time))
+                       if [ "$curr" -gt 0 ]; then
+                           eta=$(( (elapsed * (total_pages - curr)) / curr ))
+                       else
+                           eta=0
+                       fi
+                       printf "\r      ⏳ [%s%s] %3d%% (%d/%d pages) • %ds • ETA: %ds" "$fill_str" "$empty_str" "$pct" "$curr" "$total_pages" "$elapsed" "$eta"
+                   fi
+               fi
+           done
+    ); then
+        gs_ok=0
+    fi
+    printf "\r%80s\r" ""
+
+    if [ "$gs_ok" -eq 1 ] && [ -f "$tmp_gs" ] && [ -s "$tmp_gs" ]; then
+        if qpdf --linearize "$tmp_gs" "$tmp_opt" 2>/dev/null; then
+            local new_bytes
+            new_bytes=$(wc -c < "$tmp_opt")
+            if [ "$new_bytes" -lt "$orig_bytes" ]; then
+                mv -f "$tmp_opt" "$target_abs"
+                if [ -n "$orig_file" ] && [ -f "$orig_file" ]; then
+                    cp -p "$target_abs" "$orig_file" 2>/dev/null || true
+                fi
+                local new_display
+                new_display=$(format_file_size "$new_bytes")
+                local saved_pct=$(( (orig_bytes - new_bytes) * 100 / orig_bytes ))
+                echo -e "      ${GREEN}✔ Optimized:${RESET} $orig_display ➔ ${BOLD}$new_display${RESET} (${saved_pct}% saved, Fast Web View enabled)"
+            else
+                qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs"
+                echo -e "      ${GREEN}✔ Linearized:${RESET} Fast Web View enabled ($orig_display)"
+            fi
+        fi
+    else
+        echo -e "      ${YELLOW}⚠️  Optimization notice:${RESET} Linearizing original stream..."
+        qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs" || true
+    fi
+
+    # GitHub 100MB Hard Ceiling Guard
+    local final_bytes
+    final_bytes=$(wc -c < "$target_abs")
+    if [ "$final_bytes" -ge 99614720 ]; then # 95 MB
+        echo -e "      ${YELLOW}⚠️  File exceeds 95MB. Running secondary compression pass to comply with GitHub limit (<100MB)...${RESET}"
+        rm -f "$tmp_gs" "$tmp_opt"
+        if gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 \
+              -dDownsampleColorImages=true -dColorImageDownsampleType=/Average -dColorImageResolution=95 \
+              -dDownsampleGrayImages=true -dGrayImageDownsampleType=/Average -dGrayImageResolution=95 \
+              -dNOPAUSE -dQUIET -dBATCH \
+              -sOutputFile="$tmp_gs" "$target_abs" 2>/dev/null; then
+            if qpdf --linearize "$tmp_gs" "$tmp_opt" 2>/dev/null; then
+                mv -f "$tmp_opt" "$target_abs"
+                [ -n "$orig_file" ] && cp -p "$target_abs" "$orig_file" 2>/dev/null || true
+            fi
+        fi
+    fi
+
+    rm -f "$tmp_gs" "$tmp_opt" "$tmp_err"
+}
+
+# ==============================================================================
+# PHASE 1: Version Normalization & Organization
+# ==============================================================================
+echo -e "\n🔍 ${BOLD}[1/5] Auditing phone storage and library structure...${RESET}"
+
 ALL_PHONE_FILES=()
 while IFS= read -r -d '' f; do
     ALL_PHONE_FILES+=("$f")
@@ -421,7 +566,6 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     if [ "$base_name" != "$canonical_name" ]; then
         target_path="$dir_name/$canonical_name"
         if [ ! -f "$target_path" ]; then
-            # If file is in root or subject root, check if canonical exists in a subfolder
             rel_dir="${dir_name#$PHONE_DIR}"
             rel_dir="${rel_dir#/}"
             IFS='/' read -r -a dir_parts <<< "$rel_dir"
@@ -453,9 +597,6 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     fi
 done
 
-# ==============================================================================
-# PHASE 1: Two-Word Auto-Organization & Cross-Folder Deduplication
-# ==============================================================================
 ORGANIZED_COUNT=0
 ORGANIZED_SUMMARY=()
 
@@ -474,7 +615,6 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     [ "${SEEN_CANONICAL[$canonical_name]:-0}" -eq 1 ] && continue
     SEEN_CANONICAL[$canonical_name]=1
 
-    # Find ALL instances of this canonical file across the phone
     matching_instances=()
     for cand in "${ALL_PHONE_FILES[@]}"; do
         [ -f "$cand" ] || continue
@@ -485,13 +625,10 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         fi
     done
 
-    # Determine default canonical target location based on Two-Word rule:
-    # Word 1 = Subject, Word 2 = Subfolder
     target_rel=$(get_target_phone_rel_path "$canonical_name")
     target_dest="$PHONE_DIR/$target_rel"
 
     if [ "${#matching_instances[@]}" -gt 1 ]; then
-        # Check if an instance is already inside a subfolder inside a subject folder (user's preferred arrangement)
         preferred_subfolder_inst=""
         for inst in "${matching_instances[@]}"; do
             rel_inst="${inst#$PHONE_DIR/}"
@@ -512,7 +649,6 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         fi
         mkdir -p "$(dirname "$target_dest")"
 
-        # Multiple copies found! Identify the latest revision
         best_file=""
         best_mtime=-1
         best_size=0
@@ -535,14 +671,12 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             fi
         done
 
-        # Move best file to target location
         if [ -n "$best_file" ] && [ "$best_file" != "$target_dest" ]; then
             mv -f "$best_file" "$target_dest"
             ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
             ORGANIZED_SUMMARY+=("$canonical_name ➔ $(dirname "$target_rel")/")
         fi
 
-        # Delete all other duplicate copies from phone
         for inst in "${matching_instances[@]}"; do
             if [ "$inst" != "$target_dest" ] && [ -f "$inst" ]; then
                 rm -f "$inst"
@@ -550,17 +684,14 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             fi
         done
     else
-        # Exactly one instance.
         single_file="${matching_instances[0]}"
         rel_single="${single_file#$PHONE_DIR/}"
         IFS='/' read -r -a p_single <<< "$rel_single"
 
-        # If already inside a subfolder inside a subject folder, keep it there (user's preferred arrangement)
         if [ "${#p_single[@]}" -ge 3 ]; then
             continue
         fi
 
-        # File is in root folder or directly in subject root (unorganized) -> run autosort!
         mkdir -p "$(dirname "$target_dest")"
         if [ "$single_file" != "$target_dest" ]; then
             if [ -f "$target_dest" ]; then
@@ -594,22 +725,22 @@ if [ "$ORGANIZED_COUNT" -gt 0 ]; then
     done
 fi
 
-# Refresh in-memory list of phone files
 ALL_PHONE_FILES=()
 while IFS= read -r -d '' f; do
     ALL_PHONE_FILES+=("$f")
 done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 
 # ==============================================================================
-# PHASE 2: Deletion & Obsolete Path Synchronization (Phone -> Website)
+# PHASE 2: Phone Deletions & Obsolete Path Synchronization
 # ==============================================================================
-TMP_MANIFEST="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/mbbs_manifest_$$.tmp"
+echo -e "🔄 ${BOLD}[2/5] Synchronizing phone changes & deletions...${RESET}"
+
+TMP_MANIFEST="$TMP_DIR/mbbs_manifest_$$.tmp"
 rm -f "$TMP_MANIFEST"
 touch "$TMP_MANIFEST"
 
 DELETED_SUMMARY=()
 
-# Scan existing manifest for deletions or obsolete path mismatches
 if [ -f "$MANIFEST_FILE" ] && [ -s "$MANIFEST_FILE" ]; then
     while IFS='|' read -r phone_rel repo_url || [ -n "$phone_rel" ]; do
         [ -n "$phone_rel" ] || continue
@@ -617,12 +748,10 @@ if [ -f "$MANIFEST_FILE" ] && [ -s "$MANIFEST_FILE" ]; then
 
         phone_full="$PHONE_DIR/$phone_rel"
         if [ -f "$phone_full" ]; then
-            # Verify if this repo_url is the canonical URL for this phone path
             canonical_url=$(phone_to_repo_url "$phone_rel")
             if [ "$canonical_url" = "$repo_url" ]; then
                 echo "$phone_rel|$repo_url" >> "$TMP_MANIFEST"
             else
-                # Stale / duplicate URL pointing to same file! Remove obsolete repo entry
                 if [ -f "$REPO_DIR/$repo_url" ]; then
                     rm -f "$REPO_DIR/$repo_url"
                 fi
@@ -630,7 +759,6 @@ if [ -f "$MANIFEST_FILE" ] && [ -s "$MANIFEST_FILE" ]; then
                 DELETED_SUMMARY+=("$repo_url (cleaned obsolete duplicate)")
             fi
         else
-            # File missing at mapped path. Check if it was moved to another subfolder.
             base_fname=$(basename "$phone_rel")
             base_safe=$(format_safe_filename "$base_fname")
             moved_path=""
@@ -652,7 +780,6 @@ if [ -f "$MANIFEST_FILE" ] && [ -s "$MANIFEST_FILE" ]; then
                 fi
                 echo "$new_rel|$new_repo_url" >> "$TMP_MANIFEST"
             else
-                # FILE WAS DELETED BY USER ON PHONE!
                 if [ -f "$REPO_DIR/$repo_url" ]; then
                     rm -f "$REPO_DIR/$repo_url"
                 fi
@@ -671,11 +798,13 @@ if [ "${#DELETED_SUMMARY[@]}" -gt 0 ]; then
 fi
 
 # ==============================================================================
-# PHASE 3: Upstream Sync (Phone -> Website)
+# PHASE 3: Upstream Sync & PDF Optimization
 # ==============================================================================
+echo -e "⚡ ${BOLD}[3/5] Processing upstream files & optimizing PDFs...${RESET}"
+
 NEW_FILES_PROCESSED=0
 PROCESSED_NAMES=()
-TMP_ENTRIES="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/mbbs_new_entries_$$.tmp"
+TMP_ENTRIES="$TMP_DIR/mbbs_new_entries_$$.tmp"
 rm -f "$TMP_ENTRIES"
 touch "$TMP_ENTRIES"
 
@@ -693,24 +822,10 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         cp -p "$file" "$target_abs_path"
         file_copied=1
 
-        # High-Performance PDF Compression & Fast Web View Linearization
-        if [[ "${target_abs_path,,}" == *.pdf ]] && command -v gs >/dev/null 2>&1 && command -v qpdf >/dev/null 2>&1; then
+        # Perform high-performance PDF optimization
+        if [[ "${target_abs_path,,}" == *.pdf ]]; then
             orig_mtime=$(stat -c %Y "$file" 2>/dev/null || echo 0)
-            orig_bytes=$(wc -c < "$target_abs_path")
-            tmp_opt="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/opt_sync_$$.pdf"
-            tmp_gs="${TMPDIR:-/data/data/com.termux/files/usr/tmp}/gs_sync_$$.pdf"
-            rm -f "$tmp_gs" "$tmp_opt"
-            if gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$tmp_gs" "$target_abs_path" 2>/dev/null; then
-                if qpdf --linearize "$tmp_gs" "$tmp_opt" 2>/dev/null; then
-                    opt_bytes=$(wc -c < "$tmp_opt")
-                    if [ "$opt_bytes" -lt "$orig_bytes" ]; then
-                        mv -f "$tmp_opt" "$target_abs_path"
-                        # Also optimize the offline phone file so phone saves storage, preserving mtime
-                        cp -p "$target_abs_path" "$file" 2>/dev/null || true
-                    fi
-                fi
-            fi
-            rm -f "$tmp_gs" "$tmp_opt"
+            optimize_pdf_file "$target_abs_path" "$base_name" "$file"
             if [ "$orig_mtime" -gt 0 ]; then
                 touch -d "@$orig_mtime" "$target_abs_path" 2>/dev/null || true
                 touch -d "@$orig_mtime" "$file" 2>/dev/null || true
@@ -720,7 +835,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
 
     echo "$rel_path|$target_rel_url" >> "$TMP_MANIFEST"
 
-    # Check if cataloged in js/data.js
+    # Catalog new entries in js/data.js
     if ! grep -q "$target_rel_url" "$DATA_FILE"; then
         IFS='/' read -r -a path_parts <<< "$rel_path"
         num_parts=${#path_parts[@]}
@@ -839,7 +954,6 @@ if [ -s "$TMP_ENTRIES" ]; then
 fi
 rm -f "$TMP_ENTRIES"
 
-# Safety Audit: Clean any orphaned or duplicate resources from js/data.js that are not in active manifest
 DATA_URLS=$(awk -F'"' '/fileUrl:[[:space:]]*"/ { print $2 }' "$DATA_FILE")
 for d_url in $DATA_URLS; do
     if [ -n "$d_url" ] && ! grep -q "|$d_url$" "$TMP_MANIFEST"; then
@@ -854,6 +968,8 @@ done
 # ==============================================================================
 # PHASE 4: Downstream Sync (Website -> Phone)
 # ==============================================================================
+echo -e "📲 ${BOLD}[4/5] Verifying offline documents on phone...${RESET}"
+
 SEED_SUMMARY=()
 ACTIVE_WEBSITE_URLS=$(awk -F'"' '/fileUrl:[[:space:]]*"/ { print $2 }' "$DATA_FILE")
 
@@ -873,7 +989,6 @@ for w_url in $ACTIVE_WEBSITE_URLS; do
         continue
     fi
 
-    # Check in-memory list
     w_base=$(basename "$w_url")
     found_on_phone=""
     for pf in "${ALL_PHONE_FILES[@]}"; do
@@ -902,101 +1017,125 @@ if [ "${#SEED_SUMMARY[@]}" -gt 0 ]; then
     done
 fi
 
-# ==============================================================================
-# PHASE 5: Manifest Finalization & Cleanup
-# ==============================================================================
 if [ -f "$TMP_MANIFEST" ]; then
     sort -u "$TMP_MANIFEST" > "$MANIFEST_FILE"
     rm -f "$TMP_MANIFEST"
 fi
 
-# Clean empty directories inside assets/docs (phone folders are preserved; empty folders are never deleted)
 find "$REPO_DIR/assets/docs" -type d -empty -delete 2>/dev/null || true
-
 TOTAL_OFFLINE_FILES=$(find "$PHONE_DIR" -type f ! -name ".*" | wc -l)
 
 # ==============================================================================
-# PHASE 6: Git Commit & GitHub Pages Live Push
+# PHASE 5: Integrity Audit & Live Deployment
 # ==============================================================================
 cd "$REPO_DIR"
-CHANGES=$(git status --porcelain)
 
-if [ -z "$CHANGES" ]; then
+# Sweep for any uncompressed large PDFs (>95MB) before commit
+while IFS= read -r big_doc; do
+    [ -f "$big_doc" ] || continue
+    echo -e "   ${YELLOW}⚠️  Encountered uncompressed PDF >95MB: $(basename "$big_doc"). Optimizing...${RESET}"
+    optimize_pdf_file "$big_doc"
+done < <(find "$REPO_DIR/assets/docs" -type f -name "*.pdf" -size +95M 2>/dev/null)
+
+CHANGES=$(git status --porcelain)
+UNPUSHED=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+
+if [ -z "$CHANGES" ] && [ "$UNPUSHED" -eq 0 ] && [ "$FORCE_SYNC" -eq 0 ]; then
     if [ "$ON_STARTUP" -eq 1 ]; then
         if [ "$ORGANIZED_COUNT" -eq 0 ] && [ "${#DEDUP_SUMMARY[@]}" -eq 0 ] && [ "${#DELETED_SUMMARY[@]}" -eq 0 ] && [ "${#SEED_SUMMARY[@]}" -eq 0 ]; then
             echo -e "${GREEN}📚 MBBS Library:${RESET} in full two-way sync with phone ($TOTAL_OFFLINE_FILES files offline & online)."
         fi
     else
-        echo -e "${GREEN}✨ [MBBS Library] Complete two-way sync verified! All $TOTAL_OFFLINE_FILES files are synchronized across phone & website.${RESET}"
+        echo -e "${GREEN}${BOLD}✨ [MBBS Library] Complete two-way sync verified!${RESET}"
+        echo -e "   All $TOTAL_OFFLINE_FILES files are synchronized across phone & live website."
+        echo -e "   🌐 Live site: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
     fi
     exit 0
 fi
 
-if [ "$NEW_FILES_PROCESSED" -gt 0 ]; then
-    echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}"
-    echo -e "${CYAN}${BOLD}📥 [MBBS Library] Uploading $NEW_FILES_PROCESSED new/updated file(s) to website!${RESET}"
-    for item in "${PROCESSED_NAMES[@]}"; do
-        echo -e "   ${GREEN}➜${RESET} $item"
+if [ "$UNPUSHED" -gt 0 ] && [ -z "$CHANGES" ]; then
+    echo -e "${YELLOW}📤 [MBBS Library] $UNPUSHED commit(s) pending upload to GitHub Pages.${RESET}"
+fi
+
+if [ -n "$CHANGES" ]; then
+    if [ "$NEW_FILES_PROCESSED" -gt 0 ]; then
+        echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}"
+        echo -e "${CYAN}${BOLD}📥 [MBBS Library] Uploading $NEW_FILES_PROCESSED new/updated file(s) to website!${RESET}"
+        for item in "${PROCESSED_NAMES[@]}"; do
+            echo -e "   ${GREEN}➜${RESET} $item"
+        done
+        echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
+    fi
+
+    # Update cache-busting version query across all HTML pages
+    CACHE_BUST_VER=$(date +%s)
+    for h_file in "$REPO_DIR"/*.html; do
+        sed -i -E "s/(data\.js|app\.js|style\.css)(\?v=[0-9]+)?/\1?v=$CACHE_BUST_VER/g" "$h_file"
     done
-    echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
-fi
 
-# Update cache-busting version query across all HTML pages to force instant browser refreshes
-CACHE_BUST_VER=$(date +%s)
-for h_file in "$REPO_DIR"/*.html; do
-    sed -i -E "s/(data\.js|app\.js|style\.css)(\?v=[0-9]+)?/\1?v=$CACHE_BUST_VER/g" "$h_file"
-done
+    git add -A
 
-git add -A
+    COMMIT_PARTS=()
+    [ "${#DELETED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("synced ${#DELETED_SUMMARY[@]} phone deletion(s)")
+    [ "$NEW_FILES_PROCESSED" -gt 0 ] && COMMIT_PARTS+=("uploaded $NEW_FILES_PROCESSED file(s)")
+    [ "${#SEED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("seeded ${#SEED_SUMMARY[@]} offline doc(s)")
 
-COMMIT_PARTS=()
-[ "${#DELETED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("synced ${#DELETED_SUMMARY[@]} phone deletion(s)")
-[ "$NEW_FILES_PROCESSED" -gt 0 ] && COMMIT_PARTS+=("uploaded $NEW_FILES_PROCESSED file(s)")
-[ "${#SEED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("seeded ${#SEED_SUMMARY[@]} offline doc(s)")
+    COMMIT_MSG="feat(sync): $(IFS=', '; echo "${COMMIT_PARTS[*]}")"
+    if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" = "feat(sync): " ]; then
+        COMMIT_MSG="feat(sync): two-way offline & deletion synchronization"
+    fi
 
-COMMIT_MSG="feat(sync): $(IFS=', '; echo "${COMMIT_PARTS[*]}")"
-if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" = "feat(sync): " ]; then
-    COMMIT_MSG="feat(sync): two-way offline & deletion synchronization"
-fi
+    git commit -m "$COMMIT_MSG" >/dev/null
 
-git commit -m "$COMMIT_MSG" >/dev/null
-
-TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-cat << EOF >> "$LOG_FILE"
+    TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+    cat << EOF >> "$LOG_FILE"
 
 ### Two-Way Auto-Sync & Deletion: $TIMESTAMP
 - **Phone Deduplication**: Resolved ${#DEDUP_SUMMARY[@]} duplicate(s)
 - **Phone Organization**: Organized $ORGANIZED_COUNT root file(s)
 - **Phone Deletions Synced to Website**: ${#DELETED_SUMMARY[@]} file(s)
 EOF
-for item in "${DELETED_SUMMARY[@]}"; do
-    echo "  - $item" >> "$LOG_FILE"
-done
+    for item in "${DELETED_SUMMARY[@]}"; do
+        echo "  - $item" >> "$LOG_FILE"
+    done
 
-cat << EOF >> "$LOG_FILE"
+    cat << EOF >> "$LOG_FILE"
 - **Files Uploaded / Updated from Phone**: $NEW_FILES_PROCESSED
 EOF
-for item in "${PROCESSED_NAMES[@]}"; do
-    echo "  - $item" >> "$LOG_FILE"
-done
+    for item in "${PROCESSED_NAMES[@]}"; do
+        echo "  - $item" >> "$LOG_FILE"
+    done
 
-cat << EOF >> "$LOG_FILE"
+    cat << EOF >> "$LOG_FILE"
 - **Offline Files Seeded to Phone**: ${#SEED_SUMMARY[@]}
 - **Total In-Sync Files**: $TOTAL_OFFLINE_FILES
 EOF
 
-git add "$LOG_FILE"
-git commit --amend --no-edit >/dev/null 2>&1 || true
+    git add "$LOG_FILE"
+    git commit --amend --no-edit >/dev/null 2>&1 || true
+fi
 
-echo -e "🚀 ${BOLD}Connecting to GitHub...${RESET}"
-if curl -s --connect-timeout 4 -I https://github.com >/dev/null 2>&1; then
-    if git push origin main >/dev/null 2>&1; then
+# ==============================================================================
+# PHASE 6: Deploy Live to GitHub Pages
+# ==============================================================================
+echo -e "🚀 ${BOLD}[5/5] Deploying live to GitHub Pages...${RESET}"
+
+if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
+    PUSH_LOG="$TMP_DIR/git_push_$$.log"
+    if git push --progress origin main >"$PUSH_LOG" 2>&1; then
         echo -e "${GREEN}${BOLD}✅ Successfully synchronized with GitHub Pages!${RESET}"
         echo -e "   🌐 Live site: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
+        rm -f "$PUSH_LOG"
     else
-        echo -e "${YELLOW}⚠️  Git push failed. Changes are saved locally and will push next time.${RESET}"
+        echo -e "${RED}${BOLD}❌ Git push failed!${RESET}"
+        echo -e "${YELLOW}Detailed reason from GitHub:${RESET}"
+        cat "$PUSH_LOG" | sed 's/^/   /'
+        echo -e "\n${YELLOW}💡 Changes remain saved locally in Git. You can retry anytime by running 'mbbs-upload'.${RESET}"
+        rm -f "$PUSH_LOG"
     fi
 else
-    echo -e "${YELLOW}⚠️  Offline mode: Changes saved locally in Git. Will upload automatically when connected!${RESET}"
+    echo -e "${YELLOW}📡 Offline mode: No internet connection detected.${RESET}"
+    echo -e "   Changes are saved locally in Git and will push automatically when you reconnect."
 fi
-echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}"
+
+echo -e "${BLUE}${BOLD}═══════════════════════════════════════════════════════════${RESET}\n"
