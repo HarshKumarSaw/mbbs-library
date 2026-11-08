@@ -60,6 +60,8 @@
     pdfCanvas: document.getElementById("pdf-canvas"),
     pdfPrevBtn: document.getElementById("pdf-prev-btn"),
     pdfNextBtn: document.getElementById("pdf-next-btn"),
+    pdfFloatPrevBtn: document.getElementById("pdf-float-prev-btn"),
+    pdfFloatNextBtn: document.getElementById("pdf-float-next-btn"),
     pdfPageInput: document.getElementById("pdf-page-input"),
     pdfTotalPages: document.getElementById("pdf-total-pages"),
     pdfZoomInBtn: document.getElementById("pdf-zoom-in-btn"),
@@ -779,29 +781,29 @@
       return;
     }
 
-    showPdfLoading("Opening document...", 10);
+    showPdfLoading("Opening Page 1...", 25);
 
     if (pdfState.loadingTask) {
       try { pdfState.loadingTask.destroy(); } catch (e) {}
       pdfState.loadingTask = null;
     }
 
+    // Force HTTP Byte-Range requests (206 Partial Content) for instant on-demand page streaming
+    // disableAutoFetch: true ensures PDF.js NEVER downloads the whole file in the background
+    // disableStream: true forces Range header requests for exact byte slices instead of full body stream
     const loadingTask = window.pdfjsLib.getDocument({
       url: url,
       rangeChunkSize: 65536,
-      disableAutoFetch: false,
-      disableStream: false
+      disableAutoFetch: true,
+      disableStream: true,
+      disableRange: false
     });
 
     pdfState.loadingTask = loadingTask;
 
     loadingTask.onProgress = function (progress) {
-      if (progress.total > 0) {
-        const percent = Math.min(100, Math.round((progress.loaded / progress.total) * 100));
-        updatePdfProgress(percent, `Loading document (${percent}%)...`);
-      } else if (progress.loaded > 0) {
-        const mb = (progress.loaded / (1024 * 1024)).toFixed(1);
-        updatePdfProgress(50, `Loading document (${mb} MB)...`);
+      if (progress.loaded > 0 && progress.loaded < 500000) {
+        updatePdfProgress(65, "Rendering Page 1...");
       }
     };
 
@@ -815,9 +817,9 @@
       }
       updateNavButtons();
 
-      // Automatically detect layout from screen width
-      pdfState.layout = isMobileLayout() ? "mobile" : "desktop";
-      applyLayoutMode(pdfState.layout, 1);
+      // ALWAYS default to Single Page (One Page at a Time) for instant reading
+      pdfState.layout = "single";
+      applyLayoutMode("single", 1);
     }).catch(function (error) {
       console.error("PDF loading error:", error);
       if (error && error.name === "RenderingCancelledException") return;
@@ -830,17 +832,17 @@
     return window.innerWidth < 768;
   }
 
-  // Switch between Desktop (Single Page) and Mobile (Vertical Continuous Stack)
+  // Switch between Single Page Mode (1 page at a time) and Continuous Mode
   function applyLayoutMode(mode, targetPage) {
     pdfState.layout = mode;
     const pageToFocus = targetPage || pdfState.pageNum || 1;
 
     if (DOM.pdfViewerContainer) {
-      DOM.pdfViewerContainer.classList.remove("mode-desktop", "mode-mobile");
-      DOM.pdfViewerContainer.classList.add(mode === "mobile" ? "mode-mobile" : "mode-desktop");
+      DOM.pdfViewerContainer.classList.remove("mode-single", "mode-continuous", "mode-desktop", "mode-mobile");
+      DOM.pdfViewerContainer.classList.add(mode === "continuous" ? "mode-continuous" : "mode-single");
     }
 
-    if (mode === "mobile") {
+    if (mode === "continuous") {
       if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
       if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "flex";
       setupMobileContinuousStack(pageToFocus);
@@ -878,10 +880,11 @@
       let computedScale;
 
       if (pdfState.scale === "fit") {
-        const containerPadding = 48;
-        const availableWidth = Math.max(300, container.clientWidth - containerPadding);
+        const isMobile = window.innerWidth < 768;
+        const containerPadding = isMobile ? 12 : 36;
+        const availableWidth = Math.max(220, container.clientWidth - containerPadding);
         computedScale = availableWidth / unscaledViewport.width;
-        computedScale = Math.min(Math.max(computedScale, 0.45), 2.4);
+        computedScale = Math.min(Math.max(computedScale, 0.35), 3.0);
       } else {
         computedScale = Number(pdfState.scale) || 1.0;
       }
@@ -1234,7 +1237,7 @@
   function jumpToPage(num) {
     if (!pdfState.pdfDoc) return;
     num = Math.max(1, Math.min(num, pdfState.pdfDoc.numPages));
-    if (pdfState.layout === "mobile") {
+    if (pdfState.layout === "continuous") {
       scrollToMobilePage(num, true);
     } else {
       queueRenderSinglePage(num);
@@ -1244,7 +1247,7 @@
   function prevPdfPage() {
     if (!pdfState.pdfDoc || pdfState.pageNum <= 1) return;
     const target = pdfState.pageNum - 1;
-    if (pdfState.layout === "mobile") {
+    if (pdfState.layout === "continuous") {
       scrollToMobilePage(target, true);
     } else {
       queueRenderSinglePage(target);
@@ -1254,7 +1257,7 @@
   function nextPdfPage() {
     if (!pdfState.pdfDoc || pdfState.pageNum >= pdfState.pdfDoc.numPages) return;
     const target = pdfState.pageNum + 1;
-    if (pdfState.layout === "mobile") {
+    if (pdfState.layout === "continuous") {
       scrollToMobilePage(target, true);
     } else {
       queueRenderSinglePage(target);
@@ -1263,12 +1266,16 @@
 
   function updateNavButtons() {
     if (!pdfState.pdfDoc) return;
-    if (DOM.pdfPrevBtn) DOM.pdfPrevBtn.disabled = (pdfState.pageNum <= 1);
-    if (DOM.pdfNextBtn) DOM.pdfNextBtn.disabled = (pdfState.pageNum >= pdfState.pdfDoc.numPages);
+    const isFirst = (pdfState.pageNum <= 1);
+    const isLast = (pdfState.pageNum >= pdfState.pdfDoc.numPages);
+    if (DOM.pdfPrevBtn) DOM.pdfPrevBtn.disabled = isFirst;
+    if (DOM.pdfNextBtn) DOM.pdfNextBtn.disabled = isLast;
+    if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.disabled = isFirst;
+    if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.disabled = isLast;
   }
 
   function zoomInPdf() {
-    if (pdfState.layout === "mobile") {
+    if (pdfState.layout === "continuous") {
       const current = (pdfState.scale === "fit") ? 1.0 : (Number(pdfState.scale) || 1.0);
       pdfState.scale = Math.min(current * 1.25, 3.0);
       applyMobileZoom();
@@ -1280,7 +1287,7 @@
   }
 
   function zoomOutPdf() {
-    if (pdfState.layout === "mobile") {
+    if (pdfState.layout === "continuous") {
       const current = (pdfState.scale === "fit") ? 1.0 : (Number(pdfState.scale) || 1.0);
       pdfState.scale = Math.max(current * 0.8, 0.5);
       applyMobileZoom();
@@ -1293,7 +1300,7 @@
 
   function zoomFitPdf() {
     pdfState.scale = "fit";
-    if (pdfState.layout === "mobile") {
+    if (pdfState.layout === "continuous") {
       applyMobileZoom();
     } else {
       renderSinglePage(pdfState.pageNum);
@@ -1512,12 +1519,18 @@
       });
     }
 
-    // PDF Navigation Buttons
+    // PDF Navigation Buttons (Toolbar and Floating Arrows)
     if (DOM.pdfPrevBtn) {
       DOM.pdfPrevBtn.addEventListener("click", prevPdfPage);
     }
     if (DOM.pdfNextBtn) {
       DOM.pdfNextBtn.addEventListener("click", nextPdfPage);
+    }
+    if (DOM.pdfFloatPrevBtn) {
+      DOM.pdfFloatPrevBtn.addEventListener("click", prevPdfPage);
+    }
+    if (DOM.pdfFloatNextBtn) {
+      DOM.pdfFloatNextBtn.addEventListener("click", nextPdfPage);
     }
 
     // PDF Direct Page Jump Input
@@ -1547,7 +1560,7 @@
       DOM.pdfZoomFitBtn.addEventListener("click", zoomFitPdf);
     }
 
-    // PDF Touch Swipe Support (Active only in desktop layout; mobile uses native vertical scroll)
+    // PDF Touch Swipe Support (Instant page-by-page turning on touch devices)
     if (DOM.pdfViewerContainer) {
       DOM.pdfViewerContainer.addEventListener("touchstart", (e) => {
         if (e.touches.length === 1) {
@@ -1558,16 +1571,17 @@
 
       DOM.pdfViewerContainer.addEventListener("touchend", (e) => {
         if (!pdfState.pdfDoc || e.changedTouches.length === 0) return;
-        if (pdfState.layout === "mobile") return; // Allow natural inertial scroll on mobile
+        if (pdfState.layout === "continuous") return;
 
         const diffX = e.changedTouches[0].clientX - pdfState.touchStartX;
         const diffY = e.changedTouches[0].clientY - pdfState.touchStartY;
 
-        if (Math.abs(diffX) > 60 && Math.abs(diffY) < 55) {
+        // Detect horizontal swipe gesture (>40px horizontal, <65px vertical)
+        if (Math.abs(diffX) > 40 && Math.abs(diffY) < 65) {
           if (diffX < 0) {
-            nextPdfPage();
+            nextPdfPage(); // Swipe Left -> Next Page
           } else {
-            prevPdfPage();
+            prevPdfPage(); // Swipe Right -> Previous Page
           }
         }
       }, { passive: true });

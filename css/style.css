@@ -3320,22 +3320,71 @@ textarea,
   animation: pdfSpin 0.75s linear infinite;
 }
 
-/* Responsive View Switch Breakpoints */
-@media (min-width: 768px) {
-  .pdf-viewer-container.mode-desktop .pdf-single-page-view {
-    display: flex;
-  }
-  .pdf-viewer-container.mode-desktop .pdf-pages-stack {
-    display: none !important;
-  }
+/* Responsive View Switch Breakpoints & Layout Modes */
+.pdf-viewer-container.mode-single .pdf-single-page-view,
+.pdf-viewer-container.mode-desktop .pdf-single-page-view {
+  display: flex !important;
+}
+.pdf-viewer-container.mode-single .pdf-pages-stack,
+.pdf-viewer-container.mode-desktop .pdf-pages-stack {
+  display: none !important;
 }
 
-@media (max-width: 767px) {
-  .pdf-viewer-container.mode-mobile .pdf-single-page-view {
-    display: none !important;
+.pdf-viewer-container.mode-continuous .pdf-single-page-view {
+  display: none !important;
+}
+.pdf-viewer-container.mode-continuous .pdf-pages-stack {
+  display: flex !important;
+}
+
+/* Floating Quick Navigation Buttons for One-Page-at-a-Time Reading */
+.pdf-floating-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 8;
+  width: 44px;
+  height: 64px;
+  background: rgba(10, 25, 47, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  outline: none;
+}
+.pdf-floating-nav:hover {
+  background: var(--accent-blue, #2563EB);
+  transform: translateY(-50%) scale(1.08);
+}
+.pdf-float-prev {
+  left: 8px;
+  border-radius: 0 10px 10px 0;
+}
+.pdf-float-next {
+  right: 8px;
+  border-radius: 10px 0 0 10px;
+}
+.pdf-floating-nav:disabled {
+  opacity: 0.15;
+  pointer-events: none;
+}
+@media (max-width: 600px) {
+  .pdf-floating-nav {
+    width: 36px;
+    height: 52px;
+    background: rgba(10, 25, 47, 0.6);
   }
-  .pdf-viewer-container.mode-mobile .pdf-pages-stack {
-    display: flex;
+  .pdf-float-prev {
+    left: 4px;
+  }
+  .pdf-float-next {
+    right: 4px;
   }
 }
 
