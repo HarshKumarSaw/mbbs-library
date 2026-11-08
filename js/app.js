@@ -12,7 +12,12 @@
     selectedCategory: "all",
     searchQuery: "",
     favorites: new Set(),
-    activeModalResource: null
+    activeModalResource: null,
+    // Lazy loading & pagination state
+    filteredResources: [],
+    displayedCount: 0,
+    batchSize: 8,
+    gridObserver: null
   };
 
   // PDF Viewer State
@@ -424,16 +429,26 @@
       return true;
     });
 
-    renderCards(filtered);
+    state.filteredResources = filtered;
+    state.displayedCount = 0;
+
+    initLazyGrid();
     renderActiveFilterTags(filtered.length);
     renderActiveFilterChips();
   }
 
-  // Render Resource Cards Grid
-  function renderCards(list) {
+  // Initialize Lazy-Loaded Grid
+  function initLazyGrid() {
     if (!DOM.resourcesGrid) return;
 
-    if (list.length === 0) {
+    // Disconnect any active observer
+    if (state.gridObserver) {
+      state.gridObserver.disconnect();
+      state.gridObserver = null;
+    }
+
+    // Handle Empty State
+    if (state.filteredResources.length === 0) {
       DOM.resourcesGrid.innerHTML = `
         <div class="empty-state">
           <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -449,6 +464,9 @@
         </div>
       `;
 
+      updateResultsCountDisplay();
+      hideLazyControls();
+
       const resetBtn = document.getElementById("reset-filters-btn");
       if (resetBtn) {
         resetBtn.addEventListener("click", resetAllFilters);
@@ -456,70 +474,243 @@
       return;
     }
 
-    DOM.resourcesGrid.innerHTML = list.map(item => {
-      const catMeta = CATEGORY_INFO[item.category] || { label: formatName(item.category), badgeClass: "badge-other", icon: "other" };
-      const subMeta = SUBJECT_INFO[item.subject] || { name: formatName(item.subject) };
-      
-      const subjectEmojis = {
-        anatomy: "🦴",
-        physiology: "🫀",
-        biochemistry: "🧪",
-        community_medicine: "🏥",
-        aetcom: "🩺"
-      };
-      const emoji = subjectEmojis[item.subject] || "📚";
+    // Clear grid for fresh filtered list
+    DOM.resourcesGrid.innerHTML = "";
+    hideLazyControls();
 
-      return `
-        <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
-          <div class="card-header">
-            <span class="subject-badge ${item.subject}">
-              <span class="subject-badge-icon" aria-hidden="true">${emoji}</span>
-              <span class="subject-badge-name">${subMeta.name}</span>
-            </span>
-            <span class="category-badge ${catMeta.badgeClass}">
-              ${catMeta.label}
-            </span>
-          </div>
+    // Render initial batch
+    renderNextCardBatch();
 
-          <h3 class="card-title">${highlightQuery(item.title, state.searchQuery)}</h3>
-          <p class="card-desc">${highlightQuery(item.description, state.searchQuery)}</p>
+    // Setup IntersectionObserver for subsequent batches
+    setupLazyObserver();
+  }
 
-          <div class="card-meta">
-            <span class="meta-item">📄 ${item.pages || "PDF Document"}</span>
-            <span class="meta-bullet">•</span>
-            <span class="meta-item">💾 ${item.fileSize}</span>
-            <span class="meta-bullet">•</span>
-            <span class="meta-item">📅 ${formatResourceDate(item.date)}</span>
-          </div>
+  // Generate HTML for a single resource card
+  function createCardHtml(item) {
+    const catMeta = CATEGORY_INFO[item.category] || { label: formatName(item.category), badgeClass: "badge-other", icon: "other" };
+    const subMeta = SUBJECT_INFO[item.subject] || { name: formatName(item.subject) };
+    
+    const subjectEmojis = {
+      anatomy: "🦴",
+      physiology: "🫀",
+      biochemistry: "🧪",
+      community_medicine: "🏥",
+      aetcom: "🩺"
+    };
+    const emoji = subjectEmojis[item.subject] || "📚";
 
-          <div class="card-actions">
-            <button type="button" class="btn-read" data-action="view" data-id="${item.id}" aria-label="Read ${escapeHtml(item.title)}">
-              <span>Read PDF</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-            </button>
-            <a href="${item.fileUrl}" download class="btn-download-action" aria-label="Download ${escapeHtml(item.title)}" title="Download PDF">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </a>
-          </div>
-        </article>
-      `;
-    }).join("");
+    return `
+      <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
+        <div class="card-header">
+          <span class="subject-badge ${item.subject}">
+            <span class="subject-badge-icon" aria-hidden="true">${emoji}</span>
+            <span class="subject-badge-name">${subMeta.name}</span>
+          </span>
+          <span class="category-badge ${catMeta.badgeClass}">
+            ${catMeta.label}
+          </span>
+        </div>
 
-    // Attach click handlers to View buttons
-    DOM.resourcesGrid.querySelectorAll('[data-action="view"]').forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const id = btn.dataset.id;
-        openPdfModal(id);
+        <h3 class="card-title">${highlightQuery(item.title, state.searchQuery)}</h3>
+        <p class="card-desc">${highlightQuery(item.description, state.searchQuery)}</p>
+
+        <div class="card-meta">
+          <span class="meta-item">📄 ${item.pages || "PDF Document"}</span>
+          <span class="meta-bullet">•</span>
+          <span class="meta-item">💾 ${item.fileSize}</span>
+          <span class="meta-bullet">•</span>
+          <span class="meta-item">📅 ${formatResourceDate(item.date)}</span>
+        </div>
+
+        <div class="card-actions">
+          <button type="button" class="btn-read" data-action="view" data-id="${item.id}" aria-label="Read ${escapeHtml(item.title)}">
+            <span>Read PDF</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+          <a href="${item.fileUrl}" download class="btn-download-action" aria-label="Download ${escapeHtml(item.title)}" title="Download PDF">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </a>
+        </div>
+      </article>
+    `;
+  }
+
+  // Render Next Batch of Resource Cards
+  function renderNextCardBatch() {
+    if (!DOM.resourcesGrid) return;
+    const total = state.filteredResources.length;
+    if (state.displayedCount >= total) return;
+
+    const nextBatch = state.filteredResources.slice(state.displayedCount, state.displayedCount + state.batchSize);
+    if (nextBatch.length === 0) return;
+
+    const cardsHtml = nextBatch.map(createCardHtml).join("");
+    DOM.resourcesGrid.insertAdjacentHTML("beforeend", cardsHtml);
+
+    state.displayedCount += nextBatch.length;
+    updateResultsCountDisplay();
+
+    if (state.displayedCount >= total) {
+      if (state.gridObserver) {
+        state.gridObserver.disconnect();
+        state.gridObserver = null;
+      }
+      showGridEndIndicator();
+    }
+  }
+
+  // Setup Intersection Observer for Infinite Scroll Lazy Loading
+  function setupLazyObserver() {
+    const total = state.filteredResources.length;
+    if (state.displayedCount >= total) {
+      showGridEndIndicator();
+      return;
+    }
+
+    const container = getLazyContainer();
+    const sentinel = document.getElementById("grid-sentinel");
+    const loader = document.getElementById("grid-lazy-loader");
+    const loadMoreBtn = document.getElementById("grid-load-more-btn");
+    const endIndicator = document.getElementById("grid-end-indicator");
+
+    if (endIndicator) endIndicator.style.display = "none";
+
+    if ("IntersectionObserver" in window && sentinel) {
+      if (loadMoreBtn) loadMoreBtn.style.display = "none";
+
+      let isLoading = false;
+
+      state.gridObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && !isLoading) {
+          if (state.displayedCount >= state.filteredResources.length) {
+            if (state.gridObserver) {
+              state.gridObserver.disconnect();
+              state.gridObserver = null;
+            }
+            showGridEndIndicator();
+            return;
+          }
+
+          isLoading = true;
+          if (loader) loader.style.display = "inline-flex";
+
+          setTimeout(() => {
+            renderNextCardBatch();
+            if (loader) loader.style.display = "none";
+            isLoading = false;
+          }, 100);
+        }
+      }, {
+        root: null,
+        rootMargin: "300px 0px",
+        threshold: 0.01
       });
-    });
+
+      state.gridObserver.observe(sentinel);
+    } else {
+      if (loadMoreBtn) {
+        loadMoreBtn.style.display = "inline-flex";
+      }
+    }
+  }
+
+  // Helper to ensure Lazy Loading Container exists
+  function getLazyContainer() {
+    let container = document.getElementById("grid-lazy-container");
+    if (!container && DOM.resourcesGrid) {
+      container = document.createElement("div");
+      container.id = "grid-lazy-container";
+      container.className = "grid-lazy-container";
+      container.innerHTML = `
+        <div class="grid-sentinel" id="grid-sentinel" aria-hidden="true"></div>
+        <div class="grid-lazy-loader" id="grid-lazy-loader" style="display: none;">
+          <div class="grid-lazy-spinner"></div>
+          <span class="grid-lazy-text">Loading more documents...</span>
+        </div>
+        <button type="button" class="grid-load-more-btn" id="grid-load-more-btn" style="display: none;">
+          <span>Load More Documents</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+        </button>
+        <div class="grid-end-indicator" id="grid-end-indicator" style="display: none;">
+          <span class="grid-end-badge">✨ All documents loaded</span>
+        </div>
+      `;
+      DOM.resourcesGrid.parentNode.insertBefore(container, DOM.resourcesGrid.nextSibling);
+
+      const btn = container.querySelector("#grid-load-more-btn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          renderNextCardBatch();
+          if (state.displayedCount >= state.filteredResources.length) {
+            btn.style.display = "none";
+            showGridEndIndicator();
+          }
+        });
+      }
+    }
+    return container;
+  }
+
+  function showGridEndIndicator() {
+    const loader = document.getElementById("grid-lazy-loader");
+    const loadMoreBtn = document.getElementById("grid-load-more-btn");
+    const endIndicator = document.getElementById("grid-end-indicator");
+
+    if (loader) loader.style.display = "none";
+    if (loadMoreBtn) loadMoreBtn.style.display = "none";
+
+    if (endIndicator && state.filteredResources.length > state.batchSize) {
+      endIndicator.style.display = "flex";
+      const badge = endIndicator.querySelector(".grid-end-badge");
+      if (badge) {
+        badge.textContent = `✨ All ${state.filteredResources.length} documents loaded`;
+      }
+    }
+  }
+
+  function hideLazyControls() {
+    const loader = document.getElementById("grid-lazy-loader");
+    const loadMoreBtn = document.getElementById("grid-load-more-btn");
+    const endIndicator = document.getElementById("grid-end-indicator");
+
+    if (loader) loader.style.display = "none";
+    if (loadMoreBtn) loadMoreBtn.style.display = "none";
+    if (endIndicator) endIndicator.style.display = "none";
+  }
+
+  // Update Results Counter Text with Lazy Loading Progress
+  function updateResultsCountDisplay() {
+    if (!DOM.resultsCount) return;
+    const total = state.filteredResources.length;
+    const allTotal = MBBS_RESOURCES.length;
+
+    if (total === 0) {
+      DOM.resultsCount.innerHTML = `Showing <strong>0</strong> resources`;
+      return;
+    }
+
+    if (state.displayedCount >= total) {
+      if (total === allTotal) {
+        DOM.resultsCount.innerHTML = `Showing all <strong>${total}</strong> MBBS study resources`;
+      } else {
+        DOM.resultsCount.innerHTML = `Showing all <strong>${total}</strong> matching resources`;
+      }
+    } else {
+      DOM.resultsCount.innerHTML = `Showing <strong>${state.displayedCount}</strong> of <strong>${total}</strong> study resources <span class="lazy-scroll-hint">• scroll for more</span>`;
+    }
+  }
+
+  // Backwards-compatible Render Cards Helper
+  function renderCards(list) {
+    state.filteredResources = Array.isArray(list) ? list : MBBS_RESOURCES;
+    state.displayedCount = 0;
+    initLazyGrid();
   }
 
   // Render Active Filter Tags & Count
   function renderActiveFilterTags(count) {
-    if (DOM.resultsCount) {
-      DOM.resultsCount.innerHTML = `Showing <strong>${count}</strong> of <strong>${MBBS_RESOURCES.length}</strong> resources`;
-    }
+    updateResultsCountDisplay();
 
     if (!DOM.activeFiltersContainer) return;
 
@@ -1694,6 +1885,32 @@
 
   // Setup Global Event Listeners
   function setupEventListeners() {
+    // Delegated click handler on resources grid (View / Read PDF)
+    if (DOM.resourcesGrid) {
+      DOM.resourcesGrid.addEventListener("click", (e) => {
+        const viewBtn = e.target.closest('[data-action="view"]');
+        if (viewBtn) {
+          e.preventDefault();
+          const id = viewBtn.dataset.id;
+          if (id) {
+            openPdfModal(id);
+          }
+        }
+      });
+    }
+
+    // Connect Load More fallback button
+    const initialLoadMoreBtn = document.getElementById("grid-load-more-btn");
+    if (initialLoadMoreBtn) {
+      initialLoadMoreBtn.addEventListener("click", () => {
+        renderNextCardBatch();
+        if (state.displayedCount >= state.filteredResources.length) {
+          initialLoadMoreBtn.style.display = "none";
+          showGridEndIndicator();
+        }
+      });
+    }
+
     // Search input live filtering
     if (DOM.searchInput) {
       DOM.searchInput.addEventListener("input", (e) => {

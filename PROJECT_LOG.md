@@ -699,3 +699,10 @@
 - **Files Uploaded / Updated from Phone**: 0
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 20
+
+### Performance & Lazy Loading Enhancement: 2026-11-08 10:07:00 UTC
+- **Infinite Scroll & Lazy Loading**: Implemented IntersectionObserver-driven batch card rendering (batch size: 8) for instant initial page paints.
+- **Dynamic DOM Rendering**: Replaced heavy monolithic innerHTML injection with smooth insertAdjacentHTML chunking as user scrolls.
+- **Progress Counter**: Results info bar dynamically shows `Showing X of Y study resources • scroll for more` up to `Showing all Y MBBS study resources`.
+- **Loading & End UI**: Added subtle ivory/navy spinner indicator and end-of-catalog badge with fallback Load More button.
+- **Event Delegation**: Centralized card event handling onto resources-grid container, optimizing memory and interaction speed on mobile devices.

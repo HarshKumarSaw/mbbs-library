@@ -2576,6 +2576,128 @@ textarea,
 }
 
 /* ==========================================================================
+   Lazy Loading Grid Sentinel, Spinner & Controls
+   ========================================================================== */
+.lazy-scroll-hint {
+  font-weight: 500;
+  font-size: 0.82em;
+  color: var(--text-tertiary);
+  margin-left: 0.25rem;
+}
+
+.grid-lazy-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  min-height: 28px;
+}
+
+.grid-sentinel {
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.grid-lazy-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1.4rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 14px rgba(21, 27, 43, 0.06);
+  animation: cardEntrance 0.25s ease-out;
+}
+
+.grid-lazy-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(21, 27, 43, 0.12);
+  border-top-color: var(--primary-navy);
+  border-radius: 50%;
+  animation: gridSpin 0.7s linear infinite;
+}
+
+@keyframes gridSpin {
+  to { transform: rotate(360deg); }
+}
+
+.grid-lazy-text {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.grid-load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  background: #FFFFFF;
+  color: var(--primary-navy);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.75rem;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(21, 27, 43, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.grid-load-more-btn:hover {
+  background: var(--canvas-subtle);
+  border-color: var(--primary-navy);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(21, 27, 43, 0.08);
+}
+
+.grid-load-more-btn:active {
+  transform: scale(0.97);
+}
+
+.grid-end-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 0;
+  animation: cardEntrance 0.3s ease-out;
+}
+
+.grid-end-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--canvas-subtle);
+  border: 1px solid var(--border-subtle);
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resource-card,
+  .grid-lazy-loader,
+  .grid-end-indicator {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
    Filter Modal Panel (Bottom-Sheet Mobile • Centered Modal Desktop)
    ========================================================================== */
 .filter-modal-overlay {
