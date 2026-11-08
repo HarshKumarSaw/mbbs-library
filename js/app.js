@@ -698,6 +698,8 @@
     if (!DOM.filterModal) return;
     DOM.filterModal.classList.add("open");
     DOM.filterModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
     document.body.style.overflow = "hidden";
   }
 
@@ -705,7 +707,11 @@
     if (!DOM.filterModal) return;
     DOM.filterModal.classList.remove("open");
     DOM.filterModal.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    if (!DOM.pdfModal || !DOM.pdfModal.classList.contains("active")) {
+      document.body.classList.remove("modal-open");
+      document.documentElement.classList.remove("modal-open");
+      document.body.style.overflow = "";
+    }
   }
 
   function setupFilterModal() {
@@ -770,6 +776,8 @@
 
     DOM.pdfModal.classList.add("active");
     DOM.pdfModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
     document.body.style.overflow = "hidden";
 
     // Reset and load document into PDF.js inline viewer
@@ -1465,7 +1473,11 @@
     if (!DOM.pdfModal) return;
     DOM.pdfModal.classList.remove("active");
     DOM.pdfModal.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    if (!DOM.filterModal || !DOM.filterModal.classList.contains("open")) {
+      document.body.classList.remove("modal-open");
+      document.documentElement.classList.remove("modal-open");
+      document.body.style.overflow = "";
+    }
 
     resetPdfViewer();
     state.activeModalResource = null;
@@ -1728,6 +1740,28 @@
           }
         }
       }, { passive: true });
+    }
+
+    // Prevent iOS/Android overscroll chaining & elastic bounce when reaching top or bottom of PDF
+    if (DOM.pdfViewerContainer) {
+      DOM.pdfViewerContainer.addEventListener("touchstart", () => {
+        const el = DOM.pdfViewerContainer;
+        if (el.scrollTop <= 0) {
+          el.scrollTop = 1;
+        } else if (el.scrollTop + el.clientHeight >= el.scrollHeight) {
+          el.scrollTop = el.scrollHeight - el.clientHeight - 1;
+        }
+      }, { passive: true });
+    }
+
+    // Prevent backdrop/header/toolbar drag gestures from propagating elastic bounce to window
+    if (DOM.pdfModal) {
+      DOM.pdfModal.addEventListener("touchmove", (e) => {
+        // Only allow touch gestures inside the scrollable viewer container
+        if (!e.target.closest("#pdf-viewer-container")) {
+          e.preventDefault();
+        }
+      }, { passive: false });
     }
 
     // Keyboard navigation when PDF modal is open

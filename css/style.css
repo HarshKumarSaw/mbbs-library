@@ -2603,6 +2603,9 @@ textarea,
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .filter-modal-overlay.open {
@@ -2632,6 +2635,9 @@ textarea,
   transform: translateY(100%);
   transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .filter-modal-overlay.open .filter-modal-container {
@@ -2876,12 +2882,23 @@ textarea,
 }
 
 /* ==========================================================================
-   Mobile Bottom-Sheet PDF Modal (Native Touch Experience)
+   Mobile Bottom-Sheet PDF Modal (Native Touch Experience & Anti-Overscroll)
    ========================================================================== */
+html.modal-open,
+body.modal-open {
+  overflow: hidden !important;
+  height: 100% !important;
+  overscroll-behavior: none !important;
+}
+
+body.modal-open {
+  touch-action: none !important;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.7);
+  background: rgba(17, 24, 39, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 200;
@@ -2892,6 +2909,9 @@ textarea,
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.24s ease, visibility 0.24s;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 @media (min-width: 768px) {
@@ -2924,6 +2944,9 @@ textarea,
   transform: translateY(100%);
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .modal-sheet-handle {
@@ -3082,11 +3105,12 @@ textarea,
   flex-grow: 1;
   background: #0B0F19;
   position: relative;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
 }
 
 /* ==========================================================================
@@ -3362,13 +3386,16 @@ textarea,
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding: 0.85rem 0.5rem 2rem;
+  padding: 0.85rem 0.5rem 2.5rem;
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: auto;
   outline: none;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-x pan-y;
 }
 
 /* Desktop Single-Page View (One page visible horizontally) */
