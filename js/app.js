@@ -27,7 +27,7 @@
     loadingTask: null,
     touchStartX: 0,
     touchStartY: 0,
-    layout: "desktop", // 'desktop' or 'mobile'
+    layout: "continuous", // 'continuous' (scroll) or 'single' (pages)
     renderedPages: new Set(),
     activeRenderTasks: new Map(),
     intersectionObserver: null,
@@ -820,16 +820,10 @@
       }
       updateNavButtons();
 
-      // Check saved mode preference or default
-      let preferredMode = "single";
-      try {
-        const saved = localStorage.getItem("mbbs_pdf_view_mode");
-        if (saved === "continuous" || saved === "single") {
-          preferredMode = saved;
-        }
-      } catch (e) {}
-
-      pdfState.layout = preferredMode;
+      // Check device-specific view mode preference or use responsive defaults:
+      // Mobile (< 768px): Scroll option ('continuous')
+      // Desktop (>= 768px): Pages option ('single')
+      const preferredMode = getPreferredViewMode();
       applyLayoutMode(preferredMode, 1);
     }).catch(function (error) {
       console.error("PDF loading error:", error);
@@ -841,6 +835,21 @@
   // Helper: Detect mobile screen breakpoint (< 768px)
   function isMobileLayout() {
     return window.innerWidth < 768;
+  }
+
+  // Determine view mode: 'continuous' (Scroll) default for mobile, 'single' (Pages) default for desktop
+  function getPreferredViewMode() {
+    const isMobile = isMobileLayout();
+    const storageKey = isMobile ? "mbbs_pdf_mode_mobile" : "mbbs_pdf_mode_desktop";
+    try {
+      // Clean up legacy single-key preference to ensure new defaults apply cleanly
+      localStorage.removeItem("mbbs_pdf_view_mode");
+      const saved = localStorage.getItem(storageKey);
+      if (saved === "continuous" || saved === "single") {
+        return saved;
+      }
+    } catch (e) {}
+    return isMobile ? "continuous" : "single";
   }
 
   // Update View Mode Toggle Button UI (icon, text, title & floating arrows)
@@ -874,8 +883,11 @@
   // Toggle between Single Page (Page turn) and Continuous (Scroll page) mode
   function togglePdfViewMode() {
     const newMode = (pdfState.layout === "continuous") ? "single" : "continuous";
+    const isMobile = isMobileLayout();
+    const storageKey = isMobile ? "mbbs_pdf_mode_mobile" : "mbbs_pdf_mode_desktop";
     try {
-      localStorage.setItem("mbbs_pdf_view_mode", newMode);
+      localStorage.setItem(storageKey, newMode);
+      localStorage.removeItem("mbbs_pdf_view_mode");
     } catch (e) {}
     applyLayoutMode(newMode, pdfState.pageNum);
   }
@@ -1668,16 +1680,23 @@
 
     // Responsive Breakpoint & Orientation Change Listener
     let resizeTimer = null;
+    let lastIsMobile = isMobileLayout();
     window.addEventListener("resize", () => {
       if (!DOM.pdfModal || !DOM.pdfModal.classList.contains("active") || !pdfState.pdfDoc) return;
 
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        const newLayout = isMobileLayout() ? "mobile" : "desktop";
-        if (newLayout !== pdfState.layout) {
-          applyLayoutMode(newLayout, pdfState.pageNum);
-        } else if (pdfState.scale === "fit") {
-          if (pdfState.layout === "mobile") {
+        const currentIsMobile = isMobileLayout();
+        if (currentIsMobile !== lastIsMobile) {
+          lastIsMobile = currentIsMobile;
+          const newMode = getPreferredViewMode();
+          if (newMode !== pdfState.layout) {
+            applyLayoutMode(newMode, pdfState.pageNum);
+            return;
+          }
+        }
+        if (pdfState.scale === "fit") {
+          if (pdfState.layout === "continuous") {
             applyMobileZoom();
           } else {
             renderSinglePage(pdfState.pageNum);
