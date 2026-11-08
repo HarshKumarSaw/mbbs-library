@@ -777,6 +777,50 @@
     loadPdfDocument(item.fileUrl);
   }
 
+  // Progressive Byte-Range Loading State & Progress Controller
+  let pdfProgressTimer = null;
+  let currentPdfProgress = 0;
+
+  function setPdfProgress(targetPercent) {
+    currentPdfProgress = Math.max(5, Math.min(100, Math.round(targetPercent)));
+    if (DOM.pdfProgressBar) {
+      DOM.pdfProgressBar.style.width = `${currentPdfProgress}%`;
+    }
+    if (DOM.pdfLoadingText) {
+      DOM.pdfLoadingText.textContent = `Rendering (${currentPdfProgress}%)...`;
+    }
+  }
+
+  function startSmoothPdfProgress() {
+    stopSmoothPdfProgress();
+    showPdfLoading("Rendering (15%)...", 15);
+    currentPdfProgress = 15;
+
+    // Smoothly step progress while range chunks are streamed
+    pdfProgressTimer = setInterval(() => {
+      if (currentPdfProgress < 60) {
+        setPdfProgress(currentPdfProgress + 3);
+      } else if (currentPdfProgress < 85 && pdfState.pdfDoc) {
+        setPdfProgress(currentPdfProgress + 2);
+      }
+    }, 120);
+  }
+
+  function stopSmoothPdfProgress() {
+    if (pdfProgressTimer) {
+      clearInterval(pdfProgressTimer);
+      pdfProgressTimer = null;
+    }
+  }
+
+  function completePdfLoading() {
+    stopSmoothPdfProgress();
+    setPdfProgress(100);
+    setTimeout(() => {
+      hidePdfLoading();
+    }, 140);
+  }
+
   // Load PDF Document via PDF.js with progressive streaming
   function loadPdfDocument(url) {
     if (!window.pdfjsLib) {
@@ -784,7 +828,7 @@
       return;
     }
 
-    showPdfLoading("Rendering...", 25);
+    startSmoothPdfProgress();
 
     if (pdfState.loadingTask) {
       try { pdfState.loadingTask.destroy(); } catch (e) {}
@@ -805,8 +849,12 @@
     pdfState.loadingTask = loadingTask;
 
     loadingTask.onProgress = function (progress) {
-      if (progress.loaded > 0 && progress.loaded < 500000) {
-        updatePdfProgress(65, "Rendering...");
+      if (progress.loaded > 0) {
+        // Map initial range chunk byte arrivals (0-300KB) to 25% - 65% progress
+        const chunkPct = Math.min(65, 20 + Math.round((progress.loaded / 300000) * 45));
+        if (chunkPct > currentPdfProgress) {
+          setPdfProgress(chunkPct);
+        }
       }
     };
 
@@ -820,13 +868,25 @@
       }
       updateNavButtons();
 
+      if (currentPdfProgress < 75) {
+        setPdfProgress(75);
+      }
+
       // Check device-specific view mode preference or use responsive defaults:
       // Mobile (< 768px): Scroll option ('continuous')
       // Desktop (>= 768px): Pages option ('single')
       const preferredMode = getPreferredViewMode();
       applyLayoutMode(preferredMode, 1);
+
+      // Safety timeout: dismiss loading overlay if not completed within 4.5s
+      setTimeout(() => {
+        if (DOM.pdfLoadingOverlay && !DOM.pdfLoadingOverlay.classList.contains("hidden")) {
+          completePdfLoading();
+        }
+      }, 4500);
     }).catch(function (error) {
       console.error("PDF loading error:", error);
+      stopSmoothPdfProgress();
       if (error && error.name === "RenderingCancelledException") return;
       showPdfError("Could not load PDF in view mode. Please use External view.");
     });
@@ -974,7 +1034,7 @@
 
       renderTask.promise.then(function () {
         pdfState.pageRendering = false;
-        hidePdfLoading();
+        completePdfLoading();
 
         if (pdfState.pageNumPending !== null) {
           const next = pdfState.pageNumPending;
@@ -1075,8 +1135,9 @@
 
       // Render the start page immediately
       const startPage = initialPage || 1;
-      renderMobilePage(startPage);
-      hidePdfLoading();
+      renderMobilePage(startPage, () => {
+        completePdfLoading();
+      });
 
       if (DOM.pdfScaleIndicator) {
         if (pdfState.scale === "fit") {
@@ -1162,14 +1223,21 @@
   }
 
   // Render a specific page canvas in the mobile continuous stack
-  function renderMobilePage(num) {
-    if (!pdfState.pdfDoc || num < 1 || num > pdfState.pdfDoc.numPages) return;
+  function renderMobilePage(num, onComplete) {
+    if (!pdfState.pdfDoc || num < 1 || num > pdfState.pdfDoc.numPages) {
+      if (typeof onComplete === "function") onComplete();
+      return;
+    }
     const canvas = document.getElementById(`pdf-canvas-${num}`);
     const wrapper = document.getElementById(`pdf-page-${num}`);
     const skeleton = document.getElementById(`pdf-skeleton-${num}`);
-    if (!canvas || !wrapper) return;
+    if (!canvas || !wrapper) {
+      if (typeof onComplete === "function") onComplete();
+      return;
+    }
 
     if (pdfState.activeRenderTasks.has(num)) {
+      if (typeof onComplete === "function") onComplete();
       return;
     }
 
@@ -1214,13 +1282,19 @@
         pdfState.renderedPages.add(num);
         wrapper.classList.remove("loading");
         if (skeleton) skeleton.style.display = "none";
+        if (typeof onComplete === "function") onComplete();
       }).catch(function (err) {
         pdfState.activeRenderTasks.delete(num);
-        if (err && err.name === "RenderingCancelledException") return;
+        if (err && err.name === "RenderingCancelledException") {
+          if (typeof onComplete === "function") onComplete();
+          return;
+        }
         console.error(`Page ${num} render error:`, err);
+        if (typeof onComplete === "function") onComplete();
       });
     }).catch(function (err) {
       console.error(`Get page ${num} error:`, err);
+      if (typeof onComplete === "function") onComplete();
     });
   }
 
@@ -1398,6 +1472,7 @@
   }
 
   function resetPdfViewer() {
+    stopSmoothPdfProgress();
     if (pdfState.renderTask) {
       try { pdfState.renderTask.cancel(); } catch (e) {}
       pdfState.renderTask = null;
@@ -1456,6 +1531,7 @@
   }
 
   function hidePdfLoading() {
+    stopSmoothPdfProgress();
     if (DOM.pdfLoadingOverlay) {
       DOM.pdfLoadingOverlay.classList.add("hidden");
     }
