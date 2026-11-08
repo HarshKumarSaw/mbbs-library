@@ -63,24 +63,8 @@ if [ ! -d "$PHONE_DIR" ]; then
     exit 0
 fi
 
-# Ensure core MBBS subject directories exist on phone
-mkdir -p "$PHONE_DIR/Anatomy/Histology" \
-         "$PHONE_DIR/Anatomy/Gross Anatomy" \
-         "$PHONE_DIR/Anatomy/Embryology" \
-         "$PHONE_DIR/Anatomy/Neuroanatomy" \
-         "$PHONE_DIR/Physiology/Hematology" \
-         "$PHONE_DIR/Physiology/Cardiovascular" \
-         "$PHONE_DIR/Physiology/Respiratory" \
-         "$PHONE_DIR/Physiology/Renal" \
-         "$PHONE_DIR/Physiology/Neurophysiology" \
-         "$PHONE_DIR/Biochemistry/Clinical Biochemistry" \
-         "$PHONE_DIR/Biochemistry/Metabolism" \
-         "$PHONE_DIR/Biochemistry/Molecular Biology" \
-         "$PHONE_DIR/Community Medicine" \
-         "$PHONE_DIR/AETCOM" \
-         "$PHONE_DIR/ECE (Early Clinical Exposure)" \
-         "$PHONE_DIR/Foundation Course" \
-         "$PHONE_DIR/Other" 2>/dev/null || true
+# Ensure phone directory exists (folders are created on-demand when files exist)
+mkdir -p "$PHONE_DIR" 2>/dev/null || true
 
 # Helper string functions
 to_safe_id() {
@@ -268,9 +252,10 @@ find_matching_subfolder() {
     word_l=$(echo "$word" | tr '[:upper:]' '[:lower:]')
     local stem="${word_l%s}" # strip trailing s if any
 
-    # 1. Exact case-insensitive match
+    # 1. Exact case-insensitive match (skip empty folders during sorting)
     for d in "$parent_dir"/*/; do
         [ -d "$d" ] || continue
+        [ -n "$(find "$d" -type f ! -name ".*" -print -quit 2>/dev/null)" ] || continue
         local dname=$(basename "$d")
         local dname_l=$(echo "$dname" | tr '[:upper:]' '[:lower:]')
         if [ "$dname_l" = "$word_l" ]; then
@@ -279,9 +264,10 @@ find_matching_subfolder() {
         fi
     done
 
-    # 2. Singular / Plural stem match (e.g. assignment -> assignments, diagrams -> diagram)
+    # 2. Singular / Plural stem match (skip empty folders during sorting)
     for d in "$parent_dir"/*/; do
         [ -d "$d" ] || continue
+        [ -n "$(find "$d" -type f ! -name ".*" -print -quit 2>/dev/null)" ] || continue
         local dname=$(basename "$d")
         local dname_l=$(echo "$dname" | tr '[:upper:]' '[:lower:]')
         local d_stem="${dname_l%s}"
@@ -889,9 +875,8 @@ if [ -f "$TMP_MANIFEST" ]; then
     rm -f "$TMP_MANIFEST"
 fi
 
-# Clean empty directories inside assets/docs and phone folder
+# Clean empty directories inside assets/docs (phone folders are preserved; empty folders are never deleted)
 find "$REPO_DIR/assets/docs" -type d -empty -delete 2>/dev/null || true
-find "$PHONE_DIR" -depth -type d -empty -delete 2>/dev/null || true
 
 TOTAL_OFFLINE_FILES=$(find "$PHONE_DIR" -type f ! -name ".*" | wc -l)
 
