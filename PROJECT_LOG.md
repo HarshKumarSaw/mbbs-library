@@ -718,3 +718,7 @@
 
 ### UI Refinement: 2026-11-08 10:22:00 UTC
 - **Clean End of Results**: Removed end-of-catalog badge. Once all documents are loaded, the grid seamlessly transitions directly to the footer with zero artificial indicators or extra spacing.
+
+### UI Fix: 2026-11-08 10:41:00 UTC
+- **Resolved Duplicate Search Close Buttons**: Disabled the native browser `::-webkit-search-cancel-button` so WebKit/Chromium no longer renders a duplicate small 'x' next to the custom clear button.
+- **Enhanced Search Clear Button**: Replaced unicode text '✕' with a crisp, centered SVG vector icon, added Escape key clearing, and improved touch alignment.

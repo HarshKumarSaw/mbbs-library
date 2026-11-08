@@ -1493,6 +1493,9 @@ textarea,
 }
 
 .search-input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   flex-grow: 1;
   border: none;
   background: transparent;
@@ -1503,6 +1506,27 @@ textarea,
   outline: none;
   min-width: 0;
   width: 100%;
+}
+
+/* Completely hide WebKit, Chromium, Safari & Edge native search cancel buttons */
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration,
+.search-input::-webkit-search-results-button,
+.search-input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none !important;
+  width: 0;
+  height: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.search-input::-ms-clear,
+.search-input::-ms-reveal {
+  display: none !important;
+  width: 0;
+  height: 0;
 }
 
 .search-input::placeholder {
@@ -1517,16 +1541,25 @@ textarea,
 }
 
 .search-clear {
-  color: #9CA3AF;
+  color: #8492A6;
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  border: none;
+  background: transparent;
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  cursor: pointer;
   flex-shrink: 0;
+  padding: 0;
   transition: background 0.16s ease, color 0.16s ease, transform 0.14s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.search-clear svg {
+  display: block;
+  pointer-events: none;
 }
 
 @media (hover: hover) {
@@ -1539,6 +1572,7 @@ textarea,
 
 .search-clear:active {
   transform: scale(0.88);
+  background: var(--border-subtle);
 }
 
 /* On mobile, real-time live search executes on keystroke; button appears on desktop */

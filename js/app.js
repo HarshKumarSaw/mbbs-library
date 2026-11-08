@@ -231,7 +231,7 @@
     if (searchParam) {
       state.searchQuery = searchParam;
       if (DOM.searchInput) DOM.searchInput.value = searchParam;
-      if (DOM.searchClear) DOM.searchClear.style.display = "block";
+      if (DOM.searchClear) DOM.searchClear.style.display = "flex";
     }
   }
 
@@ -1891,9 +1891,28 @@
       DOM.searchInput.addEventListener("input", (e) => {
         state.searchQuery = e.target.value;
         if (DOM.searchClear) {
-          DOM.searchClear.style.display = state.searchQuery ? "block" : "none";
+          DOM.searchClear.style.display = state.searchQuery ? "flex" : "none";
         }
         applyFilterAndRender();
+      });
+
+      // Clear on Escape key
+      DOM.searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && state.searchQuery) {
+          state.searchQuery = "";
+          DOM.searchInput.value = "";
+          if (DOM.searchClear) DOM.searchClear.style.display = "none";
+          applyFilterAndRender();
+        }
+      });
+
+      // Handle native clear / search event fallback
+      DOM.searchInput.addEventListener("search", () => {
+        if (!DOM.searchInput.value) {
+          state.searchQuery = "";
+          if (DOM.searchClear) DOM.searchClear.style.display = "none";
+          applyFilterAndRender();
+        }
       });
     }
 
@@ -1951,7 +1970,7 @@
           DOM.searchInput.value = query;
         }
         if (DOM.searchClear) {
-          DOM.searchClear.style.display = "block";
+          DOM.searchClear.style.display = "flex";
         }
         applyFilterAndRender();
 
