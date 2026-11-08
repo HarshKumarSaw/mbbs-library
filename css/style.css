@@ -2940,13 +2940,41 @@ body.modal-open {
   overscroll-behavior-y: contain;
 }
 
+.modal-sheet-handle-zone {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0 6px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  flex-shrink: 0;
+}
+
+.modal-sheet-handle-zone:active,
+.modal-sheet-handle-zone.dragging {
+  cursor: grabbing;
+}
+
 .modal-sheet-handle {
-  width: 36px;
-  height: 4px;
+  width: 40px;
+  height: 5px;
   border-radius: 9999px;
   background: #D1D5DB;
-  margin: 8px auto 2px;
-  flex-shrink: 0;
+  transition: background-color 0.16s ease, transform 0.16s ease, width 0.16s ease;
+  pointer-events: none;
+}
+
+.modal-sheet-handle-zone:hover .modal-sheet-handle {
+  background: #9CA3AF;
+}
+
+.modal-sheet-handle-zone:active .modal-sheet-handle,
+.modal-sheet-handle-zone.dragging .modal-sheet-handle {
+  background: #6B7280;
+  width: 48px;
 }
 
 .modal-overlay.active .modal-container {
@@ -2965,6 +2993,7 @@ body.modal-open {
     transform: scale(1) translateY(0);
   }
 
+  .modal-sheet-handle-zone,
   .modal-sheet-handle {
     display: none;
   }
@@ -2974,15 +3003,16 @@ body.modal-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem 1rem;
+  padding: 0.65rem 0.85rem;
   background: #FFFFFF;
   border-bottom: 1.5px solid var(--border-subtle);
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
   .modal-header {
-    padding: 1.15rem 1.5rem;
+    padding: 0.85rem 1.35rem;
     gap: 1rem;
   }
 }
@@ -2990,36 +3020,51 @@ body.modal-open {
 .modal-title-area {
   min-width: 0;
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
+.modal-breadcrumb,
 .modal-category {
+  font-family: var(--font-body);
   font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: #4B5563;
   display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.015em;
+  line-height: 1.25;
+  margin-bottom: 2px;
 }
 
 .modal-title {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--text-headline);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
 @media (min-width: 768px) {
+  .modal-breadcrumb,
+  .modal-category {
+    font-size: 0.76rem;
+  }
   .modal-title {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
   }
 }
 
 .modal-actions {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
   flex-shrink: 0;
 }
 
@@ -3028,58 +3073,47 @@ body.modal-open {
   border: 1.5px solid var(--border-subtle);
   color: var(--primary-navy);
   font-family: var(--font-display);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  padding: 0.45rem 0.85rem;
+  padding: 0.38rem 0.62rem;
   border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.28rem;
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
+  white-space: nowrap;
 }
 
-@media (hover: hover) {
-  .modal-btn:hover {
-    background: #E8E0D5;
-    border-color: var(--primary-navy);
+@media (min-width: 768px) {
+  .modal-btn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.82rem;
+    gap: 0.35rem;
   }
-}
-
-.modal-btn:active {
-  transform: scale(0.95);
-}
-
-.modal-btn-primary {
-  background: var(--primary-navy);
-  color: #FFFFFF;
-  border-color: var(--primary-navy);
-}
-
-@media (hover: hover) {
-  .modal-btn-primary:hover {
-    background: var(--primary-navy-hover);
-    border-color: var(--primary-navy-hover);
-  }
-}
-
-.modal-btn-primary:active {
-  background: var(--primary-navy-active);
-  transform: scale(0.95);
 }
 
 .modal-close {
   background: var(--canvas-subtle);
   color: var(--primary-navy);
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   cursor: pointer;
   flex-shrink: 0;
+  border: none;
   transition: background 0.16s ease, transform 0.14s ease, color 0.16s ease;
+}
+
+@media (min-width: 768px) {
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
 }
 
 @media (hover: hover) {

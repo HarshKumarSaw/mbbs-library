@@ -78,6 +78,9 @@
     pdfErrorOpenBtn: document.getElementById("pdf-error-open-btn"),
     modalTitle: document.getElementById("modal-title"),
     modalSubject: document.getElementById("modal-subject"),
+    modalBreadcrumb: document.getElementById("modal-breadcrumb"),
+    modalContainer: document.getElementById("modal-container"),
+    modalSheetHandleZone: document.getElementById("modal-sheet-handle-zone"),
     modalDownloadBtn: document.getElementById("modal-download-btn"),
     modalNewTabBtn: document.getElementById("modal-newtab-btn"),
     modalCloseBtn: document.getElementById("modal-close-btn"),
@@ -755,11 +758,21 @@
 
     state.activeModalResource = item;
 
-    if (DOM.modalTitle) DOM.modalTitle.textContent = item.title;
-    if (DOM.modalSubject) {
-      const subName = SUBJECT_INFO[item.subject]?.name || formatName(item.subject);
-      const catLabel = CATEGORY_INFO[item.category]?.label || formatName(item.category);
-      DOM.modalSubject.textContent = `${subName} • ${catLabel} • ${item.code}`;
+    // Actual folder hierarchy breadcrumb (e.g. Physiology / Homework)
+    const subName = SUBJECT_INFO[item.subject]?.name || formatName(item.subject);
+    const catLabel = CATEGORY_INFO[item.category]?.label || formatName(item.category);
+    const breadcrumb = (subName && catLabel) ? `${subName} / ${catLabel}` : (item.code || subName || "Library");
+
+    const breadcrumbEl = DOM.modalBreadcrumb || DOM.modalSubject;
+    if (breadcrumbEl) {
+      breadcrumbEl.textContent = breadcrumb;
+    }
+
+    // PDF filename as title (e.g. anatomy_notes_johari.pdf)
+    const filename = item.fileUrl ? item.fileUrl.split("/").pop() : (item.title ? `${item.title}.pdf` : "document.pdf");
+    if (DOM.modalTitle) {
+      DOM.modalTitle.textContent = filename;
+      DOM.modalTitle.setAttribute("title", filename);
     }
 
     if (DOM.modalDownloadBtn) {
@@ -1558,6 +1571,113 @@
     }
   }
 
+  // Draggable Bottom-Sheet Drag-to-Dismiss Controller
+  function setupBottomSheetDragToDismiss() {
+    const handleZone = document.getElementById("modal-sheet-handle-zone");
+    const container = document.getElementById("modal-container") || (DOM.pdfModal && DOM.pdfModal.querySelector(".modal-container"));
+    if (!handleZone || !container || !DOM.pdfModal) return;
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+    let startTime = 0;
+
+    function handleStart(clientY) {
+      if (window.innerWidth >= 768) return;
+      isDragging = true;
+      startY = clientY;
+      currentY = clientY;
+      startTime = Date.now();
+      container.style.transition = "none";
+      handleZone.classList.add("dragging");
+    }
+
+    function handleMove(clientY) {
+      if (!isDragging) return;
+      currentY = clientY;
+      const deltaY = currentY - startY;
+
+      if (deltaY > 0) {
+        // Dragging downward: move sheet with finger
+        container.style.transform = `translateY(${deltaY}px)`;
+        const progress = Math.min(deltaY / 320, 1);
+        DOM.pdfModal.style.backgroundColor = `rgba(17, 24, 39, ${0.72 * (1 - progress * 0.45)})`;
+      } else {
+        // Dragging upward: apply heavy rubber-band resistance
+        container.style.transform = `translateY(${deltaY * 0.16}px)`;
+      }
+    }
+
+    function handleEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      handleZone.classList.remove("dragging");
+
+      const deltaY = currentY - startY;
+      const elapsed = Math.max(1, Date.now() - startTime);
+      const velocityY = deltaY / elapsed;
+
+      // Restore smooth spring cubic-bezier transition
+      container.style.transition = "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
+      DOM.pdfModal.style.backgroundColor = "";
+
+      // Dismiss if dragged down > 100px or quick downward flick (> 0.4 px/ms with > 30px drag)
+      if (deltaY > 100 || (velocityY > 0.4 && deltaY > 30)) {
+        container.style.transform = "translateY(100%)";
+        setTimeout(() => {
+          closePdfModal();
+          container.style.transform = "";
+          container.style.transition = "";
+        }, 260);
+      } else {
+        // Smoothly snap back into place
+        container.style.transform = "translateY(0)";
+        setTimeout(() => {
+          container.style.transform = "";
+          container.style.transition = "";
+        }, 280);
+      }
+    }
+
+    if (window.PointerEvent) {
+      handleZone.addEventListener("pointerdown", (e) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        handleStart(e.clientY);
+        try { handleZone.setPointerCapture(e.pointerId); } catch (err) {}
+      }, { passive: true });
+
+      handleZone.addEventListener("pointermove", (e) => {
+        handleMove(e.clientY);
+      }, { passive: true });
+
+      handleZone.addEventListener("pointerup", (e) => {
+        try { handleZone.releasePointerCapture(e.pointerId); } catch (err) {}
+        handleEnd();
+      }, { passive: true });
+
+      handleZone.addEventListener("pointercancel", (e) => {
+        try { handleZone.releasePointerCapture(e.pointerId); } catch (err) {}
+        handleEnd();
+      }, { passive: true });
+    } else {
+      handleZone.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 1) handleStart(e.touches[0].clientY);
+      }, { passive: true });
+
+      handleZone.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 1) handleMove(e.touches[0].clientY);
+      }, { passive: true });
+
+      handleZone.addEventListener("touchend", () => {
+        handleEnd();
+      }, { passive: true });
+
+      handleZone.addEventListener("touchcancel", () => {
+        handleEnd();
+      }, { passive: true });
+    }
+  }
+
   // Setup Global Event Listeners
   function setupEventListeners() {
     // Search input live filtering
@@ -1659,6 +1779,9 @@
     if (DOM.modalCloseBtn) {
       DOM.modalCloseBtn.addEventListener("click", closePdfModal);
     }
+
+    // Draggable Bottom-Sheet Drag-to-Dismiss Handler
+    setupBottomSheetDragToDismiss();
 
     // Close modal on click outside content
     if (DOM.pdfModal) {
