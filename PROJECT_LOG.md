@@ -715,3 +715,6 @@
   - Anatomy Diagrams.pdf [updated with latest version]
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 20
+
+### UI Refinement: 2026-11-08 10:22:00 UTC
+- **Clean End of Results**: Removed end-of-catalog badge. Once all documents are loaded, the grid seamlessly transitions directly to the footer with zero artificial indicators or extra spacing.

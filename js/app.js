@@ -555,7 +555,7 @@
         state.gridObserver.disconnect();
         state.gridObserver = null;
       }
-      showGridEndIndicator();
+      hideLazyControls();
     }
   }
 
@@ -563,7 +563,7 @@
   function setupLazyObserver() {
     const total = state.filteredResources.length;
     if (state.displayedCount >= total) {
-      showGridEndIndicator();
+      hideLazyControls();
       return;
     }
 
@@ -571,9 +571,6 @@
     const sentinel = document.getElementById("grid-sentinel");
     const loader = document.getElementById("grid-lazy-loader");
     const loadMoreBtn = document.getElementById("grid-load-more-btn");
-    const endIndicator = document.getElementById("grid-end-indicator");
-
-    if (endIndicator) endIndicator.style.display = "none";
 
     if ("IntersectionObserver" in window && sentinel) {
       if (loadMoreBtn) loadMoreBtn.style.display = "none";
@@ -588,7 +585,7 @@
               state.gridObserver.disconnect();
               state.gridObserver = null;
             }
-            showGridEndIndicator();
+            hideLazyControls();
             return;
           }
 
@@ -632,9 +629,6 @@
           <span>Load More Documents</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
         </button>
-        <div class="grid-end-indicator" id="grid-end-indicator" style="display: none;">
-          <span class="grid-end-badge">✨ All documents loaded</span>
-        </div>
       `;
       DOM.resourcesGrid.parentNode.insertBefore(container, DOM.resourcesGrid.nextSibling);
 
@@ -644,7 +638,7 @@
           renderNextCardBatch();
           if (state.displayedCount >= state.filteredResources.length) {
             btn.style.display = "none";
-            showGridEndIndicator();
+            hideLazyControls();
           }
         });
       }
@@ -652,31 +646,12 @@
     return container;
   }
 
-  function showGridEndIndicator() {
-    const loader = document.getElementById("grid-lazy-loader");
-    const loadMoreBtn = document.getElementById("grid-load-more-btn");
-    const endIndicator = document.getElementById("grid-end-indicator");
-
-    if (loader) loader.style.display = "none";
-    if (loadMoreBtn) loadMoreBtn.style.display = "none";
-
-    if (endIndicator && state.filteredResources.length > state.batchSize) {
-      endIndicator.style.display = "flex";
-      const badge = endIndicator.querySelector(".grid-end-badge");
-      if (badge) {
-        badge.textContent = `✨ All ${state.filteredResources.length} documents loaded`;
-      }
-    }
-  }
-
   function hideLazyControls() {
     const loader = document.getElementById("grid-lazy-loader");
     const loadMoreBtn = document.getElementById("grid-load-more-btn");
-    const endIndicator = document.getElementById("grid-end-indicator");
 
     if (loader) loader.style.display = "none";
     if (loadMoreBtn) loadMoreBtn.style.display = "none";
-    if (endIndicator) endIndicator.style.display = "none";
   }
 
   // Update Results Counter Text with Lazy Loading Progress
@@ -1906,7 +1881,7 @@
         renderNextCardBatch();
         if (state.displayedCount >= state.filteredResources.length) {
           initialLoadMoreBtn.style.display = "none";
-          showGridEndIndicator();
+          hideLazyControls();
         }
       });
     }
