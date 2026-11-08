@@ -62,6 +62,9 @@
     pdfNextBtn: document.getElementById("pdf-next-btn"),
     pdfFloatPrevBtn: document.getElementById("pdf-float-prev-btn"),
     pdfFloatNextBtn: document.getElementById("pdf-float-next-btn"),
+    pdfModeToggleBtn: document.getElementById("pdf-mode-toggle-btn"),
+    pdfModeIcon: document.getElementById("pdf-mode-icon"),
+    pdfModeLabel: document.getElementById("pdf-mode-label"),
     pdfPageInput: document.getElementById("pdf-page-input"),
     pdfTotalPages: document.getElementById("pdf-total-pages"),
     pdfZoomInBtn: document.getElementById("pdf-zoom-in-btn"),
@@ -781,7 +784,7 @@
       return;
     }
 
-    showPdfLoading("Opening Page 1...", 25);
+    showPdfLoading("Rendering...", 25);
 
     if (pdfState.loadingTask) {
       try { pdfState.loadingTask.destroy(); } catch (e) {}
@@ -803,7 +806,7 @@
 
     loadingTask.onProgress = function (progress) {
       if (progress.loaded > 0 && progress.loaded < 500000) {
-        updatePdfProgress(65, "Rendering Page 1...");
+        updatePdfProgress(65, "Rendering...");
       }
     };
 
@@ -817,9 +820,17 @@
       }
       updateNavButtons();
 
-      // ALWAYS default to Single Page (One Page at a Time) for instant reading
-      pdfState.layout = "single";
-      applyLayoutMode("single", 1);
+      // Check saved mode preference or default
+      let preferredMode = "single";
+      try {
+        const saved = localStorage.getItem("mbbs_pdf_view_mode");
+        if (saved === "continuous" || saved === "single") {
+          preferredMode = saved;
+        }
+      } catch (e) {}
+
+      pdfState.layout = preferredMode;
+      applyLayoutMode(preferredMode, 1);
     }).catch(function (error) {
       console.error("PDF loading error:", error);
       if (error && error.name === "RenderingCancelledException") return;
@@ -832,6 +843,43 @@
     return window.innerWidth < 768;
   }
 
+  // Update View Mode Toggle Button UI (icon, text, title & floating arrows)
+  function updateModeToggleButton(mode) {
+    if (!DOM.pdfModeToggleBtn) return;
+    const isContinuous = (mode === "continuous");
+
+    if (DOM.pdfModeLabel) {
+      DOM.pdfModeLabel.textContent = isContinuous ? "Page" : "Scroll";
+    }
+
+    if (DOM.pdfModeIcon) {
+      DOM.pdfModeIcon.innerHTML = isContinuous
+        ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`
+        : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg>`;
+    }
+
+    const titleText = isContinuous ? "Switch to Page Turn Mode" : "Switch to Scroll Page Mode";
+    DOM.pdfModeToggleBtn.setAttribute("title", titleText);
+    DOM.pdfModeToggleBtn.setAttribute("aria-label", titleText);
+
+    // Hide floating arrows in continuous scroll mode to prevent clutter
+    if (DOM.pdfFloatPrevBtn) {
+      DOM.pdfFloatPrevBtn.style.display = isContinuous ? "none" : "";
+    }
+    if (DOM.pdfFloatNextBtn) {
+      DOM.pdfFloatNextBtn.style.display = isContinuous ? "none" : "";
+    }
+  }
+
+  // Toggle between Single Page (Page turn) and Continuous (Scroll page) mode
+  function togglePdfViewMode() {
+    const newMode = (pdfState.layout === "continuous") ? "single" : "continuous";
+    try {
+      localStorage.setItem("mbbs_pdf_view_mode", newMode);
+    } catch (e) {}
+    applyLayoutMode(newMode, pdfState.pageNum);
+  }
+
   // Switch between Single Page Mode (1 page at a time) and Continuous Mode
   function applyLayoutMode(mode, targetPage) {
     pdfState.layout = mode;
@@ -841,6 +889,8 @@
       DOM.pdfViewerContainer.classList.remove("mode-single", "mode-continuous", "mode-desktop", "mode-mobile");
       DOM.pdfViewerContainer.classList.add(mode === "continuous" ? "mode-continuous" : "mode-single");
     }
+
+    updateModeToggleButton(mode);
 
     if (mode === "continuous") {
       if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
@@ -1381,7 +1431,7 @@
     if (DOM.pdfErrorOverlay) {
       DOM.pdfErrorOverlay.style.display = "none";
     }
-    updatePdfProgress(percent || 15, text || "Loading document...");
+    updatePdfProgress(percent || 15, text || "Rendering...");
   }
 
   function updatePdfProgress(percent, text) {
@@ -1531,6 +1581,11 @@
     }
     if (DOM.pdfFloatNextBtn) {
       DOM.pdfFloatNextBtn.addEventListener("click", nextPdfPage);
+    }
+
+    // PDF View Mode Switch Button (Page Turn ⇄ Continuous Scroll)
+    if (DOM.pdfModeToggleBtn) {
+      DOM.pdfModeToggleBtn.addEventListener("click", togglePdfViewMode);
     }
 
     // PDF Direct Page Jump Input

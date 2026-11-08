@@ -3142,6 +3142,30 @@ textarea,
   letter-spacing: 0.02em;
 }
 
+.pdf-tool-btn.pdf-btn-mode {
+  width: auto;
+  padding: 0 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  gap: 0.35rem;
+  background: rgba(37, 99, 235, 0.22);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  color: #93C5FD;
+  transition: all 0.2s ease;
+}
+
+.pdf-tool-btn.pdf-btn-mode:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.45);
+  border-color: rgba(96, 165, 250, 0.65);
+  color: #FFFFFF;
+}
+
+.pdf-mode-label {
+  display: inline-block;
+  line-height: 1;
+  font-weight: 600;
+}
+
 .pdf-page-display {
   display: flex;
   align-items: center;
