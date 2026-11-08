@@ -5,7 +5,6 @@ User-agent: *
 Allow: /
 Allow: /mbbs-library/
 Allow: /mbbs-library/*.html
-Allow: /mbbs-library/assets/docs/
 Disallow: /mbbs-library/404.html
 Disallow: /404.html
 

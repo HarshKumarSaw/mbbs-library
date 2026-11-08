@@ -98,36 +98,25 @@ git push -u origin main
 
 ## ✏️ How to Add New Resources & PDFs
 
-Adding a new document takes under a minute:
+The library uses **SteadyLink Cloud Storage & CDN** to bypass GitHub file and storage limits:
 
-### 1. Place the PDF file
-Copy your PDF into the appropriate subject folder inside `assets/docs/`:
-- Anatomy: `assets/docs/anatomy/your_file.pdf`
-- Physiology: `assets/docs/physiology/your_file.pdf`
-- Biochemistry: `assets/docs/biochemistry/your_file.pdf`
-
-### 2. Add an entry in `js/data.js`
-Open `js/data.js` and add an object to the `MBBS_RESOURCES` array:
-
-```javascript
-{
-  id: "anat-notes-03",
-  title: "Circle of Willis & Cerebral Arterial Supply",
-  subject: "anatomy",           // "anatomy" | "physiology" | "biochemistry"
-  category: "notes",            // "notes" | "assignments" | "sdls" | "practicals" | "other"
-  code: "AN62.1",               // NMC / CBME Competency Code
-  description: "Arterial circulation of brain, aneurysm sites and stroke syndromes.",
-  tags: ["Neuroanatomy", "Circle of Willis", "Cerebral Blood Flow"],
-  fileUrl: "assets/docs/anatomy/circle_of_willis.pdf",
-  fileSize: "1.8 MB",
-  pages: "12 pages",
-  author: "Dept. of Anatomy",
-  date: "Dec 2026",
-  year: "1st Year MBBS"
-},
+### 1. Automatic Phone Sync (Recommended)
+Place the PDF on your phone in `/storage/emulated/0/mbbs-library/` (e.g., under `Anatomy/Notes/`).
+Run:
+```bash
+./scripts/sync_from_phone.sh
 ```
+The sync engine automatically:
+- Uploads the document to SteadyLink CDN via SteadyLink API.
+- Updates `js/data.js` and `steadylink_manifest.json` with the permanent CDN link.
+- Commits and pushes only code/data changes to GitHub Pages with zero PDF bloat.
 
-Commit and push to GitHub — GitHub Pages will automatically update in seconds!
+### 2. Manual Upload via CLI
+Run the SteadyLink upload utility:
+```bash
+python3 scripts/migrate_to_steadylink.py
+```
+This uploads new documents directly to SteadyLink, maps them to `https://cdn.steadylink.io/a/{asset_id}`, and updates `js/data.js`.
 
 ---
 

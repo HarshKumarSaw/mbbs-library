@@ -731,71 +731,27 @@ while IFS= read -r -d '' f; do
 done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 
 # ==============================================================================
-# PHASE 2: Phone Deletions & Obsolete Path Synchronization
+# PHASE 2: Phone Deletions & State Audit
 # ==============================================================================
-echo -e "🔄 ${BOLD}[2/5] Synchronizing phone changes & deletions...${RESET}"
+echo -e "🔄 ${BOLD}[2/5] Auditing phone documents and state...${RESET}"
+
+NEW_FILES_PROCESSED=0
+PROCESSED_NAMES=()
+DELETED_SUMMARY=()
+SEED_SUMMARY=()
 
 TMP_MANIFEST="$TMP_DIR/mbbs_manifest_$$.tmp"
 rm -f "$TMP_MANIFEST"
 touch "$TMP_MANIFEST"
 
-DELETED_SUMMARY=()
-
-if [ -f "$MANIFEST_FILE" ] && [ -s "$MANIFEST_FILE" ]; then
-    while IFS='|' read -r phone_rel repo_url || [ -n "$phone_rel" ]; do
-        [ -n "$phone_rel" ] || continue
-        [ -n "$repo_url" ] || continue
-
-        phone_full="$PHONE_DIR/$phone_rel"
-        if [ -f "$phone_full" ]; then
-            canonical_url=$(phone_to_repo_url "$phone_rel")
-            if [ "$canonical_url" = "$repo_url" ]; then
-                echo "$phone_rel|$repo_url" >> "$TMP_MANIFEST"
-            else
-                if [ -f "$REPO_DIR/$repo_url" ]; then
-                    rm -f "$REPO_DIR/$repo_url"
-                fi
-                remove_resource_by_url "$repo_url"
-                DELETED_SUMMARY+=("$repo_url (cleaned obsolete duplicate)")
-            fi
-        else
-            base_fname=$(basename "$phone_rel")
-            base_safe=$(format_safe_filename "$base_fname")
-            moved_path=""
-            for pf in "${ALL_PHONE_FILES[@]}"; do
-                if [ "$(format_safe_filename "$(basename "$pf")")" = "$base_safe" ]; then
-                    moved_path="$pf"
-                    break
-                fi
-            done
-
-            if [ -n "$moved_path" ]; then
-                new_rel="${moved_path#$PHONE_DIR/}"
-                new_repo_url=$(phone_to_repo_url "$new_rel")
-                if [ "$new_repo_url" != "$repo_url" ]; then
-                    if [ -f "$REPO_DIR/$repo_url" ]; then
-                        rm -f "$REPO_DIR/$repo_url"
-                    fi
-                    remove_resource_by_url "$repo_url"
-                fi
-                echo "$new_rel|$new_repo_url" >> "$TMP_MANIFEST"
-            else
-                if [ -f "$REPO_DIR/$repo_url" ]; then
-                    rm -f "$REPO_DIR/$repo_url"
-                fi
-                remove_resource_by_url "$repo_url"
-                DELETED_SUMMARY+=("$phone_rel (deleted from phone)")
-            fi
-        fi
-    done < "$MANIFEST_FILE"
+for pf in "${ALL_PHONE_FILES[@]}"; do
+    [ -f "$pf" ] || continue
+    echo "${pf#$PHONE_DIR/}" >> "$TMP_MANIFEST"
+done
+if [ -s "$TMP_MANIFEST" ]; then
+    sort -u "$TMP_MANIFEST" > "$MANIFEST_FILE"
 fi
-
-if [ "${#DELETED_SUMMARY[@]}" -gt 0 ]; then
-    echo -e "${RED}${BOLD}🗑️  [MBBS Library] Synced ${#DELETED_SUMMARY[@]} deletion(s) / obsolete item(s) from phone:${RESET}"
-    for item in "${DELETED_SUMMARY[@]}"; do
-        echo -e "   ${YELLOW}✖${RESET} $item"
-    done
-fi
+rm -f "$TMP_MANIFEST"
 
 # ==============================================================================
 # PHASE 3: Cloud Upload & SteadyLink CDN Synchronization
@@ -865,7 +821,7 @@ if [ -n "$CHANGES" ]; then
 
     COMMIT_MSG="feat(sync): $(IFS=', '; echo "${COMMIT_PARTS[*]}")"
     if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" = "feat(sync): " ]; then
-        COMMIT_MSG="feat(sync): two-way offline & deletion synchronization"
+        COMMIT_MSG="feat(sync): sync library resources with SteadyLink CDN"
     fi
 
     git commit -m "$COMMIT_MSG" >/dev/null

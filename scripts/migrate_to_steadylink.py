@@ -230,7 +230,28 @@ def sync_data_js(manifest, phone_pdfs):
 
     new_content = re.sub(r'fileUrl:\s*"([^"]+)"', repl_url, content)
 
-    # Add any phone PDFs missing from data.js
+    # 2. Prune any auto-synced resources whose document was deleted from phone
+    phone_filenames_norm = {normalize_key(f) for f in phone_pdfs.keys()}
+
+    def prune_deleted_items(text):
+        # Match each resource object: { ... }
+        def obj_filter(match):
+            block = match.group(0)
+            # Only prune auto-synced / mobile upload items
+            if "Mobile Upload" in block or "Uploaded document:" in block:
+                doc_m = re.search(r'Uploaded document:\s*([^.]+?\.pdf)', block, re.IGNORECASE)
+                if doc_m:
+                    doc_fname = doc_m.group(1).strip()
+                    if normalize_key(doc_fname) not in phone_filenames_norm:
+                        print(f"🗑️  Pruned deleted document from data.js: {doc_fname}")
+                        return ""
+            return block
+
+        return re.sub(r'\{\s*id:\s*"[^"]+",[\s\S]*?\n\s*\},?', obj_filter, text)
+
+    new_content = prune_deleted_items(new_content)
+
+    # 3. Add any phone PDFs missing from data.js
     missing_entries = []
     for fname, fpath in phone_pdfs.items():
         base_norm = normalize_key(fname)
