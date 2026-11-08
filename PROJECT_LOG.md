@@ -706,3 +706,12 @@
 - **Progress Counter**: Results info bar dynamically shows `Showing X of Y study resources • scroll for more` up to `Showing all Y MBBS study resources`.
 - **Loading & End UI**: Added subtle ivory/navy spinner indicator and end-of-catalog badge with fallback Load More button.
 - **Event Delegation**: Centralized card event handling onto resources-grid container, optimizing memory and interaction speed on mobile devices.
+
+### Two-Way Auto-Sync & Deletion: 2026-11-08 10:11:58 UTC
+- **Phone Deduplication**: Resolved 0 duplicate(s)
+- **Phone Organization**: Organized 1 root file(s)
+- **Phone Deletions Synced to Website**: 0 file(s)
+- **Files Uploaded / Updated from Phone**: 1
+  - Anatomy Diagrams.pdf [updated with latest version]
+- **Offline Files Seeded to Phone**: 0
+- **Total In-Sync Files**: 20

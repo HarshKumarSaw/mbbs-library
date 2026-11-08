@@ -200,7 +200,7 @@ const MBBS_RESOURCES = [
     description: "Uploaded document: Anatomy Diagrams.pdf. Organized under Anatomy (Diagrams).",
     tags: ["Anatomy", "Diagrams", "Mobile Upload"],
     fileUrl: "assets/docs/anatomy/diagrams/anatomy_diagrams.pdf",
-    fileSize: "923 KB",
+    fileSize: "696 KB",
     pages: "Document",
     author: "HarshKumarSaw",
     date: "07 Nov 2026",
