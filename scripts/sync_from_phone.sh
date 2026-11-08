@@ -1122,14 +1122,112 @@ echo -e "🚀 ${BOLD}[5/5] Deploying live to GitHub Pages...${RESET}"
 
 if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
     PUSH_LOG="$TMP_DIR/git_push_$$.log"
-    if git push --progress origin main >"$PUSH_LOG" 2>&1; then
+
+    render_push_progress() {
+        local pct="$1"
+        local stage="$2"
+        local elapsed="$3"
+        local eta="$4"
+        local bar_len=20
+        local bar_filled=$((pct * bar_len / 100))
+        local bar_empty=$((bar_len - bar_filled))
+        local fill_str=""
+        for ((b=0; b<bar_filled; b++)); do fill_str="${fill_str}█"; done
+        local empty_str=""
+        for ((b=0; b<bar_empty; b++)); do empty_str="${empty_str}░"; done
+        local eta_str=""
+        if [ -n "$eta" ] && [ "$eta" -gt 0 ]; then
+            if [ "$eta" -ge 3600 ]; then
+                eta_str=" • ETA: $((eta / 3600))h$(( (eta % 3600) / 60 ))m"
+            elif [ "$eta" -ge 60 ]; then
+                eta_str=" • ETA: $((eta / 60))m$((eta % 60))s"
+            else
+                eta_str=" • ETA: ${eta}s"
+            fi
+        fi
+        printf "\r   ⏳ [%s%s] %3d%% (%s) • %ds%s\033[K" "$fill_str" "$empty_str" "$pct" "$stage" "$elapsed" "$eta_str"
+    }
+
+    push_start=$(date +%s)
+    last_sec=0
+    last_pct=-1
+
+    render_push_progress 0 "Connecting to GitHub..." 0 ""
+
+    push_success=1
+    if ! (
+        git push --progress origin main 2>&1 | tr '\r' '\n' | tee "$PUSH_LOG" | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            now=$(date +%s)
+            elapsed=$((now - push_start))
+
+            if [[ "$line" =~ Writing[[:space:]]+objects:[[:space:]]*([0-9]+)%[[:space:]]*\(([0-9]+)\/([0-9]+)\)(,[[:space:]]*([^|,]+))?([[:space:]]*\|[[:space:]]*([^,]+))? ]]; then
+                pct="${BASH_REMATCH[1]}"
+                curr="${BASH_REMATCH[2]}"
+                total="${BASH_REMATCH[3]}"
+                bytes=$(echo "${BASH_REMATCH[5]:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+                speed=$(echo "${BASH_REMATCH[7]:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+                eta=""
+                if [ "$pct" -gt 0 ] && [ "$pct" -lt 100 ] && [ "$elapsed" -ge 1 ]; then
+                    eta=$(( (elapsed * (100 - pct)) / pct ))
+                fi
+
+                detail="Uploading $curr/$total obj"
+                if [ -n "$bytes" ]; then
+                    detail="$detail • $bytes"
+                fi
+                if [ -n "$speed" ]; then
+                    detail="$detail @ $speed"
+                fi
+
+                if [ "$pct" -ne "$last_pct" ] || [ "$now" -ne "$last_sec" ]; then
+                    last_pct=$pct
+                    last_sec=$now
+                    render_push_progress "$pct" "$detail" "$elapsed" "$eta"
+                fi
+            elif [[ "$line" =~ Compressing[[:space:]]+objects:[[:space:]]*([0-9]+)%[[:space:]]*\(([0-9]+)\/([0-9]+)\) ]]; then
+                pct="${BASH_REMATCH[1]}"
+                curr="${BASH_REMATCH[2]}"
+                total="${BASH_REMATCH[3]}"
+                if [ "$now" -ne "$last_sec" ]; then
+                    last_sec=$now
+                    render_push_progress 0 "Compressing objects $curr/$total" "$elapsed" ""
+                fi
+            elif [[ "$line" =~ Counting[[:space:]]+objects:[[:space:]]*([0-9]+)% ]]; then
+                if [ "$now" -ne "$last_sec" ]; then
+                    last_sec=$now
+                    render_push_progress 0 "Counting objects..." "$elapsed" ""
+                fi
+            elif [[ "$line" =~ remote:[[:space:]]*Resolving[[:space:]]+deltas:[[:space:]]*([0-9]+)% ]]; then
+                if [ "$now" -ne "$last_sec" ]; then
+                    last_sec=$now
+                    render_push_progress 100 "Finalizing on GitHub Pages..." "$elapsed" ""
+                fi
+            elif [[ "$line" =~ Everything[[:space:]]+up-to-date ]]; then
+                render_push_progress 100 "Everything up-to-date" "$elapsed" ""
+            fi
+        done
+    ); then
+        push_success=0
+    fi
+
+    # Clear progress bar line
+    printf "\r\033[K"
+
+    if [ "$push_success" -eq 1 ]; then
         echo -e "${GREEN}${BOLD}✅ Successfully synchronized with GitHub Pages!${RESET}"
         echo -e "   🌐 Live site: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
         rm -f "$PUSH_LOG"
     else
         echo -e "${RED}${BOLD}❌ Git push failed!${RESET}"
         echo -e "${YELLOW}Detailed reason from GitHub:${RESET}"
-        cat "$PUSH_LOG" | sed 's/^/   /'
+        filtered_err=$(grep -vE '^(Counting|Compressing|Writing|Enumerating)[[:space:]]+objects' "$PUSH_LOG" 2>/dev/null | grep -v '^[[:space:]]*$' || true)
+        if [ -n "$filtered_err" ]; then
+            echo "$filtered_err" | sed 's/^/   /'
+        else
+            cat "$PUSH_LOG" | sed 's/^/   /'
+        fi
         echo -e "\n${YELLOW}💡 Changes remain saved locally in Git. You can retry anytime by running 'mbbs-upload'.${RESET}"
         rm -f "$PUSH_LOG"
     fi
