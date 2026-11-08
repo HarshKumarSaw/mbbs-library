@@ -1,0 +1,11 @@
+# Ignore all PDF files and document directories
+*.pdf
+assets/docs/
+assets/docs/**
+
+# Temporary & build files
+*.tmp*
+*.log
+__pycache__/
+.DS_Store
+node_modules/

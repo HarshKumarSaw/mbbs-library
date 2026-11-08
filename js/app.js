@@ -962,7 +962,16 @@
   // Open PDF Modal Viewer
   function openPdfModal(id) {
     const item = MBBS_RESOURCES.find(r => r.id === id);
-    if (!item || !DOM.pdfModal) return;
+    if (!item) return;
+
+    // For external CDN-hosted PDFs (e.g. SteadyLink CDN), open directly in native browser PDF viewer
+    // This avoids CORS range-request restrictions and offers instant, hardware-accelerated rendering
+    if (item.fileUrl && (item.fileUrl.startsWith("http://") || item.fileUrl.startsWith("https://"))) {
+      window.open(item.fileUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (!DOM.pdfModal) return;
 
     state.activeModalResource = item;
 
