@@ -1067,10 +1067,13 @@ if [ -n "$CHANGES" ]; then
         echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
     fi
 
+    # Minify CSS and JS while preserving readable source files
+    python3 "$REPO_DIR/scripts/minify.py" 2>/dev/null || true
+
     # Update cache-busting version query across all HTML pages
     CACHE_BUST_VER=$(date +%s)
     for h_file in "$REPO_DIR"/*.html; do
-        sed -i -E "s/(data\.js|app\.js|style\.css)(\?v=[0-9]+)?/\1?v=$CACHE_BUST_VER/g" "$h_file"
+        sed -i -E "s/(data\.js|app\.min\.js|app\.js|style\.min\.css|style\.css)(\?v=[0-9]+)?/\1?v=$CACHE_BUST_VER/g" "$h_file"
     done
 
     git add -A

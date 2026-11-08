@@ -40,9 +40,37 @@
     pageAspectRatios: new Map()
   };
 
-  // Configure PDF.js Worker
-  if (typeof window !== "undefined" && window.pdfjsLib) {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "js/vendor/pdf.worker.min.js";
+  // Dynamic On-Demand PDF.js Engine Loader (PageSpeed Optimization)
+  let pdfJsLoadingPromise = null;
+
+  function ensurePdfJsLoaded() {
+    if (typeof window !== "undefined" && window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = "js/vendor/pdf.worker.min.js";
+      return Promise.resolve(window.pdfjsLib);
+    }
+    if (pdfJsLoadingPromise) {
+      return pdfJsLoadingPromise;
+    }
+    pdfJsLoadingPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "js/vendor/pdf.min.js";
+      script.async = true;
+      script.onload = () => {
+        if (window.pdfjsLib) {
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = "js/vendor/pdf.worker.min.js";
+          resolve(window.pdfjsLib);
+        } else {
+          pdfJsLoadingPromise = null;
+          reject(new Error("pdfjsLib not found on window"));
+        }
+      };
+      script.onerror = (err) => {
+        pdfJsLoadingPromise = null;
+        reject(err);
+      };
+      document.head.appendChild(script);
+    });
+    return pdfJsLoadingPromise;
   }
 
   // DOM Elements
@@ -1022,13 +1050,8 @@
     }, 140);
   }
 
-  // Load PDF Document via PDF.js with progressive streaming
+  // Load PDF Document via PDF.js with progressive streaming and dynamic engine bootstrapping
   function loadPdfDocument(url) {
-    if (!window.pdfjsLib) {
-      showPdfError("PDF engine not initialized. Please open via External tab.");
-      return;
-    }
-
     startSmoothPdfProgress();
 
     if (pdfState.loadingTask) {
@@ -1036,61 +1059,66 @@
       pdfState.loadingTask = null;
     }
 
-    // Force HTTP Byte-Range requests (206 Partial Content) for instant on-demand page streaming
-    // disableAutoFetch: true ensures PDF.js NEVER downloads the whole file in the background
-    // disableStream: true forces Range header requests for exact byte slices instead of full body stream
-    const loadingTask = window.pdfjsLib.getDocument({
-      url: url,
-      rangeChunkSize: 65536,
-      disableAutoFetch: true,
-      disableStream: true,
-      disableRange: false
-    });
+    ensurePdfJsLoaded()
+      .then(function (pdfjsLib) {
+        // Force HTTP Byte-Range requests (206 Partial Content) for instant on-demand page streaming
+        // disableAutoFetch: true ensures PDF.js NEVER downloads the whole file in the background
+        // disableStream: true forces Range header requests for exact byte slices instead of full body stream
+        const loadingTask = pdfjsLib.getDocument({
+          url: url,
+          rangeChunkSize: 65536,
+          disableAutoFetch: true,
+          disableStream: true,
+          disableRange: false
+        });
 
-    pdfState.loadingTask = loadingTask;
+        pdfState.loadingTask = loadingTask;
 
-    loadingTask.onProgress = function (progress) {
-      if (progress.loaded > 0) {
-        // Map initial range chunk byte arrivals (0-300KB) to 25% - 65% progress
-        const chunkPct = Math.min(65, 20 + Math.round((progress.loaded / 300000) * 45));
-        if (chunkPct > currentPdfProgress) {
-          setPdfProgress(chunkPct);
+        loadingTask.onProgress = function (progress) {
+          if (progress.loaded > 0) {
+            // Map initial range chunk byte arrivals (0-300KB) to 25% - 65% progress
+            const chunkPct = Math.min(65, 20 + Math.round((progress.loaded / 300000) * 45));
+            if (chunkPct > currentPdfProgress) {
+              setPdfProgress(chunkPct);
+            }
+          }
+        };
+
+        return loadingTask.promise;
+      })
+      .then(function (pdf) {
+        pdfState.pdfDoc = pdf;
+        pdfState.pageNum = 1;
+        if (DOM.pdfTotalPages) DOM.pdfTotalPages.textContent = pdf.numPages;
+        if (DOM.pdfPageInput) {
+          DOM.pdfPageInput.max = pdf.numPages;
+          DOM.pdfPageInput.value = 1;
         }
-      }
-    };
+        updateNavButtons();
 
-    loadingTask.promise.then(function (pdf) {
-      pdfState.pdfDoc = pdf;
-      pdfState.pageNum = 1;
-      if (DOM.pdfTotalPages) DOM.pdfTotalPages.textContent = pdf.numPages;
-      if (DOM.pdfPageInput) {
-        DOM.pdfPageInput.max = pdf.numPages;
-        DOM.pdfPageInput.value = 1;
-      }
-      updateNavButtons();
-
-      if (currentPdfProgress < 75) {
-        setPdfProgress(75);
-      }
-
-      // Check device-specific view mode preference or use responsive defaults:
-      // Mobile (< 768px): Scroll option ('continuous')
-      // Desktop (>= 768px): Pages option ('single')
-      const preferredMode = getPreferredViewMode();
-      applyLayoutMode(preferredMode, 1);
-
-      // Safety timeout: dismiss loading overlay if not completed within 4.5s
-      setTimeout(() => {
-        if (DOM.pdfLoadingOverlay && !DOM.pdfLoadingOverlay.classList.contains("hidden")) {
-          completePdfLoading();
+        if (currentPdfProgress < 75) {
+          setPdfProgress(75);
         }
-      }, 4500);
-    }).catch(function (error) {
-      console.error("PDF loading error:", error);
-      stopSmoothPdfProgress();
-      if (error && error.name === "RenderingCancelledException") return;
-      showPdfError("Could not load PDF in view mode. Please use External view.");
-    });
+
+        // Check device-specific view mode preference or use responsive defaults:
+        // Mobile (< 768px): Scroll option ('continuous')
+        // Desktop (>= 768px): Pages option ('single')
+        const preferredMode = getPreferredViewMode();
+        applyLayoutMode(preferredMode, 1);
+
+        // Safety timeout: dismiss loading overlay if not completed within 4.5s
+        setTimeout(() => {
+          if (DOM.pdfLoadingOverlay && !DOM.pdfLoadingOverlay.classList.contains("hidden")) {
+            completePdfLoading();
+          }
+        }, 4500);
+      })
+      .catch(function (error) {
+        console.error("PDF loading error:", error);
+        stopSmoothPdfProgress();
+        if (error && error.name === "RenderingCancelledException") return;
+        showPdfError("Could not load PDF in view mode. Please use External view.");
+      });
   }
 
   // Helper: Detect mobile screen breakpoint (< 768px)
@@ -1556,7 +1584,9 @@
       if (skeleton) skeleton.style.display = "flex";
     });
 
-    if (DOM.pdfViewerContainer) {
+    // Schedule visibility render on next animation frame to eliminate forced reflow / layout thrashing
+    requestAnimationFrame(() => {
+      if (!DOM.pdfViewerContainer) return;
       const containerRect = DOM.pdfViewerContainer.getBoundingClientRect();
       wrappers.forEach(w => {
         const rect = w.getBoundingClientRect();
@@ -1565,7 +1595,7 @@
           renderMobilePage(pageNum);
         }
       });
-    }
+    });
   }
 
   // =========================================================================
@@ -1761,9 +1791,11 @@
     let currentY = 0;
     let isDragging = false;
     let startTime = 0;
+    let dragRaf = null;
 
     function handleStart(clientY) {
       if (window.innerWidth >= 768) return;
+      if (dragRaf) { cancelAnimationFrame(dragRaf); dragRaf = null; }
       isDragging = true;
       startY = clientY;
       currentY = clientY;
@@ -1775,20 +1807,27 @@
     function handleMove(clientY) {
       if (!isDragging) return;
       currentY = clientY;
-      const deltaY = currentY - startY;
+      if (!dragRaf) {
+        dragRaf = requestAnimationFrame(() => {
+          dragRaf = null;
+          if (!isDragging) return;
+          const deltaY = currentY - startY;
 
-      if (deltaY > 0) {
-        // Dragging downward: move sheet with finger
-        container.style.transform = `translateY(${deltaY}px)`;
-        const progress = Math.min(deltaY / 320, 1);
-        DOM.pdfModal.style.backgroundColor = `rgba(17, 24, 39, ${0.72 * (1 - progress * 0.45)})`;
-      } else {
-        // Dragging upward: apply heavy rubber-band resistance
-        container.style.transform = `translateY(${deltaY * 0.16}px)`;
+          if (deltaY > 0) {
+            // Dragging downward: move sheet with finger
+            container.style.transform = `translateY(${deltaY}px)`;
+            const progress = Math.min(deltaY / 320, 1);
+            DOM.pdfModal.style.backgroundColor = `rgba(17, 24, 39, ${0.72 * (1 - progress * 0.45)})`;
+          } else {
+            // Dragging upward: apply heavy rubber-band resistance
+            container.style.transform = `translateY(${deltaY * 0.16}px)`;
+          }
+        });
       }
     }
 
     function handleEnd() {
+      if (dragRaf) { cancelAnimationFrame(dragRaf); dragRaf = null; }
       if (!isDragging) return;
       isDragging = false;
       handleZone.classList.remove("dragging");
@@ -1873,6 +1912,13 @@
         }
       });
     }
+
+    // Preload PDF.js on pointer hover of any Read PDF button for zero perceived latency
+    document.addEventListener("pointerover", (e) => {
+      if (e.target && e.target.closest && e.target.closest('[data-action="view"]')) {
+        ensurePdfJsLoaded();
+      }
+    }, { passive: true });
 
     // Connect Load More fallback button
     const initialLoadMoreBtn = document.getElementById("grid-load-more-btn");

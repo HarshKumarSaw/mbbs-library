@@ -722,3 +722,30 @@
 ### UI Fix: 2026-11-08 10:41:00 UTC
 - **Resolved Duplicate Search Close Buttons**: Disabled the native browser `::-webkit-search-cancel-button` so WebKit/Chromium no longer renders a duplicate small 'x' next to the custom clear button.
 - **Enhanced Search Clear Button**: Replaced unicode text '✕' with a crisp, centered SVG vector icon, added Escape key clearing, and improved touch alignment.
+
+### PageSpeed & Performance Architecture Overhaul: 2026-11-08 12:00:00 UTC
+- **Dynamic On-Demand PDF.js Loading (Priority 1)**:
+  - Removed static render-blocking `<script src="js/vendor/pdf.min.js"></script>` (~313 KB) from initial page load on `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html`.
+  - Implemented `ensurePdfJsLoaded()` dynamic loader in `js/app.js` with singleton promise caching and Web Worker assignment (`pdf.worker.min.js`).
+  - Added zero-latency predictive preloading on `pointerover` of any `[data-action="view"]` / "Read Online" trigger.
+  - Fully preserved all PDF.js streaming options (`rangeChunkSize: 65536`, `disableAutoFetch: true`, `disableStream: true`, progressive progress bar, single and continuous scroll modes).
+- **Self-Hosted Variable WOFF2 Fonts (Priority 2)**:
+  - Eliminated external render-blocking Google Fonts stylesheets (`fonts.googleapis.com` and `fonts.gstatic.com`).
+  - Downloaded modern variable WOFF2 fonts to `assets/fonts/outfit.woff2` (32 KB, weights 500-900) and `assets/fonts/plus-jakarta-sans.woff2` (27 KB, weights 400-800).
+  - Replaced `@import` with `@font-face` definitions enforcing `font-display: swap` in `css/style.css`.
+  - Added `<link rel="preload" as="font" type="font/woff2" crossorigin>` in `<head>` across all 5 HTML files (`index.html`, `anatomy.html`, `physiology.html`, `biochemistry.html`, `404.html`) for instant text rendering without FOIT.
+- **Production Asset Minification Pipeline (Priority 3)**:
+  - Created automated build tool `scripts/minify.py` using `rcssmin` and `rjsmin`.
+  - Generated minified distribution bundles `css/style.min.css` (64.5 KB, 26.9% saved) and `js/app.min.js` (60.0 KB, 27.3% saved).
+  - Kept complete, readable, documented original source files in `css/style.css` and `js/app.js`.
+  - Updated `scripts/sync_from_phone.sh` to automatically run `minify.py` and update cache-busting query hashes `?v=[timestamp]` on every phone sync.
+- **Accessibility & Heading Hierarchy Compliance (Priority 4)**:
+  - Fixed `.lazy-scroll-hint` contrast ratio from ~3.2:1 (`--text-tertiary`) to ~5.8:1 (`--text-muted`), exceeding WCAG AA requirements on `#FAF8F4` ivory canvas.
+  - Resolved duplicate `h1` headings: Converted navbar logo title `<h1>` to `<span class="brand-title">` styled identically via `.brand-text .brand-title`.
+  - Fixed heading sequence: Added `<h2 class="sr-only">` curriculum section headers so resource cards (`<h3>`) follow directly after `<h2>` with zero skipped heading levels; converted noscript and modal headers to `<h2>`.
+- **Reflow & Layout Thrashing Elimination (Priority 5)**:
+  - Decoupled `applyMobileZoom()` style mutations from viewport `getBoundingClientRect()` scans using `requestAnimationFrame`.
+  - Throttled touch/pointer drag updates in bottom-sheet dismiss listener via `requestAnimationFrame` and cancellation handling.
+- **Image Optimization & GitHub Pages Caching (Priority 6)**:
+  - Verified WebP picture element with high fetch priority, explicit dimensions, and async decoding for navbar brand logo.
+  - Synchronized cache-busting version timestamps across all HTML pages.

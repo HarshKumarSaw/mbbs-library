@@ -99,10 +99,9 @@
   }
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=1794134446">
+  <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.min.css?v=1794138983">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -124,7 +123,7 @@
           </picture>
         </div>
         <div class="brand-text">
-          <h1>Harsh's Library</h1>
+          <span class="brand-title">Harsh's Library</span>
           <span>1st Year Resources</span>
         </div>
       </a>
@@ -243,6 +242,7 @@
     <!-- Main Study Resources Section (Direct Immediate Focus!) -->
     <section class="resources-section" id="catalog-section" aria-label="Study resources catalog">
       <div class="container">
+        <h2 class="sr-only">1st Year MBBS Study Resources</h2>
         
         <!-- Results Counter & Info Bar -->
         <div class="results-info-bar">
@@ -520,7 +520,7 @@
         <!-- Accessible Noscript Index for Search Engines & Non-JS Browsers -->
         <noscript>
           <div class="noscript-catalog">
-            <h3>1st Year MBBS Study Documents Index</h3>
+            <h2 class="noscript-title">1st Year MBBS Study Documents Index</h2>
             <p>Direct download and study links for search engine crawlers and users without JavaScript enabled:</p>
             <ul>
               <li><a href="assets/docs/anatomy/notes/anatomy_notes_johari.pdf"><strong>Anatomy Notes Johari (PDF)</strong></a> — 52.0 MB • Comprehensive Gross Anatomy and Neuroanatomy notes.</li>
@@ -551,7 +551,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
           </svg>
-          <h3 class="filter-modal-title">Filter Resources</h3>
+          <h2 class="filter-modal-title">Filter Resources</h2>
         </div>
         <button type="button" class="filter-modal-close" id="filter-modal-close" aria-label="Close filter panel">✕</button>
       </div>
@@ -596,7 +596,7 @@
       <div class="modal-header">
         <div class="modal-title-area">
           <span class="modal-breadcrumb" id="modal-breadcrumb">MBBS Library</span>
-          <h3 class="modal-title" id="modal-title">document.pdf</h3>
+          <h2 class="modal-title" id="modal-title">document.pdf</h2>
         </div>
         <div class="modal-actions">
           <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn" title="Open in dedicated tab">
@@ -703,8 +703,7 @@
     </div>
   </footer>
 
-  <script src="js/vendor/pdf.min.js"></script>
-  <script src="js/data.js?v=1794134446"></script>
-  <script src="js/app.js?v=1794134446"></script>
+  <script src="js/data.js?v=1794138983"></script>
+  <script src="js/app.min.js?v=1794138983"></script>
 </body>
 </html>

@@ -85,10 +85,9 @@
   }
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=1794134446">
+  <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.min.css?v=1794138983">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -105,7 +104,7 @@
           <span>🧪</span>
         </div>
         <div class="brand-text">
-          <h1>Biochemistry</h1>
+          <span class="brand-title">Biochemistry</span>
           <span>1st Year Resources</span>
         </div>
       </a>
@@ -244,6 +243,7 @@
     <!-- Resources Section (Direct Immediate Focus!) -->
     <section class="resources-section" id="catalog-section" aria-label="Biochemistry study catalog">
       <div class="container">
+        <h2 class="sr-only">Medical Biochemistry Curriculum Resources</h2>
         
         <!-- Category Filter Track -->
         <div class="filter-toolbar">
@@ -307,7 +307,7 @@
         <!-- Accessible Noscript Index for Search Engines & Non-JS Browsers -->
         <noscript>
           <div class="noscript-catalog">
-            <h3>Medical Biochemistry Curriculum Document Index</h3>
+            <h2 class="noscript-title">Medical Biochemistry Curriculum Document Index</h2>
             <p>Direct download and study links for search engine crawlers and users without JavaScript enabled:</p>
             <ul>
               <li><a href="assets/docs/biochemistry/practicals/biochemistry_practical.pdf"><strong>Biochemistry Practical Record (PDF)</strong></a> — 3.4 MB • Clinical urine analysis, enzymology, and laboratory procedures.</li>
@@ -328,7 +328,7 @@
       <div class="modal-header">
         <div class="modal-title-area">
           <span class="modal-breadcrumb" id="modal-breadcrumb">Biochemistry</span>
-          <h3 class="modal-title" id="modal-title">document.pdf</h3>
+          <h2 class="modal-title" id="modal-title">document.pdf</h2>
         </div>
         <div class="modal-actions">
           <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn" id="modal-newtab-btn" title="Open in dedicated tab">
@@ -435,8 +435,7 @@
     </div>
   </footer>
 
-  <script src="js/vendor/pdf.min.js"></script>
-  <script src="js/data.js?v=1794134446"></script>
-  <script src="js/app.js?v=1794134446"></script>
+  <script src="js/data.js?v=1794138983"></script>
+  <script src="js/app.min.js?v=1794138983"></script>
 </body>
 </html>
