@@ -1742,28 +1742,6 @@
       }, { passive: true });
     }
 
-    // Prevent iOS/Android overscroll chaining & elastic bounce when reaching top or bottom of PDF
-    if (DOM.pdfViewerContainer) {
-      DOM.pdfViewerContainer.addEventListener("touchstart", () => {
-        const el = DOM.pdfViewerContainer;
-        if (el.scrollTop <= 0) {
-          el.scrollTop = 1;
-        } else if (el.scrollTop + el.clientHeight >= el.scrollHeight) {
-          el.scrollTop = el.scrollHeight - el.clientHeight - 1;
-        }
-      }, { passive: true });
-    }
-
-    // Prevent backdrop/header/toolbar drag gestures from propagating elastic bounce to window
-    if (DOM.pdfModal) {
-      DOM.pdfModal.addEventListener("touchmove", (e) => {
-        // Only allow touch gestures inside the scrollable viewer container
-        if (!e.target.closest("#pdf-viewer-container")) {
-          e.preventDefault();
-        }
-      }, { passive: false });
-    }
-
     // Keyboard navigation when PDF modal is open
     document.addEventListener("keydown", (e) => {
       if (!DOM.pdfModal || !DOM.pdfModal.classList.contains("active")) return;
