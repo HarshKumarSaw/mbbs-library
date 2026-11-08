@@ -12,36 +12,6 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
-    id: "user-anat-anatomy_notes_custom-2638",
-    title: "Anatomy Notes Custom",
-    subject: "anatomy",
-    category: "mycustomfolder",
-    code: "Anatomy / Mycustomfolder",
-    description: "Uploaded document: Anatomy Notes Custom.pdf. Organized under Anatomy (Mycustomfolder).",
-    tags: ["Anatomy", "Mycustomfolder", "Mobile Upload"],
-    fileUrl: "assets/docs/anatomy/mycustomfolder/anatomy_notes_custom.pdf",
-    fileSize: "923 KB",
-    pages: "Document",
-    author: "HarshKumarSaw",
-    date: "08 Nov 2026",
-    year: "1st Year MBBS"
-  },
-  {
-    id: "user-phys-physiology_testroot-2640",
-    title: "Physiology Testroot",
-    subject: "physiology",
-    category: "testroot",
-    code: "Physiology / Testroot",
-    description: "Uploaded document: Physiology TestRoot.pdf. Organized under Physiology (Testroot).",
-    tags: ["Physiology", "Testroot", "Mobile Upload"],
-    fileUrl: "assets/docs/physiology/testroot/physiology_testroot.pdf",
-    fileSize: "923 KB",
-    pages: "Document",
-    author: "HarshKumarSaw",
-    date: "08 Nov 2026",
-    year: "1st Year MBBS"
-  },
-  {
     id: "user-anat-anatomy_diagrams-6058",
     title: "Anatomy Diagrams",
     subject: "anatomy",

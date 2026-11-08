@@ -525,3 +525,13 @@
   - Physiology TestRoot.pdf (Physiology / Testroot)
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 10
+
+### Two-Way Auto-Sync & Deletion: 2026-11-08 01:51:28 UTC
+- **Phone Deduplication**: Resolved 0 duplicate(s)
+- **Phone Organization**: Organized 0 root file(s)
+- **Phone Deletions Synced to Website**: 2 file(s)
+  - Anatomy/MyCustomFolder/Anatomy Notes Custom.pdf (deleted from phone)
+  - Physiology/Testroot/Physiology TestRoot.pdf (deleted from phone)
+- **Files Uploaded / Updated from Phone**: 0
+- **Offline Files Seeded to Phone**: 0
+- **Total In-Sync Files**: 8
