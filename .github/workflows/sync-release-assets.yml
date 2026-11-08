@@ -28,7 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 -c "
-          import json, os, subprocess, urllib.request
+          import json, os, subprocess
 
           with open('steadylink_manifest.json', 'r', encoding='utf-8') as f:
               manifest = json.load(f)
@@ -40,15 +40,16 @@ jobs:
               url = data.get('url')
               if not url:
                   continue
+              if data.get('size', 0) > 90 * 1024 * 1024:
+                  continue
 
               safe_filename = filename.replace(' ', '_')
-              print(f'Downloading {filename} from SteadyLink...')
-              try:
-                  urllib.request.urlretrieve(url, safe_filename)
-                  print(f'Uploading {safe_filename} to release v1.0.0-assets...')
-                  subprocess.run(['gh', 'release', 'upload', 'v1.0.0-assets', safe_filename, '--clobber'], check=True)
-                  if os.path.exists(safe_filename):
-                      os.remove(safe_filename)
-              except Exception as e:
-                  print(f'Error processing {filename}: {e}')
+              print(f'⬇️ Downloading {filename} from SteadyLink...')
+              subprocess.run(['curl', '-f', '-s', '-L', '-A', 'Mozilla/5.0', '-o', safe_filename, url], check=True)
+              file_size = os.path.getsize(safe_filename)
+              print(f'⬆️ Uploading {safe_filename} ({file_size} bytes) to release v1.0.0-assets...')
+              subprocess.run(['gh', 'release', 'upload', 'v1.0.0-assets', safe_filename, '--clobber'], check=True)
+              if os.path.exists(safe_filename):
+                  os.remove(safe_filename)
+              print(f'✅ Finished {safe_filename}')
           "
