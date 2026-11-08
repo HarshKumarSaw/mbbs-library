@@ -758,3 +758,22 @@
   - AK Jain Physiology.pdf (Physiology / Books)
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 21
+
+### SteadyLink Cloud Storage & Zero-Bloat Architecture Migration: 2026-11-08 18:05:00 UTC
+- **Cloud PDF Migration**:
+  - Migrated all library PDFs from local Git storage to **SteadyLink Cloud Storage & Global CDN** (`https://steadylink.io`).
+  - Successfully uploaded all 20 active medical documents to SteadyLink's permanent CDN endpoints (`https://cdn.steadylink.io/a/{asset_id}`).
+  - Built persistent manifest `steadylink_manifest.json` indexing all uploaded assets and their metadata.
+- **Git Binary Elimination**:
+  - Removed all 33 binary `.pdf` files from Git tracking and working tree.
+  - Added `.gitignore` permanently blocking `*.pdf` and `assets/docs/`.
+  - Repository source footprint reduced to **~2.8 MB**, eliminating GitHub's 100 MB per-file limit and preventing repository size growth.
+- **Client-Side Data & Reader Optimization**:
+  - Updated `js/data.js` so 100% of resources point to their SteadyLink CDN URL (`0` local paths remaining).
+  - Enhanced `js/app.js` and `js/app.min.js`: clicking "Read PDF" launches external CDN resources directly in the browser's native hardware-accelerated reader via `window.open(..., '_blank')`, avoiding third-party CORS limitations while delivering instant loading and pinch-to-zoom.
+- **Automated Cloud Sync Engine**:
+  - Created `scripts/migrate_to_steadylink.py` using robust curl streaming PUT upload with retry and backoff logic.
+  - Refactored `scripts/sync_from_phone.sh` to integrate directly with SteadyLink API for any new documents added to the phone, keeping the Git repository strictly text/code only.
+- **Deployment**:
+  - Rebuilt production minified CSS and JavaScript bundles with `scripts/minify.py`.
+  - Pushed commit `f258332` to `origin/main` and verified live on GitHub Pages (`https://harshkumarsaw.github.io/mbbs-library/`).
