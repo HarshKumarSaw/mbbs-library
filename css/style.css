@@ -3718,152 +3718,73 @@ body.modal-open {
 }
 
 /* ==========================================================================
-   Minimal Clean Footer (Refined, Modern, Executive Aesthetics)
+   Minimal Clean Footer (Slim, Warm Ivory & Cohesive)
    ========================================================================== */
 .footer {
   background: var(--canvas-subtle);
   color: var(--text-muted);
-  padding: 1.4rem 0 1.15rem;
+  padding: 0.65rem 0;
   margin-top: auto;
   width: 100%;
   border-top: 1.5px solid var(--border-subtle);
 }
 
-.footer-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.95rem;
-}
-
-@media (min-width: 860px) {
-  .footer-inner {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
-    gap: 1rem 1.5rem;
+@media (min-width: 768px) {
+  .footer {
+    padding: 0.75rem 0;
   }
 }
 
-.footer-brand-wrap {
+.footer-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
-}
-
-@media (min-width: 860px) {
-  .footer-brand-wrap {
-    align-items: flex-start;
-  }
-}
-
-.footer-brand-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  color: var(--text-headline);
-  transition: opacity 0.16s ease;
-}
-
-.footer-brand-link:hover {
-  opacity: 0.85;
-}
-
-.footer-brand-title {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-headline);
-}
-
-.footer-brand-badge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--primary-navy);
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-  padding: 0.15rem 0.5rem;
-  box-shadow: 0 1px 2px rgba(21, 27, 43, 0.04);
-}
-
-.footer-tagline {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
   line-height: 1.4;
 }
 
-.footer-nav-track {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem 0.55rem;
-}
-
-.footer-nav-link {
-  font-family: var(--font-display);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: 0.25rem 0.45rem;
-  border-radius: 6px;
-  transition: color 0.16s ease, background 0.16s ease;
-}
-
-.footer-nav-link:hover {
-  color: var(--primary-navy);
-  background: rgba(21, 27, 43, 0.05);
-}
-
-.page-anatomy .footer-nav-link:hover {
-  color: var(--anatomy-text);
-  background: rgba(138, 32, 36, 0.06);
-}
-
-.page-physiology .footer-nav-link:hover {
-  color: var(--physiology-text);
-  background: rgba(78, 40, 136, 0.06);
-}
-
-.page-biochemistry .footer-nav-link:hover {
-  color: var(--biochem-text);
-  background: rgba(14, 94, 65, 0.06);
-}
-
-.footer-dot {
-  color: #D1D5DB;
-  font-size: 0.7rem;
-  user-select: none;
-}
-
-.footer-meta {
-  width: 100%;
-  border-top: 1px solid rgba(232, 224, 213, 0.75);
-  padding-top: 0.75rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-@media (min-width: 860px) {
-  .footer-meta {
-    justify-content: flex-start;
+@media (min-width: 640px) {
+  .footer-content {
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: 0.82rem;
   }
 }
 
-.footer-copy {
+.footer-content p {
   margin: 0;
-  font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+.footer-link {
+  color: var(--primary-navy);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.16s ease, opacity 0.14s ease;
+}
+
+@media (hover: hover) {
+  .footer-link:hover {
+    color: var(--primary-navy-hover);
+  }
+  .page-anatomy .footer-link:hover {
+    color: var(--anatomy-text);
+  }
+  .page-physiology .footer-link:hover {
+    color: var(--physiology-text);
+  }
+  .page-biochemistry .footer-link:hover {
+    color: var(--biochem-text);
+  }
+}
+
+.footer-link:active {
+  opacity: 0.65;
 }
 
 .noscript-catalog {

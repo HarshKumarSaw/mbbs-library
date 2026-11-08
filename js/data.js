@@ -12,6 +12,51 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-general_anatomy_notes_johari-4066",
+    title: "General Anatomy Notes Johari",
+    subject: "anatomy",
+    category: "notes",
+    code: "Anatomy / Notes",
+    description: "Uploaded document: General Anatomy Notes Johari.pdf. Organized under Anatomy (Notes).",
+    tags: ["Anatomy", "Notes", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/notes/general_anatomy_notes_johari.pdf",
+    fileSize: "10.1 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "09 Oct 2026",
+    year: "1st Year MBBS"
+  },
+  {
+    id: "user-anat-anatomy_imp_topics_chapter_wise_-_johari_mbbs-4068",
+    title: "Anatomy Imp Topics Chapter Wise Johari Mbbs",
+    subject: "anatomy",
+    category: "other",
+    code: "Anatomy / Other",
+    description: "Uploaded document: ANATOMY IMP TOPICS CHAPTER WISE - JOHARI MBBS.pdf. Organized under Anatomy (Other).",
+    tags: ["Anatomy", "Other", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/other/anatomy_imp_topics_chapter_wise_-_johari_mbbs.pdf",
+    fileSize: "1017 KB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "10 Oct 2026",
+    year: "1st Year MBBS"
+  },
+  {
+    id: "user-anat-reasoning_-_upper_limb_anatomy_-_johari_mbbs-4082",
+    title: "Reasoning Upper Limb Anatomy Johari Mbbs",
+    subject: "anatomy",
+    category: "other",
+    code: "Anatomy / Other",
+    description: "Uploaded document: REASONING - UPPER LIMB ANATOMY - JOHARI MBBS.pdf. Organized under Anatomy (Other).",
+    tags: ["Anatomy", "Other", "Mobile Upload"],
+    fileUrl: "assets/docs/anatomy/other/reasoning_-_upper_limb_anatomy_-_johari_mbbs.pdf",
+    fileSize: "2.7 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "01 Nov 2026",
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-anatomy_notes_johari-4993",
     title: "Anatomy Notes Johari",
     subject: "anatomy",

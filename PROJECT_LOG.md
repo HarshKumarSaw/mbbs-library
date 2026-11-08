@@ -664,3 +664,14 @@
 - **Files Uploaded / Updated from Phone**: 0
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 9
+
+### Two-Way Auto-Sync & Deletion: 2026-11-08 07:48:07 UTC
+- **Phone Deduplication**: Resolved 0 duplicate(s)
+- **Phone Organization**: Organized 0 root file(s)
+- **Phone Deletions Synced to Website**: 0 file(s)
+- **Files Uploaded / Updated from Phone**: 3
+  - General Anatomy Notes Johari.pdf (Anatomy / Notes)
+  - ANATOMY IMP TOPICS CHAPTER WISE - JOHARI MBBS.pdf (Anatomy / Other)
+  - REASONING - UPPER LIMB ANATOMY - JOHARI MBBS.pdf (Anatomy / Other)
+- **Offline Files Seeded to Phone**: 0
+- **Total In-Sync Files**: 12
