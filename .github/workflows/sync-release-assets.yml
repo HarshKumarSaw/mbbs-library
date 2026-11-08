@@ -1,0 +1,57 @@
+name: Sync Release Assets for Direct Device Download
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'steadylink_manifest.json'
+      - '.github/workflows/sync-release-assets.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upload-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure Release Exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view v1.0.0-assets || gh release create v1.0.0-assets \
+            --title "MBBS Library Resource Assets" \
+            --notes "Direct attachment download assets for MBBS Resource Library"
+
+      - name: Download from SteadyLink and Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -c "
+          import json, os, subprocess, urllib.request
+
+          with open('steadylink_manifest.json', 'r', encoding='utf-8') as f:
+              manifest = json.load(f)
+
+          print(f'Processing {len(manifest)} manifest items...')
+          for filename, data in manifest.items():
+              if not filename.lower().endswith('.pdf'):
+                  continue
+              url = data.get('url')
+              if not url:
+                  continue
+
+              safe_filename = filename.replace(' ', '_')
+              print(f'Downloading {filename} from SteadyLink...')
+              try:
+                  urllib.request.urlretrieve(url, safe_filename)
+                  print(f'Uploading {safe_filename} to release v1.0.0-assets...')
+                  subprocess.run(['gh', 'release', 'upload', 'v1.0.0-assets', safe_filename, '--clobber'], check=True)
+                  if os.path.exists(safe_filename):
+                      os.remove(safe_filename)
+              except Exception as e:
+                  print(f'Error processing {filename}: {e}')
+          "

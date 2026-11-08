@@ -555,7 +555,7 @@
             <span>Read PDF</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </button>
-          <a href="${item.fileUrl}" download class="btn-download-action" aria-label="Download ${escapeHtml(item.title)}" title="Download PDF">
+          <a href="${item.downloadUrl || item.fileUrl}" download="${escapeHtml(item.title)}.pdf" data-action="download" data-id="${item.id}" class="btn-download-action" aria-label="Download ${escapeHtml(item.title)}" title="Download PDF">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </a>
         </div>
@@ -962,16 +962,7 @@
   // Open PDF Modal Viewer
   function openPdfModal(id) {
     const item = MBBS_RESOURCES.find(r => r.id === id);
-    if (!item) return;
-
-    // For external CDN-hosted PDFs (e.g. SteadyLink CDN), open directly in native browser PDF viewer
-    // This avoids CORS range-request restrictions and offers instant, hardware-accelerated rendering
-    if (item.fileUrl && (item.fileUrl.startsWith("http://") || item.fileUrl.startsWith("https://"))) {
-      window.open(item.fileUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    if (!DOM.pdfModal) return;
+    if (!item || !DOM.pdfModal) return;
 
     state.activeModalResource = item;
 
@@ -985,16 +976,20 @@
       breadcrumbEl.textContent = breadcrumb;
     }
 
-    // PDF filename as title (e.g. anatomy_notes_johari.pdf)
-    const filename = item.fileUrl ? item.fileUrl.split("/").pop() : (item.title ? `${item.title}.pdf` : "document.pdf");
     if (DOM.modalTitle) {
-      DOM.modalTitle.textContent = filename;
-      DOM.modalTitle.setAttribute("title", filename);
+      DOM.modalTitle.textContent = item.title || "Document";
+      DOM.modalTitle.setAttribute("title", item.title || "Document");
     }
 
     if (DOM.modalDownloadBtn) {
-      DOM.modalDownloadBtn.setAttribute("href", item.fileUrl);
-      DOM.modalDownloadBtn.setAttribute("download", item.title ? `${item.title}.pdf` : "");
+      const safeTitle = (item.title || "document").replace(/[^\w\s\-\.]/g, "").trim();
+      DOM.modalDownloadBtn.setAttribute("href", item.downloadUrl || item.fileUrl);
+      DOM.modalDownloadBtn.setAttribute("download", `${safeTitle}.pdf`);
+      DOM.modalDownloadBtn.setAttribute("data-id", item.id);
+      DOM.modalDownloadBtn.onclick = (e) => {
+        e.preventDefault();
+        triggerDirectDownload(item.id);
+      };
     }
 
     if (DOM.modalNewTabBtn) {
@@ -1059,9 +1054,36 @@
     }, 140);
   }
 
-  // Load PDF Document via PDF.js with progressive streaming and dynamic engine bootstrapping
+  // Load PDF Document via in-app embedded viewer or PDF.js streaming engine
   function loadPdfDocument(url) {
     startSmoothPdfProgress();
+
+    // If external CDN URL without direct CORS, embed via Google Docs Viewer for seamless in-app reading
+    if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+      let frame = document.getElementById("pdf-embedded-frame");
+      if (!frame && DOM.pdfViewerContainer) {
+        frame = document.createElement("iframe");
+        frame.id = "pdf-embedded-frame";
+        frame.className = "pdf-embedded-frame";
+        frame.setAttribute("allowfullscreen", "true");
+        DOM.pdfViewerContainer.appendChild(frame);
+      }
+      if (frame) {
+        frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+        frame.style.display = "block";
+        frame.onload = () => completePdfLoading();
+      }
+      if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
+      if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
+      if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
+      if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
+      if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
+
+      setTimeout(() => {
+        completePdfLoading();
+      }, 2500);
+      return;
+    }
 
     if (pdfState.loadingTask) {
       try { pdfState.loadingTask.destroy(); } catch (e) {}
@@ -1717,6 +1739,14 @@
 
   function resetPdfViewer() {
     stopSmoothPdfProgress();
+    const frame = document.getElementById("pdf-embedded-frame");
+    if (frame) {
+      frame.src = "about:blank";
+      frame.style.display = "none";
+    }
+    if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "";
+    if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "";
+
     if (pdfState.renderTask) {
       try { pdfState.renderTask.cancel(); } catch (e) {}
       pdfState.renderTask = null;
@@ -1906,17 +1936,77 @@
     }
   }
 
+  // Dedicated Direct Download Controller
+  async function triggerDirectDownload(id) {
+    const item = MBBS_RESOURCES.find(r => r.id === id);
+    if (!item) return;
+
+    const safeTitle = (item.title || "document").replace(/[^\w\s\-\.]/g, "").trim();
+    const filename = `${safeTitle}.pdf`;
+    const targetUrl = item.downloadUrl || item.fileUrl;
+
+    // 1. If downloadUrl (GitHub Release attachment) is available, trigger direct download
+    if (item.downloadUrl) {
+      const a = document.createElement("a");
+      a.href = item.downloadUrl;
+      a.setAttribute("download", filename);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
+
+    // 2. Try in-memory fetch blob download if allowed by CORS
+    try {
+      const resp = await fetch(targetUrl, { mode: "cors" });
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+        return;
+      }
+    } catch (e) {
+      // Cross-origin without CORS
+    }
+
+    // 3. Direct browser anchor trigger fallback
+    const a = document.createElement("a");
+    a.href = targetUrl;
+    a.setAttribute("download", filename);
+    a.setAttribute("target", "_blank");
+    a.setAttribute("rel", "noopener noreferrer");
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   // Setup Global Event Listeners
   function setupEventListeners() {
-    // Delegated click handler on resources grid (View / Read PDF)
+    // Delegated click handler on resources grid (View / Read PDF & Direct Download)
     if (DOM.resourcesGrid) {
       DOM.resourcesGrid.addEventListener("click", (e) => {
-        const viewBtn = e.target.closest('[data-action="view"]');
+        const viewBtn = e.target.closest('[data-action="view"], .btn-read');
         if (viewBtn) {
           e.preventDefault();
           const id = viewBtn.dataset.id;
           if (id) {
             openPdfModal(id);
+          }
+          return;
+        }
+
+        const dlBtn = e.target.closest('.btn-download-action, [data-action="download"]');
+        if (dlBtn) {
+          const id = dlBtn.dataset.id;
+          if (id) {
+            e.preventDefault();
+            triggerDirectDownload(id);
           }
         }
       });

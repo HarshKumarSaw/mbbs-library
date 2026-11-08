@@ -268,6 +268,8 @@ def sync_data_js(manifest, phone_pdfs):
             f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
             safe_slug = re.sub(r'[^a-z0-9]', '_', fname.lower()).strip('_')
             uid = f"user-{subj_id[:4]}-{safe_slug[:20]}-{int(time.time()) % 10000:04d}"
+            safe_fname = fname.replace(' ', '_')
+            dl_url = f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
 
             entry = f"""  {{
     id: "{uid}",
@@ -278,6 +280,7 @@ def sync_data_js(manifest, phone_pdfs):
     description: "Uploaded document: {fname}. Organized under {subj_disp} ({cat_disp}).",
     tags: ["{subj_disp}", "{cat_disp}", "Mobile Upload"],
     fileUrl: "{cdn_url}",
+    downloadUrl: "{dl_url}",
     fileSize: "{size_disp}",
     pages: "Document",
     author: "HarshKumarSaw",
