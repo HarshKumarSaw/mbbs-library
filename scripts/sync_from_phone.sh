@@ -421,13 +421,18 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     if [ "$base_name" != "$canonical_name" ]; then
         target_path="$dir_name/$canonical_name"
         if [ ! -f "$target_path" ]; then
-            # Check if canonical exists in memory list
-            for pf in "${ALL_PHONE_FILES[@]}"; do
-                if [ "$(basename "$pf")" = "$canonical_name" ] && [ -f "$pf" ]; then
-                    target_path="$pf"
-                    break
-                fi
-            done
+            # If file is in root or subject root, check if canonical exists in a subfolder
+            rel_dir="${dir_name#$PHONE_DIR}"
+            rel_dir="${rel_dir#/}"
+            IFS='/' read -r -a dir_parts <<< "$rel_dir"
+            if [ "${#dir_parts[@]}" -lt 2 ]; then
+                for pf in "${ALL_PHONE_FILES[@]}"; do
+                    if [ "$(basename "$pf")" = "$canonical_name" ] && [ -f "$pf" ]; then
+                        target_path="$pf"
+                        break
+                    fi
+                done
+            fi
         fi
 
         if [ -f "$target_path" ] && [ "$file" != "$target_path" ]; then
@@ -480,13 +485,33 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         fi
     done
 
-    # Determine canonical target location based on Two-Word rule:
+    # Determine default canonical target location based on Two-Word rule:
     # Word 1 = Subject, Word 2 = Subfolder
     target_rel=$(get_target_phone_rel_path "$canonical_name")
     target_dest="$PHONE_DIR/$target_rel"
-    mkdir -p "$(dirname "$target_dest")"
 
     if [ "${#matching_instances[@]}" -gt 1 ]; then
+        # Check if an instance is already inside a subfolder inside a subject folder (user's preferred arrangement)
+        preferred_subfolder_inst=""
+        for inst in "${matching_instances[@]}"; do
+            rel_inst="${inst#$PHONE_DIR/}"
+            IFS='/' read -r -a p_inst <<< "$rel_inst"
+            if [ "${#p_inst[@]}" -ge 3 ]; then
+                if [ "$inst" = "$PHONE_DIR/$target_rel" ]; then
+                    preferred_subfolder_inst="$inst"
+                    break
+                elif [ -z "$preferred_subfolder_inst" ]; then
+                    preferred_subfolder_inst="$inst"
+                fi
+            fi
+        done
+
+        if [ -n "$preferred_subfolder_inst" ]; then
+            target_dest="$preferred_subfolder_inst"
+            target_rel="${target_dest#$PHONE_DIR/}"
+        fi
+        mkdir -p "$(dirname "$target_dest")"
+
         # Multiple copies found! Identify the latest revision
         best_file=""
         best_mtime=-1
@@ -510,7 +535,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             fi
         done
 
-        # Move best file to canonical target location
+        # Move best file to target location
         if [ -n "$best_file" ] && [ "$best_file" != "$target_dest" ]; then
             mv -f "$best_file" "$target_dest"
             ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
@@ -525,8 +550,18 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             fi
         done
     else
-        # Exactly one instance. If it is not in its canonical target subfolder, move it!
+        # Exactly one instance.
         single_file="${matching_instances[0]}"
+        rel_single="${single_file#$PHONE_DIR/}"
+        IFS='/' read -r -a p_single <<< "$rel_single"
+
+        # If already inside a subfolder inside a subject folder, keep it there (user's preferred arrangement)
+        if [ "${#p_single[@]}" -ge 3 ]; then
+            continue
+        fi
+
+        # File is in root folder or directly in subject root (unorganized) -> run autosort!
+        mkdir -p "$(dirname "$target_dest")"
         if [ "$single_file" != "$target_dest" ]; then
             if [ -f "$target_dest" ]; then
                 file_mtime=$(stat -c %Y "$single_file" 2>/dev/null || echo 0)
