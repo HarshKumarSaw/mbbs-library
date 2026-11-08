@@ -1937,7 +1937,8 @@
   }
 
   // Dedicated Direct Download Controller
-  async function triggerDirectDownload(id) {
+  // Dedicated Direct Download Controller
+  function triggerDirectDownload(id) {
     const item = MBBS_RESOURCES.find(r => r.id === id);
     if (!item) return;
 
@@ -1945,37 +1946,15 @@
     const filename = `${safeTitle}.pdf`;
     const targetUrl = item.downloadUrl || item.fileUrl;
 
-    // 1. If downloadUrl (GitHub Release attachment) is available, trigger direct download
+    // When downloadUrl (GitHub Release attachment) is available:
+    // Navigating via window.location.href causes GitHub to return Content-Disposition: attachment.
+    // The browser stays on the current page and immediately triggers native file download to device storage.
     if (item.downloadUrl) {
-      const a = document.createElement("a");
-      a.href = item.downloadUrl;
-      a.setAttribute("download", filename);
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      window.location.href = item.downloadUrl;
       return;
     }
 
-    // 2. Try in-memory fetch blob download if allowed by CORS
-    try {
-      const resp = await fetch(targetUrl, { mode: "cors" });
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
-        return;
-      }
-    } catch (e) {
-      // Cross-origin without CORS
-    }
-
-    // 3. Direct browser anchor trigger fallback
+    // Fallback anchor trigger
     const a = document.createElement("a");
     a.href = targetUrl;
     a.setAttribute("download", filename);
@@ -1983,7 +1962,7 @@
     a.setAttribute("rel", "noopener noreferrer");
     document.body.appendChild(a);
     a.click();
-    a.remove();
+    setTimeout(() => a.remove(), 100);
   }
 
   // Setup Global Event Listeners
