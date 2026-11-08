@@ -1,0 +1,12 @@
+# Robots.txt for Harsh's Library
+# https://harshkumarsaw.github.io/mbbs-library/
+
+User-agent: *
+Allow: /
+Allow: /mbbs-library/
+Allow: /mbbs-library/*.html
+Allow: /mbbs-library/assets/docs/
+Disallow: /mbbs-library/404.html
+Disallow: /404.html
+
+Sitemap: https://harshkumarsaw.github.io/mbbs-library/sitemap.xml

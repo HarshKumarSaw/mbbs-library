@@ -203,6 +203,15 @@
     const params = new URLSearchParams(window.location.search);
     const hash = window.location.hash.replace("#", "").toLowerCase();
 
+    // Subject page detection from body class
+    if (document.body.classList.contains("page-anatomy")) {
+      state.selectedSubject = "anatomy";
+    } else if (document.body.classList.contains("page-physiology")) {
+      state.selectedSubject = "physiology";
+    } else if (document.body.classList.contains("page-biochemistry")) {
+      state.selectedSubject = "biochemistry";
+    }
+
     const subjectParam = params.get("subject") || hash;
     if (subjectParam) {
       state.selectedSubject = subjectParam;
@@ -591,6 +600,11 @@
 
   // Update URL hash cleanly
   function updateHash() {
+    if (document.body.classList.contains("page-anatomy") ||
+        document.body.classList.contains("page-physiology") ||
+        document.body.classList.contains("page-biochemistry")) {
+      return; // Keep clean dedicated URL on subject pages
+    }
     if (state.selectedSubject !== "all") {
       window.history.replaceState(null, null, `#${state.selectedSubject}`);
     } else {
