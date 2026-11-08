@@ -2911,15 +2911,28 @@ textarea,
   background: #FFFFFF;
   width: 100%;
   max-width: 1080px;
-  height: 94vh;
+  height: calc(100vh - 3.5rem);
+  height: calc(100dvh - max(3.5rem, env(safe-area-inset-top, 44px) + 0.75rem));
+  max-height: calc(100vh - 3.5rem);
+  max-height: calc(100dvh - max(3.5rem, env(safe-area-inset-top, 44px) + 0.75rem));
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.45);
   transform: translateY(100%);
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.modal-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #D1D5DB;
+  margin: 8px auto 2px;
+  flex-shrink: 0;
 }
 
 .modal-overlay.active .modal-container {
@@ -2929,12 +2942,17 @@ textarea,
 @media (min-width: 768px) {
   .modal-container {
     height: 88vh;
+    max-height: 88vh;
     border-radius: 24px;
     transform: scale(0.96) translateY(20px);
   }
 
   .modal-overlay.active .modal-container {
     transform: scale(1) translateY(0);
+  }
+
+  .modal-sheet-handle {
+    display: none;
   }
 }
 
