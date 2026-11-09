@@ -598,8 +598,9 @@
     };
     const emoji = subjectEmojis[item.subject] || "📚";
     const sizeMB = parseFileSizeMB(item.fileSize);
-    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB >= 95);
-    const isMediumStream = !isLarge && sizeMB > 25;
+    // Any document larger than 25MB cannot be embedded in our in-app viewer.
+    // Present ONLY the Direct Download option (same as >100MB documents).
+    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB > 25);
 
     return `
       <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
@@ -622,7 +623,7 @@
           <span class="meta-item">💾 ${item.fileSize}</span>
           <span class="meta-bullet">•</span>
           <span class="meta-item">📅 ${formatResourceDate(item.date)}</span>
-          ${isLarge ? '<span class="meta-bullet">•</span><span class="meta-item meta-large-asset" title="Hosted on GitHub Releases for high-speed download">⚡ GitHub Release</span>' : (isMediumStream ? '<span class="meta-bullet">•</span><span class="meta-item meta-stream-asset" title="Fast online web stream">⚡ Online Stream</span>' : '')}
+          ${isLarge ? '<span class="meta-bullet">•</span><span class="meta-item meta-large-asset" title="Large document – direct download available">⚡ Direct Download</span>' : ''}
         </div>
 
         <div class="card-actions">
@@ -1048,23 +1049,12 @@
     if (!item || !DOM.pdfModal) return;
 
     const sizeMB = parseFileSizeMB(item.fileSize);
-    // For large documents (>95MB) or GitHub Release assets, trigger direct download to prevent browser OOM
-    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB >= 95);
+    // Any document larger than 25MB cannot be embedded in our in-app viewer.
+    // Trigger direct download instead without opening modal or external tabs.
+    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB > 25);
     if (isLarge) {
       triggerDirectDownload(item.id);
       return;
-    }
-
-    // For medium-large documents (>25MB and <95MB):
-    // Google Docs Viewer has a hard 25MB ceiling and fails with "document is too large to preview".
-    // Directly launch browser's native hardware-accelerated streaming reader tab!
-    const isMediumStream = sizeMB > 25;
-    if (isMediumStream && item.fileUrl) {
-      try {
-        window.open(item.fileUrl, "_blank", "noopener,noreferrer");
-      } catch (err) {
-        console.warn("Direct tab launch suppressed, falling back to modal prompt:", err);
-      }
     }
 
     state.activeModalResource = item;
@@ -1157,76 +1147,11 @@
     }, 140);
   }
 
-  // Load PDF Document via in-app embedded viewer or browser streaming prompt
-  function loadPdfDocument(url, item) {
-    item = item || state.activeModalResource || MBBS_RESOURCES.find(r => r.fileUrl === url);
-    const sizeMB = item ? parseFileSizeMB(item.fileSize) : 0;
-
-    // For documents > 25MB (up to 95MB), Google Docs Viewer rejects with "too large to preview".
-    // Render an instant high-performance online streaming prompt inside DOM.pdfViewerContainer.
-    if (sizeMB > 25 && item) {
-      stopSmoothPdfProgress();
-      hidePdfLoading();
-
-      const oldFrame = document.getElementById("pdf-embedded-frame");
-      if (oldFrame) {
-        oldFrame.src = "about:blank";
-        oldFrame.style.display = "none";
-      }
-
-      if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
-      if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
-      if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
-      if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
-      if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
-
-      let promptContainer = document.getElementById("large-pdf-reader-prompt");
-      if (!promptContainer && DOM.pdfViewerContainer) {
-        promptContainer = document.createElement("div");
-        promptContainer.id = "large-pdf-reader-prompt";
-        promptContainer.className = "large-pdf-prompt-container";
-        DOM.pdfViewerContainer.appendChild(promptContainer);
-      }
-
-      if (promptContainer) {
-        const safeTitle = escapeHtml(item.title || "Document");
-        promptContainer.innerHTML = `
-          <div class="large-pdf-prompt-card">
-            <div class="prompt-icon-badge" aria-hidden="true">📖</div>
-            <span class="prompt-stream-pill">⚡ Fast Online Web Stream</span>
-            <h3 class="prompt-heading">${safeTitle}</h3>
-            <p class="prompt-size-note">File size: <strong>${item.fileSize || "Large PDF"}</strong> • High-Yield Academic Resource</p>
-            <p class="prompt-desc">
-              This comprehensive document exceeds 25 MB and is streamed directly via your browser's native reader with hardware acceleration, instant page loading, and zero phone storage used.
-            </p>
-            <div class="prompt-btn-group">
-              <a href="${item.fileUrl}" target="_blank" rel="noopener noreferrer" class="prompt-btn-primary" id="prompt-stream-btn">
-                <span>Open in Browser Reader</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              </a>
-              <button type="button" class="prompt-btn-secondary" id="prompt-download-btn">
-                <span>Download PDF</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              </button>
-            </div>
-          </div>
-        `;
-        promptContainer.style.display = "flex";
-
-        const dlBtn = promptContainer.querySelector("#prompt-download-btn");
-        if (dlBtn) {
-          dlBtn.onclick = (e) => {
-            e.preventDefault();
-            triggerDirectDownload(item.id);
-          };
-        }
-      }
-      return;
-    }
-
+  // Load PDF Document via in-app embedded viewer or PDF.js streaming engine
+  function loadPdfDocument(url) {
     startSmoothPdfProgress();
 
-    // If external CDN URL without direct CORS, embed via Google Docs Viewer for seamless in-app reading
+    // Embed via secure sandbox iframe for in-app reading without external download loops
     if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
       let frame = document.getElementById("pdf-embedded-frame");
       if (!frame && DOM.pdfViewerContainer) {
@@ -1234,10 +1159,14 @@
         frame.id = "pdf-embedded-frame";
         frame.className = "pdf-embedded-frame";
         frame.setAttribute("allowfullscreen", "true");
+        // Sandbox strictly blocks iframe from triggering any file downloads (e.g. downloading 'viewer')
+        frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups");
         DOM.pdfViewerContainer.appendChild(frame);
+      } else if (frame) {
+        frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups");
       }
       if (frame) {
-        frame.src = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+        frame.src = `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(url)}`;
         frame.style.display = "block";
         frame.onload = () => completePdfLoading();
       }
@@ -1912,10 +1841,6 @@
       frame.src = "about:blank";
       frame.style.display = "none";
     }
-    const promptContainer = document.getElementById("large-pdf-reader-prompt");
-    if (promptContainer) {
-      promptContainer.style.display = "none";
-    }
     if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "";
     if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "";
 
@@ -2134,7 +2059,17 @@
     // Delegated click handler on resources grid (View / Read PDF & Direct Download)
     if (DOM.resourcesGrid) {
       DOM.resourcesGrid.addEventListener("click", (e) => {
-        const viewBtn = e.target.closest('[data-action="view"], .btn-read');
+        const dlBtn = e.target.closest('.btn-download-action, [data-action="download"], .btn-large-dl');
+        if (dlBtn) {
+          e.preventDefault();
+          const id = dlBtn.dataset.id;
+          if (id) {
+            triggerDirectDownload(id);
+          }
+          return;
+        }
+
+        const viewBtn = e.target.closest('[data-action="view"]');
         if (viewBtn) {
           e.preventDefault();
           const id = viewBtn.dataset.id;
@@ -2142,15 +2077,6 @@
             openPdfModal(id);
           }
           return;
-        }
-
-        const dlBtn = e.target.closest('.btn-download-action, [data-action="download"]');
-        if (dlBtn) {
-          const id = dlBtn.dataset.id;
-          if (id) {
-            e.preventDefault();
-            triggerDirectDownload(id);
-          }
         }
       });
     }
