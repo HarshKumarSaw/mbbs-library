@@ -392,9 +392,11 @@ def sync_data_js(manifest, phone_pdfs):
         print("✔ js/data.js is already up-to-date.")
 
 def main():
-    print("=" * 65)
-    print("  🩺 MBBS LIBRARY ➔ STEADYLINK CLOUD ENGINE")
-    print("=" * 65)
+    quiet = "-q" in sys.argv or "--quiet" in sys.argv
+    if not quiet:
+        print("=" * 65)
+        print("  🩺 MBBS LIBRARY ➔ STEADYLINK CLOUD ENGINE")
+        print("=" * 65)
 
     client = steadylink.SteadyLink(api_key=API_KEY)
 
@@ -408,7 +410,8 @@ def main():
 
     # 2. Discover phone PDFs
     phone_pdfs = collect_phone_pdfs()
-    print(f"📋 Found {len(phone_pdfs)} PDF document(s) on phone.")
+    if not quiet:
+        print(f"📋 Found {len(phone_pdfs)} PDF document(s) on phone.")
 
     norm_manifest = {normalize_key(k): v for k, v in manifest.items() if v.get("url")}
 
@@ -434,12 +437,13 @@ def main():
     # 3. Synchronize js/data.js
     sync_data_js(manifest, phone_pdfs)
 
-    print("=" * 65)
-    print(f" Migration Status:")
-    print(f"   - Newly uploaded: {uploaded_count}")
-    print(f"   - Already on CDN: {skipped_count}")
-    print(f"   - Total managed:  {len(manifest)}")
-    print("=" * 65)
+    if not quiet or uploaded_count > 0:
+        print("=" * 65)
+        print(f" Migration Status:")
+        print(f"   - Newly uploaded: {uploaded_count}")
+        print(f"   - Already on CDN: {skipped_count}")
+        print(f"   - Total managed:  {len(manifest)}")
+        print("=" * 65)
 
 if __name__ == "__main__":
     main()

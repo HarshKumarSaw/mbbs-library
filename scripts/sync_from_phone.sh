@@ -602,7 +602,7 @@ optimize_pdf_file() {
 # ==============================================================================
 # PHASE 1: Version Normalization & Organization
 # ==============================================================================
-echo -e "\n🔍 ${BOLD}[1/5] Auditing phone storage and library structure...${RESET}"
+[ "$ON_STARTUP" -eq 0 ] && echo -e "\n🔍 ${BOLD}[1/5] Auditing phone storage and library structure...${RESET}"
 
 ALL_PHONE_FILES=()
 while IFS= read -r -d '' f; do
@@ -791,7 +791,7 @@ done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 # ==============================================================================
 # PHASE 2: Phone Deletions & State Audit
 # ==============================================================================
-echo -e "🔄 ${BOLD}[2/5] Auditing phone documents and state...${RESET}"
+[ "$ON_STARTUP" -eq 0 ] && echo -e "🔄 ${BOLD}[2/5] Auditing phone documents and state...${RESET}"
 
 NEW_FILES_PROCESSED=0
 PROCESSED_NAMES=()
@@ -814,7 +814,7 @@ rm -f "$TMP_MANIFEST"
 # ==============================================================================
 # PHASE 3: Cloud Upload & SteadyLink / GitHub Releases Synchronization
 # ==============================================================================
-echo -e "⚡ ${BOLD}[3/5] Synchronizing phone resources with SteadyLink CDN & GitHub Releases...${RESET}"
+[ "$ON_STARTUP" -eq 0 ] && echo -e "⚡ ${BOLD}[3/5] Synchronizing phone resources with SteadyLink CDN & GitHub Releases...${RESET}"
 
 load_opt_cache
 
@@ -832,7 +832,11 @@ if [ "$OPT_COUNT" -gt 0 ]; then
     echo -e "   ${GREEN}✔ Optimized $OPT_COUNT new/updated document(s).${RESET}"
 fi
 
-python3 "$REPO_DIR/scripts/migrate_to_steadylink.py"
+if [ "$ON_STARTUP" -eq 1 ]; then
+    python3 "$REPO_DIR/scripts/migrate_to_steadylink.py" -q
+else
+    python3 "$REPO_DIR/scripts/migrate_to_steadylink.py"
+fi
 
 # Enforce zero local PDF binaries in Git repository
 rm -rf "$REPO_DIR/assets/docs" 2>/dev/null || true
