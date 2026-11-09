@@ -33,7 +33,14 @@ jobs:
           with open('steadylink_manifest.json', 'r', encoding='utf-8') as f:
               manifest = json.load(f)
 
-          print(f'Processing {len(manifest)} manifest items...')
+          try:
+              release_info = json.loads(subprocess.check_output(['gh', 'release', 'view', 'v1.0.0-assets', '--json', 'assets']))
+              existing_assets = {a['name'].lower(): a['name'] for a in release_info.get('assets', [])}
+          except Exception as e:
+              print(f'Notice: could not query existing release assets: {e}')
+              existing_assets = {}
+
+          print(f'Processing {len(manifest)} manifest items (Found {len(existing_assets)} existing release assets)...')
           for filename, data in manifest.items():
               if not filename.lower().endswith('.pdf'):
                   continue
@@ -47,12 +54,20 @@ jobs:
                   continue
 
               safe_filename = filename.replace(' ', '_')
+              if safe_filename.lower() in existing_assets:
+                  print(f'⏩ Skipping {safe_filename}: already exists in release v1.0.0-assets.')
+                  continue
+
               print(f'⬇️ Downloading {filename} from SteadyLink...')
               subprocess.run(['curl', '-f', '-s', '-L', '--retry', '3', '-A', 'Mozilla/5.0', '-o', safe_filename, url], check=True)
               file_size = os.path.getsize(safe_filename)
               print(f'⬆️ Uploading {safe_filename} ({file_size} bytes) to release v1.0.0-assets...')
-              subprocess.run(['gh', 'release', 'upload', 'v1.0.0-assets', safe_filename, '--clobber'], check=True)
-              if os.path.exists(safe_filename):
-                  os.remove(safe_filename)
-              print(f'✅ Finished {safe_filename}')
+              try:
+                  subprocess.run(['gh', 'release', 'upload', 'v1.0.0-assets', safe_filename, '--clobber'], check=True)
+                  print(f'✅ Finished {safe_filename}')
+              except subprocess.CalledProcessError as err:
+                  print(f'⚠️ Warning uploading {safe_filename}: {err}')
+              finally:
+                  if os.path.exists(safe_filename):
+                      os.remove(safe_filename)
           "
