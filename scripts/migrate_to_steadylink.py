@@ -112,11 +112,74 @@ def get_existing_bucket_objects(client, bucket_id):
         print(f"Could not fetch bucket objects: {e}")
         return {}
 
+def upload_large_pdf_to_github_release(file_path, filename):
+    """
+    Directly uploads large documents (>95MB) to GitHub Releases (v1.0.0-assets).
+    Preserves document quality without aggressive secondary downsampling.
+    """
+    safe_filename = filename.replace(' ', '_')
+    size = os.path.getsize(file_path)
+    size_str = format_file_size(size)
+    print(f"\n📦 Large Document (>95MB) detected: {filename} ({size_str})")
+    print(f"   🚀 Routing directly to GitHub Releases (v1.0.0-assets)...")
+
+    release_tag = "v1.0.0-assets"
+    repo = "HarshKumarSaw/mbbs-library"
+    download_url = f"https://github.com/{repo}/releases/download/{release_tag}/{safe_filename}"
+
+    # Check gh CLI availability
+    gh_available = subprocess.run(["command", "-v", "gh"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
+    uploaded = False
+
+    if gh_available:
+        auth_proc = subprocess.run(["gh", "auth", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        has_token = bool(os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN"))
+
+        if auth_proc.returncode == 0 or has_token:
+            print(f"   ⬆️  Uploading {safe_filename} to release {release_tag} via gh CLI...")
+            import tempfile
+            tmp_file = os.path.join(tempfile.gettempdir(), safe_filename)
+            upload_target = file_path
+            try:
+                if os.path.exists(tmp_file):
+                    os.remove(tmp_file)
+                os.symlink(file_path, tmp_file)
+                upload_target = tmp_file
+            except Exception:
+                upload_target = file_path
+
+            upload_cmd = ["gh", "release", "upload", release_tag, upload_target, "--clobber", "--repo", repo]
+            res = subprocess.run(upload_cmd, text=True, capture_output=True)
+
+            if upload_target != file_path and os.path.exists(upload_target):
+                try: os.remove(upload_target)
+                except Exception: pass
+
+            if res.returncode == 0:
+                print(f"   ✅ Successfully uploaded {safe_filename} to GitHub Releases!")
+                uploaded = True
+            else:
+                err_msg = res.stderr.strip() or res.stdout.strip()
+                print(f"   ⚠️  gh release upload notice: {err_msg}")
+        else:
+            print(f"   ⚠️  gh CLI not logged in. Run 'gh auth login' or export GITHUB_TOKEN to upload directly.")
+    else:
+        print(f"   ⚠️  gh CLI not installed. Package 'gh' can be installed via 'pkg install gh'.")
+
+    return {
+        "asset_id": f"gh-release-{safe_filename}",
+        "url": download_url,
+        "download_url": download_url,
+        "size": size,
+        "status": "ready" if uploaded else "pending_upload",
+        "storage": "github-release",
+        "is_large_file": True
+    }
+
 def upload_single_pdf_curl(client, file_path, filename, retries=3):
     size = os.path.getsize(file_path)
     if size > 95 * 1024 * 1024:
-        print(f"\n⚠️  Skipping {filename} ({format_file_size(size)}): exceeds SteadyLink 95 MB limit.")
-        return None
+        return upload_large_pdf_to_github_release(file_path, filename)
 
     print(f"\n📦 Preparing upload: {filename} ({format_file_size(size)})...")
 
@@ -263,7 +326,8 @@ def sync_data_js(manifest, phone_pdfs):
             subj_id, subj_disp = detect_subject(fpath)
             cat_id, cat_disp = detect_category(fpath)
             title = format_title(fname)
-            size_disp = format_file_size(os.path.getsize(fpath))
+            f_size = os.path.getsize(fpath)
+            size_disp = format_file_size(f_size)
             f_mtime = os.path.getmtime(fpath)
             f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
             safe_slug = re.sub(r'[^a-z0-9]', '_', fname.lower()).strip('_')
@@ -271,21 +335,37 @@ def sync_data_js(manifest, phone_pdfs):
             safe_fname = fname.replace(' ', '_')
             dl_url = f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
 
+            # Check if large document (>95MB) or hosted on GitHub Releases
+            item_manifest = manifest.get(fname, {})
+            is_large = (f_size >= 95 * 1024 * 1024) or (item_manifest.get("storage") == "github-release")
+            tags = [subj_disp, cat_disp, "Mobile Upload"]
+            if is_large:
+                tags.append("Large Book")
+                desc = f"Uploaded document: {fname}. Comprehensive reference book ({size_disp}) hosted on GitHub Releases for high-speed direct download."
+                pages_disp = "Textbook"
+                large_meta = """
+    isLargeFile: true,
+    storage: "github-release","""
+            else:
+                desc = f"Uploaded document: {fname}. Organized under {subj_disp} ({cat_disp})."
+                pages_disp = "Document"
+                large_meta = ""
+
             entry = f"""  {{
     id: "{uid}",
     title: "{title}",
     subject: "{subj_id}",
     category: "{cat_id}",
     code: "{subj_disp} / {cat_disp}",
-    description: "Uploaded document: {fname}. Organized under {subj_disp} ({cat_disp}).",
-    tags: ["{subj_disp}", "{cat_disp}", "Mobile Upload"],
+    description: "{desc}",
+    tags: {json.dumps(tags)},
     fileUrl: "{cdn_url}",
     downloadUrl: "{dl_url}",
     fileSize: "{size_disp}",
-    pages: "Document",
+    pages: "{pages_disp}",
     author: "HarshKumarSaw",
     date: "{f_date}",
-    year: "1st Year MBBS"
+    year: "1st Year MBBS"{large_meta}
   }},"""
             missing_entries.append(entry)
 
@@ -334,7 +414,7 @@ def main():
             res = upload_single_pdf_curl(client, file_path, filename)
             if res:
                 manifest[filename] = res
-                norm_manifest[base_norm] = res
+                norm_manifest[base_norm] = res.get("url") if isinstance(res, dict) else res
                 save_manifest(manifest)
                 uploaded_count += 1
         except Exception as e:

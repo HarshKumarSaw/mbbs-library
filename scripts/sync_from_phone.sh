@@ -525,22 +525,15 @@ optimize_pdf_file() {
         qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs" || true
     fi
 
-    # GitHub 100MB Hard Ceiling Guard
+    # 95MB Large Document Guard: Bypass secondary compression and preserve high visual quality for GitHub Releases
     local final_bytes
     final_bytes=$(wc -c < "$target_abs")
     if [ "$final_bytes" -ge 99614720 ]; then # 95 MB
-        echo -e "      ${YELLOW}⚠️  File exceeds 95MB. Running secondary compression pass to comply with GitHub limit (<100MB)...${RESET}"
-        rm -f "$tmp_gs" "$tmp_opt"
-        if gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 \
-              -dDownsampleColorImages=true -dColorImageDownsampleType=/Average -dColorImageResolution=95 \
-              -dDownsampleGrayImages=true -dGrayImageDownsampleType=/Average -dGrayImageResolution=95 \
-              -dNOPAUSE -dQUIET -dBATCH \
-              -sOutputFile="$tmp_gs" "$target_abs" 2>/dev/null; then
-            if qpdf --linearize "$tmp_gs" "$tmp_opt" 2>/dev/null; then
-                mv -f "$tmp_opt" "$target_abs"
-                [ -n "$orig_file" ] && cp -p "$target_abs" "$orig_file" 2>/dev/null || true
-            fi
-        fi
+        local final_disp
+        final_disp=$(format_file_size "$final_bytes")
+        echo -e "      ${PURPLE}📦 [Large Asset Detected]:${RESET} File is ${BOLD}$final_disp${RESET} (>95MB) after first compression pass."
+        echo -e "         ${GREEN}✔ Preserving high visual quality${RESET} (bypassing secondary downsampling pass)."
+        echo -e "         ${CYAN}✔ Routing directly to GitHub Releases (v1.0.0-assets)${RESET} for direct device download."
     fi
 
     rm -f "$tmp_gs" "$tmp_opt" "$tmp_err"
@@ -754,9 +747,20 @@ fi
 rm -f "$TMP_MANIFEST"
 
 # ==============================================================================
-# PHASE 3: Cloud Upload & SteadyLink CDN Synchronization
+# PHASE 3: Cloud Upload & SteadyLink / GitHub Releases Synchronization
 # ==============================================================================
-echo -e "⚡ ${BOLD}[3/5] Synchronizing phone resources with SteadyLink CDN...${RESET}"
+echo -e "⚡ ${BOLD}[3/5] Synchronizing phone resources with SteadyLink CDN & GitHub Releases...${RESET}"
+
+# Optimize any new or unlinearized PDFs on phone (first compression pass)
+for pf in "${ALL_PHONE_FILES[@]}"; do
+    [ -f "$pf" ] || continue
+    [[ "${pf,,}" == *.pdf ]] || continue
+    if command -v qpdf >/dev/null 2>&1; then
+        if ! qpdf --is-linearized "$pf" >/dev/null 2>&1; then
+            optimize_pdf_file "$pf" "$(basename "$pf")"
+        fi
+    fi
+done
 
 python3 "$REPO_DIR/scripts/migrate_to_steadylink.py"
 

@@ -806,3 +806,17 @@
 - **Files Uploaded / Updated from Phone**: 0
 - **Offline Files Seeded to Phone**: 0
 - **Total In-Sync Files**: 20
+
+### Large PDF (>95MB) GitHub Releases Pipeline & Visual Quality Preservation: 2026-11-09 06:55:00 UTC
+- **Quality Preservation Guard in Sync Engine**:
+  - Replaced aggressive secondary downsampling pass (`gs` at 95 DPI) in `scripts/sync_from_phone.sh` with a smart routing guard.
+  - If a document exceeds 95MB after the initial 130 DPI downsampling and linearization pass, it retains full 130 DPI resolution and Fast Web View linearization instead of suffering image degradation.
+- **Direct GitHub Releases Upload Route**:
+  - Added `upload_large_pdf_to_github_release()` in `scripts/migrate_to_steadylink.py` to route >95MB files directly to GitHub Releases (`v1.0.0-assets`).
+  - Automatically updates `steadylink_manifest.json` with `storage: "github-release"` and `is_large_file: true`.
+  - Updated `sync_data_js()` to generate `js/data.js` entries with `isLargeFile: true` and direct GitHub Release download URLs.
+  - Updated `.github/workflows/sync-release-assets.yml` to recognize and bypass SteadyLink fetching for `github-release` storage assets.
+- **Client-Side UI Adaptation**:
+  - In `js/app.js` and `js/app.min.js`: Rendered distinct `⚡ GitHub Release` meta pills and dedicated **"Direct Download"** action buttons for resources >95MB.
+  - Intercepted modal viewer triggers on large files to directly initiate native device download via `triggerDirectDownload()`, safeguarding mobile browsers from Out-Of-Memory (OOM) WebWorker crashes.
+  - Added clean styling in `css/style.css` and regenerated minified production bundles (`style.min.css`, `app.min.js`) via `scripts/minify.py`.

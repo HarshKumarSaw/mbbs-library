@@ -2593,6 +2593,31 @@ textarea,
   background: #DDD5C9;
 }
 
+/* Large Document & GitHub Release Badges */
+.meta-large-asset {
+  color: #1E3A8A;
+  background: rgba(30, 58, 138, 0.08);
+  border: 1px solid rgba(30, 58, 138, 0.22);
+  border-radius: var(--radius-sm);
+  padding: 0.12rem 0.4rem;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+}
+
+.btn-large-dl {
+  background: #1E3A8A;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+@media (hover: hover) {
+  .btn-large-dl:hover {
+    background: #172554;
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 14px rgba(23, 37, 84, 0.28);
+  }
+}
+
 /* Empty State with subtle entrance */
 .empty-state {
   width: 100%;

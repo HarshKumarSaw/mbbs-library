@@ -37,10 +37,13 @@ jobs:
           for filename, data in manifest.items():
               if not filename.lower().endswith('.pdf'):
                   continue
+              if data.get('storage') == 'github-release':
+                  print(f'⏩ Skipping {filename}: already managed directly via GitHub Releases.')
+                  continue
               url = data.get('url')
               if not url:
                   continue
-              if data.get('size', 0) > 90 * 1024 * 1024:
+              if data.get('size', 0) > 95 * 1024 * 1024:
                   continue
 
               safe_filename = filename.replace(' ', '_')
