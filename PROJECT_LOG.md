@@ -966,3 +966,19 @@
   - **Rebuilt Minified Bundles**:
     - Ran `scripts/minify.py` to regenerate `css/style.min.css` (26.7% size reduction).
     - Updated cache-busting CSS version query string to `?v=1794228460` across all 5 HTML files.
+
+### Custom Link Preview Banner Integration (`og-preview.jpg`): 2026-11-09 13:12:00 UTC
+- **User Request**:
+  - Replaced preview image with user's custom uploaded asset `og-preview.jpg`.
+- **Verification of Uploaded Asset**:
+  - Verified `og-preview.jpg` dimensions: `1200x630` px (standard 1.91:1 aspect ratio).
+  - Verified file size: `100,923` bytes (~98.6 KB) — well under WhatsApp's 300 KB / 600 KB limits.
+  - Verified format: `image/jpeg`.
+- **Metadata Update Across Website**:
+  - Updated all 5 HTML documents (`index.html`, `anatomy.html`, `physiology.html`, `biochemistry.html`, `404.html`):
+    - `og:image` & `og:image:secure_url`: `https://harshkumarsaw.github.io/mbbs-library/og-preview.jpg`
+    - `og:image:type`: `image/jpeg`
+    - `og:image:width`: `1200`, `og:image:height`: `630`
+    - `<link rel="image_src">`: `https://harshkumarsaw.github.io/mbbs-library/og-preview.jpg`
+    - `twitter:image`: `https://harshkumarsaw.github.io/mbbs-library/og-preview.jpg`
+    - Schema.org JSON-LD structured data image: `https://harshkumarsaw.github.io/mbbs-library/og-preview.jpg`
