@@ -12,6 +12,23 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-anatomy_diagrams-6058",
+    title: "Anatomy Diagrams",
+    subject: "anatomy",
+    category: "diagrams",
+    code: "Anatomy / Diagrams",
+    description: "Uploaded document: Anatomy Diagrams.pdf. Organized under Anatomy (Diagrams).",
+    tags: ["Anatomy", "Diagrams", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/92fb8c97-2fae-4b6d-aad9-797e7f0acf45",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_Diagrams.pdf",
+    fileSize: "1013 KB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "09 Nov 2026",
+    updatedAt: 1794243987,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_assignmen-3364",
     title: "Physiology Assignment (1)",
     subject: "physiology",
@@ -252,23 +269,6 @@ const MBBS_RESOURCES = [
     year: "1st Year MBBS",
     isLargeFile: true,
     storage: "github-release"
-  },
-  {
-    id: "user-anat-anatomy_diagrams-6058",
-    title: "Anatomy Diagrams",
-    subject: "anatomy",
-    category: "diagrams",
-    code: "Anatomy / Diagrams",
-    description: "Uploaded document: Anatomy Diagrams.pdf. Organized under Anatomy (Diagrams).",
-    tags: ["Anatomy", "Diagrams", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/92fb8c97-2fae-4b6d-aad9-797e7f0acf45",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_Diagrams.pdf",
-    fileSize: "696 KB",
-    pages: "Document",
-    author: "HarshKumarSaw",
-    date: "09 Nov 2026",
-    updatedAt: 1794208512,
-    year: "1st Year MBBS"
   },
   {
     id: "user-bioc-biochemistry_practical-2198",
