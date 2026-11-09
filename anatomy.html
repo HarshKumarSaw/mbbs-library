@@ -119,6 +119,13 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <!-- Web App Manifest & Mobile PWA Setup -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Harsh's Library">
 </head>
 <body class="page-anatomy">
 
@@ -141,6 +148,7 @@
           <li><a href="anatomy.html" class="nav-link active">🦴 Anatomy</a></li>
           <li><a href="physiology.html" class="nav-link">🫀 Physiology</a></li>
           <li><a href="biochemistry.html" class="nav-link">🧪 Biochemistry</a></li>
+          <li><button type="button" class="pwa-install-trigger pwa-nav-btn" aria-label="Install App">📲 Install App</button></li>
         </ul>
       </nav>
 
@@ -550,11 +558,30 @@
   <footer class="footer">
     <div class="container footer-content">
       <p>© 2026 Harsh Kumar Saw • Anatomy Department</p>
-      <a href="index.html" class="footer-link">← All Subjects</a>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <button type="button" class="pwa-install-trigger pwa-footer-btn" aria-label="Install App">📲 Install App</button>
+        <a href="index.html" class="footer-link">← All Subjects</a>
+      </div>
     </div>
   </footer>
 
+  <!-- Floating PWA Install Banner -->
+  <aside class="pwa-install-banner" id="pwa-install-banner" aria-label="Install Application" role="complementary">
+    <div class="pwa-banner-left">
+      <img src="assets/icons/icon-192x192.png" alt="App Icon" class="pwa-banner-icon-img" width="40" height="40">
+      <div class="pwa-banner-text">
+        <span class="pwa-banner-title">Harsh's Library App</span>
+        <span class="pwa-banner-sub">Fast, offline MBBS study vault</span>
+      </div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button type="button" class="pwa-banner-action-btn" id="pwa-banner-action">Install</button>
+      <button type="button" class="pwa-banner-dismiss-btn" id="pwa-banner-dismiss" aria-label="Dismiss">&times;</button>
+    </div>
+  </aside>
+
   <script src="js/data.js?v=1794246441"></script>
   <script src="js/app.min.js?v=1794246441"></script>
+  <script src="js/pwa.js" defer></script>
 </body>
 </html>

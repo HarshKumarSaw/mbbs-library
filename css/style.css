@@ -4237,6 +4237,238 @@ body.modal-open {
 }
 
 /* ==========================================================================
+   Progressive Web App (PWA) UI Components & Banner
+   ========================================================================== */
+.pwa-install-trigger {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pwa-nav-btn {
+  padding: 6px 14px;
+  font-size: 0.84rem;
+  background: var(--primary-navy);
+  color: #FFFFFF;
+  border: 1px solid var(--primary-navy);
+}
+
+.pwa-nav-btn:hover {
+  background: var(--primary-navy-hover);
+  transform: translateY(-1px);
+}
+
+.pwa-footer-btn {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+}
+
+.pwa-footer-btn:hover {
+  color: var(--primary-navy);
+  border-color: var(--primary-navy);
+}
+
+/* Floating Bottom PWA Install Banner */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  width: min(440px, calc(100% - 32px));
+  background: var(--canvas-pure, #FFFFFF);
+  border: 1px solid rgba(21, 27, 43, 0.12);
+  border-radius: 18px;
+  padding: 12px 14px;
+  box-shadow: 0 12px 32px -4px rgba(21, 27, 43, 0.16), 0 4px 12px -2px rgba(21, 27, 43, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 1050;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+.pwa-install-banner.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pwa-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pwa-banner-icon-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.pwa-banner-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pwa-banner-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--primary-navy);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pwa-banner-sub {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.pwa-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pwa-banner-action-btn {
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  background: var(--primary-navy);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.pwa-banner-action-btn:hover {
+  background: var(--primary-navy-hover);
+  transform: translateY(-1px);
+}
+
+.pwa-banner-dismiss-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.pwa-banner-dismiss-btn:hover {
+  color: var(--primary-navy);
+  background: rgba(21, 27, 43, 0.06);
+}
+
+/* iOS Safari Install Guide Modal */
+.pwa-ios-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1100;
+  animation: fadeIn 0.2s ease;
+}
+
+.pwa-ios-modal-card {
+  position: relative;
+  background: var(--canvas-pure, #FFFFFF);
+  border-radius: 20px;
+  padding: 24px 20px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  text-align: left;
+}
+
+.pwa-ios-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.pwa-ios-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.pwa-ios-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary-navy);
+  margin-bottom: 6px;
+}
+
+.pwa-ios-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.pwa-ios-steps {
+  font-size: 0.85rem;
+  color: var(--primary-navy);
+  line-height: 1.5;
+  padding-left: 20px;
+  margin-bottom: 18px;
+}
+
+.pwa-ios-steps li {
+  margin-bottom: 6px;
+}
+
+.pwa-ios-done-btn {
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
    Prefers Reduced Motion (Accessibility & System Motion Preference)
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {

@@ -1058,3 +1058,30 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 24
+
+### Progressive Web App (PWA) Implementation: 2026-11-09 18:42:00 UTC
+- **Pre-Implementation Backup Point**:
+  - Created Git Tag: `pre-pwa-backup` (`29cba520dab9b85d6b929dd8a67686f8f32f21e7`)
+  - Created Git Backup Branch: `backup-pre-pwa`
+  - Reversion Command: `git reset --hard pre-pwa-backup`
+- **PWA Assets & Manifest**:
+  - Generated high-resolution PWA icons:
+    - `assets/icons/icon-192x192.png` (Standard 192×192)
+    - `assets/icons/icon-512x512.png` (Standard 512×512)
+    - `assets/icons/icon-maskable-192x192.png` (Maskable 192×192 with 15% safe padding)
+    - `assets/icons/icon-maskable-512x512.png` (Maskable 512×512 with 15% safe padding)
+  - Created `manifest.webmanifest` and `manifest.json` with standalone display mode, orientation `any`, theme color `#FAF8F4`, background color `#FAF8F4`, and department quick shortcuts.
+- **Service Worker (`sw.js`)**:
+  - Implemented smart offline & caching engine:
+    - **Network-First with Cache Fallback** for HTML navigation pages (guarantees students immediately see updated notes whenever online, with offline fallback).
+    - **Stale-While-Revalidate** for static assets (CSS, JS, Fonts, Icons) for instant 0ms app boot.
+    - Automatic cache cleanup and skip-waiting lifecycle for zero-downtime silent updates.
+- **Cross-Platform Install Prompts (`js/pwa.js` & `css/style.css`)**:
+  - Integrated `beforeinstallprompt` and `appinstalled` listeners for Android/Chromium WebAPK.
+  - Added native iOS Safari install guide modal with 3 simple visual steps.
+  - Added install trigger buttons in navbar, mobile drawer, and footer.
+  - Added floating bottom install banner with session-dismiss memory.
+  - Wired into `index.html`, `anatomy.html`, `physiology.html`, `biochemistry.html`, and `404.html`.
+- **Minification**:
+  - Re-minified `css/style.min.css` (71.6 KB, 26.5% savings).
+
