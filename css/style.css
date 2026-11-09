@@ -347,6 +347,7 @@ textarea,
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
 }
 
 /* Brand Logo */
@@ -501,13 +502,7 @@ textarea,
   }
 }
 
-@media (min-width: 860px) {
-  .mobile-toggle {
-    display: none;
-  }
-}
-
-/* Mobile Nav Drawer with Smooth Fade & Slide */
+/* Nav Drawer with Smooth Fade & Slide (Mobile: Full Width; Desktop: Floating Card) */
 .nav-links {
   list-style: none;
   display: flex;
@@ -539,18 +534,102 @@ textarea,
   pointer-events: auto;
 }
 
+/* Desktop View (>= 860px) Enhancement */
 @media (min-width: 860px) {
-  .nav-links {
-    display: flex !important;
-    position: static;
-    flex-direction: row;
+  .navbar {
+    padding: 0.85rem 0;
+    background: rgba(250, 248, 244, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .nav-container nav[role="navigation"] {
+    display: contents;
+  }
+
+  .brand {
+    gap: 0.75rem;
+  }
+
+  .brand-text .brand-title {
+    font-size: 1.25rem;
+    letter-spacing: -0.025em;
+  }
+
+  .brand-text span {
+    font-size: 0.76rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* Hamburger Menu Button Present on Desktop */
+  .mobile-toggle {
+    display: inline-flex !important;
     align-items: center;
-    background: transparent;
-    border: none;
-    padding: 0;
-    box-shadow: none;
-    gap: 0.35rem;
+    justify-content: center;
+    gap: 0.55rem;
+    height: 42px;
     width: auto;
+    padding: 0 1.2rem;
+    border-radius: 9999px;
+    background: var(--canvas-pure);
+    border: 1.5px solid var(--border-subtle);
+    color: var(--text-headline);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(21, 27, 43, 0.05);
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-toggle::after {
+    content: "Menu";
+    display: inline-block;
+  }
+
+  .mobile-toggle:hover {
+    background: var(--canvas-subtle);
+    border-color: var(--primary-navy);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(21, 27, 43, 0.09);
+  }
+
+  .mobile-toggle[aria-expanded="true"] {
+    background: var(--primary-navy);
+    color: #FFFFFF;
+    border-color: var(--primary-navy);
+    box-shadow: 0 4px 14px rgba(21, 27, 43, 0.2);
+  }
+
+  .mobile-toggle[aria-expanded="true"]::after {
+    content: "Close";
+  }
+
+  .mobile-toggle[aria-expanded="true"] svg {
+    stroke: #FFFFFF;
+  }
+
+  /* Desktop Floating Dropdown Card */
+  .nav-links {
+    position: absolute !important;
+    top: calc(100% + 10px) !important;
+    right: 0 !important;
+    left: auto !important;
+    width: 280px !important;
+    max-width: 90vw;
+    background: #FFFFFF !important;
+    border: 1.5px solid var(--border-subtle) !important;
+    border-radius: 20px !important;
+    padding: 0.75rem !important;
+    gap: 0.35rem !important;
+    box-shadow: 0 20px 48px rgba(21, 27, 43, 0.14), 0 4px 12px rgba(21, 27, 43, 0.05) !important;
+    flex-direction: column !important;
+    z-index: 105 !important;
+    transform: translateY(-8px) scale(0.98);
+  }
+
+  .nav-links.show {
+    transform: translateY(0) scale(1) !important;
   }
 }
 
@@ -568,9 +647,26 @@ textarea,
 
 @media (min-width: 860px) {
   .nav-link {
-    font-size: 0.9rem;
-    padding: 0.45rem 0.85rem;
-    color: var(--text-body);
+    font-size: 0.94rem;
+    font-weight: 700;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    color: var(--text-headline);
+    display: flex;
+    align-items: center;
+    transition: all 0.16s ease;
+  }
+
+  .nav-link:hover {
+    background: var(--canvas-subtle);
+    color: var(--primary-navy);
+    transform: translateX(3px);
+  }
+
+  .nav-link.active {
+    background: var(--primary-navy);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(21, 27, 43, 0.16);
   }
 }
 

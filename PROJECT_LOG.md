@@ -948,3 +948,21 @@
   - Added `prefix="og: https://ogp.me/ns#"` on `<html>` across all HTML pages for strict RDFa/OG compliance.
   - Added `<link rel="image_src">` fallback for legacy mobile/WhatsApp clients.
   - Explicitly whitelisted `facebookexternalhit`, `WhatsApp`, `Twitterbot`, and `TelegramBot` in `robots.txt`.
+
+### Desktop Navbar & Hamburger Menu Architecture Redesign: 2026-11-09 12:48:00 UTC
+- **User Requirement**:
+  - Hamburger menu was missing in desktop view, and top navigation bar looked plain and unbalanced on wide displays.
+  - Mobile view is working well and must remain 100% unchanged.
+- **Root Cause**:
+  - `@media (min-width: 860px)` explicitly had `.mobile-toggle { display: none; }` and `.nav-links` lacked reset rules for `opacity`, `visibility`, and `pointer-events`, rendering desktop navigation completely absent.
+- **Implementation**:
+  - **Mobile Preservation**: Retained 100% of existing mobile view styles (`< 860px`), including 42x42 square icon toggle and full-width drawer.
+  - **Desktop Hamburger Menu Button**:
+    - Re-enabled `.mobile-toggle` on desktop (`display: inline-flex !important;`) styled as a sleek `[ ☰ Menu ]` pill button (`border-radius: 9999px`, height 42px, padding `0 1.2rem`).
+    - When open (`aria-expanded="true"`), smoothly transitions to active navy `[ ✕ Close ]` pill with 90° rotating SVG icon.
+  - **Desktop Floating Dropdown Card**:
+    - On screens `≥ 860px`, clicking the menu toggle opens a floating card (`position: absolute; right: 0; width: 280px; border-radius: 20px;`) with layered box-shadow and smooth entrance transition.
+    - Department links feature hover animations, active states, and clean typography.
+  - **Rebuilt Minified Bundles**:
+    - Ran `scripts/minify.py` to regenerate `css/style.min.css` (26.7% size reduction).
+    - Updated cache-busting CSS version query string to `?v=1794228460` across all 5 HTML files.
