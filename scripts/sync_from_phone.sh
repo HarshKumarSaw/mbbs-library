@@ -454,26 +454,9 @@ is_pdf_already_optimized() {
     local f_mtime
     f_mtime=$(stat -c %Y "$pdf_file" 2>/dev/null || echo 0)
 
-    # 1. Fast in-memory check (0 milliseconds)
+    # Fast in-memory check against verified cache (exact size and modification time)
     if [ "${CACHED_OPTS[$rel_name]:-}" = "$f_size|$f_mtime" ]; then
         return 0
-    fi
-
-    # 2. Check if already linearized with qpdf (Fast Web View enabled)
-    if command -v qpdf >/dev/null 2>&1; then
-        if qpdf --check-linearization "$pdf_file" >/dev/null 2>&1; then
-            save_opt_cache_entry "$rel_name" "$f_size" "$f_mtime"
-            return 0
-        fi
-    fi
-
-    # 3. Check if already recorded in steadylink_manifest.json
-    if [ -f "$REPO_DIR/steadylink_manifest.json" ]; then
-        local base_fname="${pdf_file##*/}"
-        if grep -F -q "\"$base_fname\":" "$REPO_DIR/steadylink_manifest.json" 2>/dev/null; then
-            save_opt_cache_entry "$rel_name" "$f_size" "$f_mtime"
-            return 0
-        fi
     fi
 
     return 1

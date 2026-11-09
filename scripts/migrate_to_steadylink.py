@@ -325,30 +325,48 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
 
     new_content = prune_deleted_items(new_content)
 
-    # 3. Add any phone PDFs missing from data.js
+    # 3. Add or update phone PDFs in data.js
     missing_entries = []
     for fname, fpath in phone_pdfs.items():
         base_norm = normalize_key(fname)
-        cdn_url = norm_manifest.get(base_norm)
-        if not cdn_url:
+        meta = manifest.get(fname) or manifest.get(base_norm)
+        if not meta or not meta.get("url") or meta.get("status") == "pending_upload":
             continue
 
-        if cdn_url not in new_content:
-            subj_id, subj_disp = detect_subject(fpath)
-            cat_id, cat_disp = detect_category(fpath)
-            title = format_title(fname)
-            f_size = os.path.getsize(fpath)
-            size_disp = format_file_size(f_size)
-            f_mtime = os.path.getmtime(fpath)
-            f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
+        cdn_url = meta["url"]
+        subj_id, subj_disp = detect_subject(fpath)
+        cat_id, cat_disp = detect_category(fpath)
+        title = format_title(fname)
+        f_size = os.path.getsize(fpath) if os.path.exists(fpath) else 0
+        size_disp = format_file_size(f_size)
+        f_mtime = os.path.getmtime(fpath) if os.path.exists(fpath) else time.time()
+        f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
+        safe_fname = fname.replace(' ', '_')
+        dl_url = f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
+
+        # Match existing entry in data.js by uploaded filename or title
+        doc_pattern = rf'(\{{\s*id:\s*"[^"]+",[\s\S]*?Uploaded document:\s*{re.escape(fname)}[\s\S]*?\n\s*\}})'
+        m = re.search(doc_pattern, new_content, re.IGNORECASE)
+        if not m:
+            doc_pattern = rf'(\{{\s*id:\s*"[^"]+",[\s\S]*?title:\s*"{re.escape(title)}"[\s\S]*?\n\s*\}})'
+            m = re.search(doc_pattern, new_content)
+
+        if m:
+            old_block = m.group(1)
+            updated_block = old_block
+            updated_block = re.sub(r'fileUrl:\s*"[^"]+"', f'fileUrl: "{cdn_url}"', updated_block)
+            updated_block = re.sub(r'downloadUrl:\s*"[^"]+"', f'downloadUrl: "{dl_url}"', updated_block)
+            updated_block = re.sub(r'fileSize:\s*"[^"]+"', f'fileSize: "{size_disp}"', updated_block)
+            updated_block = re.sub(r'date:\s*"[^"]+"', f'date: "{f_date}"', updated_block)
+            if updated_block != old_block:
+                new_content = new_content.replace(old_block, updated_block)
+                print(f"✔ Updated entry in js/data.js: {title} ({size_disp})")
+        else:
             safe_slug = re.sub(r'[^a-z0-9]', '_', fname.lower()).strip('_')
             uid = f"user-{subj_id[:4]}-{safe_slug[:20]}-{int(time.time()) % 10000:04d}"
-            safe_fname = fname.replace(' ', '_')
-            dl_url = f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
 
             # Check if large document (>95MB) or hosted on GitHub Releases
-            item_manifest = manifest.get(fname, {})
-            is_large = (f_size >= 95 * 1024 * 1024) or (item_manifest.get("storage") == "github-release")
+            is_large = (f_size >= 95 * 1024 * 1024) or (meta.get("storage") == "github-release")
             tags = [subj_disp, cat_disp, "Mobile Upload"]
             if is_large:
                 tags.append("Large Book")
@@ -413,11 +431,17 @@ def main():
         if v.get("url") and v.get("status") != "pending_upload"
     }
 
-    # Check if any phone PDFs are missing from manifest
-    missing_from_manifest = [
-        fn for fn in phone_pdfs.keys()
-        if normalize_key(fn) not in norm_manifest
-    ]
+    # Check if any phone PDFs are missing from manifest OR have changed size
+    missing_from_manifest = []
+    for fn, fp in phone_pdfs.items():
+        base_norm = normalize_key(fn)
+        meta = manifest.get(fn) or manifest.get(base_norm)
+        if not meta or not meta.get("url") or meta.get("status") == "pending_upload":
+            missing_from_manifest.append(fn)
+        else:
+            curr_size = os.path.getsize(fp) if os.path.exists(fp) else 0
+            if curr_size != meta.get("size"):
+                missing_from_manifest.append(fn)
 
     client = None
     if missing_from_manifest or force_refresh:
@@ -437,9 +461,15 @@ def main():
 
     for filename, file_path in phone_pdfs.items():
         base_norm = normalize_key(filename)
-        if base_norm in norm_manifest:
-            skipped_count += 1
-            continue
+        curr_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+        existing_meta = manifest.get(filename) or manifest.get(base_norm)
+
+        if existing_meta and existing_meta.get("url") and existing_meta.get("status") != "pending_upload":
+            if existing_meta.get("size") == curr_size:
+                skipped_count += 1
+                continue
+            else:
+                print(f"🔄 Detected updated document: {filename} (was {format_file_size(existing_meta.get('size', 0))}, now {format_file_size(curr_size)})")
 
         if client is None:
             client = steadylink.SteadyLink(api_key=API_KEY)
