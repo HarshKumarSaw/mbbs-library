@@ -275,7 +275,7 @@ def collect_phone_pdfs():
                     pdfs[f] = os.path.join(root, f)
     return pdfs
 
-def sync_data_js(manifest, phone_pdfs):
+def sync_data_js(manifest, phone_pdfs, quiet=False):
     """Ensure js/data.js reflects active phone PDFs with their SteadyLink CDN URLs."""
     if not os.path.exists(DATA_FILE):
         return
@@ -388,32 +388,40 @@ def sync_data_js(manifest, phone_pdfs):
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             f.write(new_content)
         print("✔ Synced js/data.js with active resources.")
-    else:
+    elif not quiet:
         print("✔ js/data.js is already up-to-date.")
 
 def main():
     quiet = "-q" in sys.argv or "--quiet" in sys.argv
+    force_refresh = "--refresh" in sys.argv or "--force" in sys.argv
     if not quiet:
         print("=" * 65)
         print("  🩺 MBBS LIBRARY ➔ STEADYLINK CLOUD ENGINE")
         print("=" * 65)
 
-    client = steadylink.SteadyLink(api_key=API_KEY)
-
-    # 1. Load manifest & bucket objects
+    # 1. Load manifest & discover phone PDFs
     manifest = load_manifest()
-    existing_bucket = get_existing_bucket_objects(client, BUCKET_ID)
-    for name, item in existing_bucket.items():
-        if name not in manifest:
-            manifest[name] = item
-    save_manifest(manifest)
-
-    # 2. Discover phone PDFs
     phone_pdfs = collect_phone_pdfs()
     if not quiet:
         print(f"📋 Found {len(phone_pdfs)} PDF document(s) on phone.")
 
     norm_manifest = {normalize_key(k): v for k, v in manifest.items() if v.get("url")}
+
+    # Check if any phone PDFs are missing from manifest
+    missing_from_manifest = [
+        fn for fn in phone_pdfs.keys()
+        if normalize_key(fn) not in norm_manifest
+    ]
+
+    client = None
+    if missing_from_manifest or force_refresh:
+        client = steadylink.SteadyLink(api_key=API_KEY)
+        existing_bucket = get_existing_bucket_objects(client, BUCKET_ID)
+        for name, item in existing_bucket.items():
+            if name not in manifest:
+                manifest[name] = item
+        save_manifest(manifest)
+        norm_manifest = {normalize_key(k): v for k, v in manifest.items() if v.get("url")}
 
     uploaded_count = 0
     skipped_count = 0
@@ -423,6 +431,9 @@ def main():
         if base_norm in norm_manifest:
             skipped_count += 1
             continue
+
+        if client is None:
+            client = steadylink.SteadyLink(api_key=API_KEY)
 
         try:
             res = upload_single_pdf_curl(client, file_path, filename)
@@ -435,7 +446,7 @@ def main():
             print(f"❌ Error uploading {filename}: {e}")
 
     # 3. Synchronize js/data.js
-    sync_data_js(manifest, phone_pdfs)
+    sync_data_js(manifest, phone_pdfs, quiet=quiet)
 
     if not quiet or uploaded_count > 0:
         print("=" * 65)
