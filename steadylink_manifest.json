@@ -226,5 +226,11 @@
     "size": 38164513,
     "filename": "AK Jain Physiology Part 3.pdf",
     "uploaded_at": "2026-11-08 17:50:37 UTC"
+  },
+  "test_download.pdf": {
+    "asset_id": "8006aa37-bac7-4368-ac0c-05c1c6e989c4",
+    "url": "https://cdn.steadylink.io/a/8006aa37-bac7-4368-ac0c-05c1c6e989c4",
+    "size": 10,
+    "status": "ready"
   }
 }
