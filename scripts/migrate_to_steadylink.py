@@ -89,8 +89,16 @@ def load_manifest():
     return {}
 
 def save_manifest(manifest):
+    new_json = json.dumps(manifest, indent=2, ensure_ascii=False)
+    if os.path.exists(MANIFEST_FILE):
+        try:
+            with open(MANIFEST_FILE, "r", encoding="utf-8") as f:
+                if f.read().strip() == new_json.strip():
+                    return
+        except Exception:
+            pass
     with open(MANIFEST_FILE, "w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=2, ensure_ascii=False)
+        f.write(new_json + "\n")
 
 def get_existing_bucket_objects(client, bucket_id):
     try:
@@ -343,9 +351,10 @@ def sync_data_js(manifest, phone_pdfs):
                 tags.append("Large Book")
                 desc = f"Uploaded document: {fname}. Comprehensive reference book ({size_disp}) hosted on GitHub Releases for high-speed direct download."
                 pages_disp = "Textbook"
-                large_meta = """
+                large_meta = """,
     isLargeFile: true,
-    storage: "github-release","""
+    storage: "github-release"
+"""
             else:
                 desc = f"Uploaded document: {fname}. Organized under {subj_disp} ({cat_disp})."
                 pages_disp = "Document"
@@ -375,10 +384,12 @@ def sync_data_js(manifest, phone_pdfs):
             parts = new_content.split(insert_marker, 1)
             new_content = parts[0] + insert_marker + "\n" + "\n".join(missing_entries) + parts[1]
 
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        f.write(new_content)
-
-    print("✔ Synced js/data.js with SteadyLink CDN resources.")
+    if new_content != content:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            f.write(new_content)
+        print("✔ Synced js/data.js with active resources.")
+    else:
+        print("✔ js/data.js is already up-to-date.")
 
 def main():
     print("=" * 65)

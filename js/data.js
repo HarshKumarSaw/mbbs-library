@@ -25,9 +25,9 @@ const MBBS_RESOURCES = [
     pages: "Textbook",
     author: "HarshKumarSaw",
     date: "09 Nov 2026",
-    year: "1st Year MBBS"
+    year: "1st Year MBBS",
     isLargeFile: true,
-    storage: "github-release",
+    storage: "github-release"
   },
   {
     id: "user-anat-upper_limb_johari_paid-4324",

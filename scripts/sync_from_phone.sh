@@ -105,13 +105,13 @@ get_canonical_name() {
     local name_no_ext="${full_name%.*}"
 
     local cleaned="$name_no_ext"
-    local prev=""
-    while [ "$cleaned" != "$prev" ]; do
-        prev="$cleaned"
-        cleaned=$(echo "$cleaned" | sed -E \
-            -e 's/[[:space:]]*\([0-9]+\)[[:space:]]*$//' \
-            -e 's/_[0-9]+$//' \
-            -e 's/[[:space:]]*-[[:space:]]*[Cc]opy[[:space:]]*$//')
+    shopt -s extglob
+    while :; do
+        local prev="$cleaned"
+        cleaned="${cleaned%%+([[:space:]])\([0-9]+\)}"
+        cleaned="${cleaned%%_[0-9]+}"
+        cleaned="${cleaned%%+([[:space:]])-[[:space:]][Cc]opy}"
+        [ "$cleaned" = "$prev" ] && break
     done
 
     echo "${cleaned}.${ext}"
@@ -313,20 +313,15 @@ get_target_phone_rel_path() {
     local name_no_ext="${canonical%.*}"
     local ext="${canonical##*.}"
 
-    local cleaned
-    cleaned=$(echo "$name_no_ext" | sed -E 's/[_\-]+/ /g; s/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//')
-
-    local first_word
-    first_word=$(echo "$cleaned" | awk '{print $1}')
-    local second_word
-    second_word=$(echo "$cleaned" | awk '{print $2}')
+    local clean_name="${name_no_ext//[_-]/ }"
+    local first_word="" second_word=""
+    read -r first_word second_word _ <<< "$clean_name"
 
     local subj_dir=""
     local sub_dir=""
 
     if [ -n "$first_word" ]; then
-        local first_l
-        first_l=$(echo "$first_word" | tr '[:upper:]' '[:lower:]')
+        local first_l="${first_word,,}"
         if [[ "$first_l" =~ ^anat ]]; then
             subj_dir="Anatomy"
         elif [[ "$first_l" =~ ^physio ]]; then
@@ -358,8 +353,7 @@ get_target_phone_rel_path() {
         return
     fi
 
-    local lower_name
-    lower_name=$(echo "$canonical" | tr '[:upper:]' '[:lower:]')
+    local lower_name="${canonical,,}"
     if [[ "$lower_name" =~ histo ]]; then
         echo "Anatomy/Histology/$canonical"
     elif [[ "$lower_name" =~ embryo ]]; then
@@ -422,6 +416,67 @@ remove_resource_by_url() {
     }
     { print }
     ' "$DATA_FILE" > "$tmp_data" && mv "$tmp_data" "$DATA_FILE"
+}
+
+# ==============================================================================
+# PERSISTENT PDF OPTIMIZATION CACHE (FAST IN-MEMORY VERIFICATION)
+# ==============================================================================
+OPT_CACHE_FILE="$REPO_DIR/.mbbs_opt_cache"
+[ -f "$OPT_CACHE_FILE" ] || touch "$OPT_CACHE_FILE"
+
+declare -A CACHED_OPTS=()
+load_opt_cache() {
+    CACHED_OPTS=()
+    [ -f "$OPT_CACHE_FILE" ] || return 0
+    while IFS='|' read -r c_path c_size c_mtime; do
+        [ -n "$c_path" ] && CACHED_OPTS["$c_path"]="$c_size|$c_mtime"
+    done < "$OPT_CACHE_FILE"
+}
+
+save_opt_cache_entry() {
+    local rel_name="$1"
+    local f_size="$2"
+    local f_mtime="$3"
+    CACHED_OPTS["$rel_name"]="$f_size|$f_mtime"
+    local tmp_cache="$TMP_DIR/opt_cache_$$.tmp"
+    grep -v -F "$rel_name|" "$OPT_CACHE_FILE" 2>/dev/null > "$tmp_cache" || true
+    echo "$rel_name|$f_size|$f_mtime" >> "$tmp_cache"
+    mv -f "$tmp_cache" "$OPT_CACHE_FILE"
+}
+
+is_pdf_already_optimized() {
+    local pdf_file="$1"
+    [ -f "$pdf_file" ] || return 0
+    local rel_name="${pdf_file#$PHONE_DIR/}"
+    local f_size
+    f_size=$(stat -c %s "$pdf_file" 2>/dev/null || wc -c < "$pdf_file")
+    local f_mtime
+    f_mtime=$(stat -c %Y "$pdf_file" 2>/dev/null || echo 0)
+
+    # 1. Fast in-memory check (0 milliseconds)
+    if [ "${CACHED_OPTS[$rel_name]:-}" = "$f_size|$f_mtime" ]; then
+        return 0
+    fi
+
+    # 2. Check if already linearized with qpdf (Fast Web View enabled)
+    if command -v qpdf >/dev/null 2>&1; then
+        if qpdf --check-linearization "$pdf_file" >/dev/null 2>&1; then
+            save_opt_cache_entry "$rel_name" "$f_size" "$f_mtime"
+            return 0
+        fi
+    fi
+
+    # 3. Check if already recorded in steadylink_manifest.json
+    if [ -f "$REPO_DIR/steadylink_manifest.json" ]; then
+        local base_fname
+        base_fname=$(basename "$pdf_file")
+        if grep -F -q "\"$base_fname\":" "$REPO_DIR/steadylink_manifest.json" 2>/dev/null; then
+            save_opt_cache_entry "$rel_name" "$f_size" "$f_mtime"
+            return 0
+        fi
+    fi
+
+    return 1
 }
 
 # ==============================================================================
@@ -536,6 +591,11 @@ optimize_pdf_file() {
         echo -e "         ${CYAN}✔ Routing directly to GitHub Releases (v1.0.0-assets)${RESET} for direct device download."
     fi
 
+    # Record in persistent optimization cache so it is never re-compressed
+    local final_mtime
+    final_mtime=$(stat -c %Y "$target_abs" 2>/dev/null || echo 0)
+    save_opt_cache_entry "${target_abs#$PHONE_DIR/}" "$final_bytes" "$final_mtime"
+
     rm -f "$tmp_gs" "$tmp_opt" "$tmp_err"
 }
 
@@ -599,6 +659,19 @@ while IFS= read -r -d '' f; do
 done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 
 declare -A SEEN_CANONICAL=()
+declare -A FILE_INSTANCES=()
+
+# Pre-group instances by canonical name in a single pass
+for cand in "${ALL_PHONE_FILES[@]}"; do
+    [ -f "$cand" ] || continue
+    cand_base=$(basename "$cand")
+    cand_canonical=$(get_canonical_name "$cand_base")
+    if [ -n "${FILE_INSTANCES[$cand_canonical]:-}" ]; then
+        FILE_INSTANCES["$cand_canonical"]="${FILE_INSTANCES[$cand_canonical]}|$cand"
+    else
+        FILE_INSTANCES["$cand_canonical"]="$cand"
+    fi
+done
 
 for file in "${ALL_PHONE_FILES[@]}"; do
     [ -f "$file" ] || continue
@@ -608,15 +681,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
     [ "${SEEN_CANONICAL[$canonical_name]:-0}" -eq 1 ] && continue
     SEEN_CANONICAL[$canonical_name]=1
 
-    matching_instances=()
-    for cand in "${ALL_PHONE_FILES[@]}"; do
-        [ -f "$cand" ] || continue
-        cand_base=$(basename "$cand")
-        cand_canonical=$(get_canonical_name "$cand_base")
-        if [ "$cand_canonical" = "$canonical_name" ]; then
-            matching_instances+=("$cand")
-        fi
-    done
+    IFS='|' read -r -a matching_instances <<< "${FILE_INSTANCES[$canonical_name]}"
 
     target_rel=$(get_target_phone_rel_path "$canonical_name")
     target_dest="$PHONE_DIR/$target_rel"
@@ -751,16 +816,21 @@ rm -f "$TMP_MANIFEST"
 # ==============================================================================
 echo -e "⚡ ${BOLD}[3/5] Synchronizing phone resources with SteadyLink CDN & GitHub Releases...${RESET}"
 
-# Optimize any new or unlinearized PDFs on phone (first compression pass)
+load_opt_cache
+
+OPT_COUNT=0
 for pf in "${ALL_PHONE_FILES[@]}"; do
     [ -f "$pf" ] || continue
     [[ "${pf,,}" == *.pdf ]] || continue
-    if command -v qpdf >/dev/null 2>&1; then
-        if ! qpdf --is-linearized "$pf" >/dev/null 2>&1; then
-            optimize_pdf_file "$pf" "$(basename "$pf")"
-        fi
+    if ! is_pdf_already_optimized "$pf"; then
+        OPT_COUNT=$((OPT_COUNT + 1))
+        optimize_pdf_file "$pf" "$(basename "$pf")"
     fi
 done
+
+if [ "$OPT_COUNT" -gt 0 ]; then
+    echo -e "   ${GREEN}✔ Optimized $OPT_COUNT new/updated document(s).${RESET}"
+fi
 
 python3 "$REPO_DIR/scripts/migrate_to_steadylink.py"
 
@@ -816,46 +886,34 @@ if [ -n "$CHANGES" ]; then
         sed -i -E "s/(data\.js|app\.min\.js|app\.js|style\.min\.css|style\.css)(\?v=[0-9]+)?/\1?v=$CACHE_BUST_VER/g" "$h_file"
     done
 
-    git add -A
-
     COMMIT_PARTS=()
-    [ "${#DELETED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("synced ${#DELETED_SUMMARY[@]} phone deletion(s)")
-    [ "$NEW_FILES_PROCESSED" -gt 0 ] && COMMIT_PARTS+=("uploaded $NEW_FILES_PROCESSED file(s)")
-    [ "${#SEED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("seeded ${#SEED_SUMMARY[@]} offline doc(s)")
+    [ "${#DELETED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("synced ${#DELETED_SUMMARY[@]} deletion(s)")
+    [ "$ORGANIZED_COUNT" -gt 0 ] && COMMIT_PARTS+=("organized $ORGANIZED_COUNT file(s)")
+    [ "$OPT_COUNT" -gt 0 ] && COMMIT_PARTS+=("optimized $OPT_COUNT new PDF(s)")
 
     COMMIT_MSG="feat(sync): $(IFS=', '; echo "${COMMIT_PARTS[*]}")"
     if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" = "feat(sync): " ]; then
         COMMIT_MSG="feat(sync): sync library resources with SteadyLink CDN"
     fi
 
-    git commit -m "$COMMIT_MSG" >/dev/null
-
+    # Append activity record to PROJECT_LOG.md BEFORE git commit
     TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
     cat << EOF >> "$LOG_FILE"
 
-### Two-Way Auto-Sync & Deletion: $TIMESTAMP
+### Two-Way Auto-Sync: $TIMESTAMP
 - **Phone Deduplication**: Resolved ${#DEDUP_SUMMARY[@]} duplicate(s)
 - **Phone Organization**: Organized $ORGANIZED_COUNT root file(s)
 - **Phone Deletions Synced to Website**: ${#DELETED_SUMMARY[@]} file(s)
+- **New PDFs Optimized**: $OPT_COUNT
+- **Total In-Sync Files**: $TOTAL_OFFLINE_FILES
 EOF
     for item in "${DELETED_SUMMARY[@]}"; do
         echo "  - $item" >> "$LOG_FILE"
     done
 
-    cat << EOF >> "$LOG_FILE"
-- **Files Uploaded / Updated from Phone**: $NEW_FILES_PROCESSED
-EOF
-    for item in "${PROCESSED_NAMES[@]}"; do
-        echo "  - $item" >> "$LOG_FILE"
-    done
-
-    cat << EOF >> "$LOG_FILE"
-- **Offline Files Seeded to Phone**: ${#SEED_SUMMARY[@]}
-- **Total In-Sync Files**: $TOTAL_OFFLINE_FILES
-EOF
-
-    git add "$LOG_FILE"
-    git commit --amend --no-edit >/dev/null 2>&1 || true
+    # Single Atomic Commit (No amend, clean Git tree)
+    git add -A
+    git commit -m "$COMMIT_MSG" >/dev/null
 fi
 
 # ==============================================================================
