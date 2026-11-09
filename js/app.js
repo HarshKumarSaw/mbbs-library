@@ -602,6 +602,19 @@
     // Present ONLY the Direct Download option (same as >100MB documents).
     const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB > 25);
 
+    let pagesDisplay = "Document";
+    if (item.pages) {
+      const pStr = String(item.pages).trim();
+      if (/^\d+$/.test(pStr)) {
+        const num = parseInt(pStr, 10);
+        pagesDisplay = `${num} Page${num === 1 ? '' : 's'}`;
+      } else {
+        pagesDisplay = pStr;
+      }
+    } else if (isLarge) {
+      pagesDisplay = "Textbook";
+    }
+
     return `
       <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
         <div class="card-header">
@@ -618,11 +631,11 @@
         <p class="card-desc">${highlightQuery(item.description, state.searchQuery)}</p>
 
         <div class="card-meta">
-          <span class="meta-item">📄 ${item.pages || (isLarge ? "Textbook" : "PDF Document")}</span>
+          <span class="meta-item">📄 ${pagesDisplay}</span>
           <span class="meta-bullet">•</span>
           <span class="meta-item">💾 ${item.fileSize}</span>
           <span class="meta-bullet">•</span>
-          <span class="meta-item">📅 ${formatResourceDate(item.date)}</span>
+          <span class="meta-item">🗓️ ${formatResourceDate(item.date)}</span>
           ${isLarge ? '<span class="meta-bullet">•</span><span class="meta-item meta-large-asset" title="Large document – direct download available">⚡ Direct Download</span>' : ''}
         </div>
 

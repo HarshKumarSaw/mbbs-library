@@ -1036,12 +1036,21 @@
 - **New PDFs Optimized**: 0
 - **Total In-Sync Files**: 25
 
-### Two-Way Auto-Sync: 2026-11-09 17:13:46 UTC
-- **Phone Deduplication**: Resolved 0 duplicate(s)
-- **Phone Organization**: Organized 0 root file(s)
-- **Phone Deletions Synced to Website**: 0 file(s)
-- **New PDFs Optimized**: 0
-- **Total In-Sync Files**: 25
+### Display Exact PDF Page Count & Update Date Icon: 2026-11-09 17:48:00 UTC
+- **User Requirement**:
+  - Replace the generic label `"Document"` / `"Textbook"` with the actual number of pages the PDF contains (e.g., `41 Pages`, `13 Pages`, `1156 Pages`).
+  - Replace the tear-off calendar icon `📅` with the spiral calendar icon `🗓️` across all resource cards.
+- **Implementation**:
+  - **Automated Page Counting**:
+    - Added `get_pdf_page_count()` in `scripts/migrate_to_steadylink.py` using `qpdf --show-npages` to automatically extract exact page counts for both newly added documents and existing records during auto-sync.
+    - Updated all 24 resource records in `js/data.js` with their verified page counts (ranging from `3 Pages` for quick review notes up to `1156 Pages` for textbooks like AK Jain Physiology).
+  - **Frontend UI & Card Rendering**:
+    - Updated `createCardHtml()` in `js/app.js` to render `📄 ${pagesDisplay}` and `🗓️ ${formatResourceDate(item.date)}`.
+    - Updated initial pre-rendered static fallback cards across `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html` with exact page counts and `🗓️`.
+  - **Asset Optimization & Cache Busting**:
+    - Recompiled production minified bundle `js/app.min.js` via `scripts/minify.py`.
+    - Updated cache-busting version query string to `?v=1794246441` across all HTML entry points.
+
 
 ### Two-Way Auto-Sync: 2026-11-09 17:30:41 UTC
 - **Phone Deduplication**: Resolved 0 duplicate(s)

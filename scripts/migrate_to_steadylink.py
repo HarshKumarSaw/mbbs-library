@@ -79,6 +79,20 @@ def detect_category(path_or_name):
         return 'books', 'Books'
     return 'other', 'Other'
 
+def get_pdf_page_count(filepath):
+    if not filepath or not os.path.exists(filepath):
+        return None
+    try:
+        out = subprocess.check_output(['qpdf', '--show-npages', filepath], stderr=subprocess.DEVNULL).decode().strip()
+        count = int(out)
+        if count == 1:
+            return "1 Page"
+        elif count > 1:
+            return f"{count} Pages"
+    except Exception:
+        pass
+    return None
+
 def load_manifest():
     if os.path.exists(MANIFEST_FILE):
         try:
@@ -339,6 +353,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         title = format_title(fname)
         f_size = os.path.getsize(fpath) if os.path.exists(fpath) else 0
         size_disp = format_file_size(f_size)
+        pages_count = get_pdf_page_count(fpath)
         f_mtime = os.path.getmtime(fpath) if os.path.exists(fpath) else time.time()
         f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
         f_updated_ts = int(f_mtime)
@@ -358,6 +373,11 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
             updated_block = re.sub(r'fileUrl:\s*"[^"]+"', f'fileUrl: "{cdn_url}"', updated_block, count=1)
             updated_block = re.sub(r'downloadUrl:\s*"[^"]+"', f'downloadUrl: "{dl_url}"', updated_block, count=1)
             updated_block = re.sub(r'fileSize:\s*"[^"]+"', f'fileSize: "{size_disp}"', updated_block, count=1)
+            if pages_count:
+                if "pages:" in updated_block:
+                    updated_block = re.sub(r'pages:\s*"[^"]+"', f'pages: "{pages_count}"', updated_block, count=1)
+                else:
+                    updated_block = re.sub(r'(fileSize:\s*"[^"]+")', rf'\1,\n    pages: "{pages_count}"', updated_block, count=1)
             updated_block = re.sub(r'date:\s*"[^"]+"', f'date: "{f_date}"', updated_block, count=1)
 
             if "updatedAt:" in updated_block:
@@ -386,14 +406,14 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
             if is_large:
                 tags.append("Large Book")
                 desc = f"Uploaded document: {fname}. Comprehensive reference book ({size_disp}) hosted on GitHub Releases for high-speed direct download."
-                pages_disp = "Textbook"
+                pages_disp = pages_count if pages_count else "Textbook"
                 large_meta = """,
     isLargeFile: true,
     storage: "github-release"
 """
             else:
                 desc = f"Uploaded document: {fname}. Organized under {subj_disp} ({cat_disp})."
-                pages_disp = "Document"
+                pages_disp = pages_count if pages_count else "Document"
                 large_meta = ""
 
             entry = f"""  {{
