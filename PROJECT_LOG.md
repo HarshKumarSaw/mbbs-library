@@ -982,3 +982,16 @@
     - `<link rel="image_src">`: `https://harshkumarsaw.github.io/mbbs-library/og-preview.jpg`
     - `twitter:image`: `https://harshkumarsaw.github.io/mbbs-library/og-preview.jpg`
     - Schema.org JSON-LD structured data image: `https://harshkumarsaw.github.io/mbbs-library/og-preview.jpg`
+
+### Online Streaming Architecture for 25MB–95MB Documents: 2026-11-09 14:40:00 UTC
+- **Problem Resolution**:
+  - Documents between 25 MB and 95 MB (e.g. *diFiore Atlas of Histology* 41.3 MB, *Anatomy Notes Johari* 52.0 MB) were showing Google Docs Viewer's hard-limit error: "Sorry, this document is too large to preview."
+- **Implementation**:
+  - Implemented `parseFileSizeMB()` in `js/app.js` to dynamically classify documents by size tier:
+    - **≤ 25 MB**: In-app modal viewer via Google Docs iframe.
+    - **25 MB – 95 MB**: High-speed native browser online streaming via `window.open(item.fileUrl, '_blank')`, plus dedicated in-modal fallback streaming prompt card with one-click "Open in Browser Reader" and "Download PDF".
+    - **≥ 95 MB**: Direct device download safeguard against mobile browser Out-Of-Memory (OOM) crashes.
+  - Added visual `.meta-stream-asset` pill (`⚡ Online Stream`) on resource cards.
+  - Added clean responsive styles in `css/style.css` for `.large-pdf-prompt-container`, `.large-pdf-prompt-card`, and prompt buttons.
+  - Rebuilt production minified bundles via `scripts/minify.py` (`style.min.css`, `app.min.js`).
+  - Updated cache-busting query strings to `?v=1794235271` across all HTML pages.

@@ -285,6 +285,23 @@
     return "Date unavailable";
   }
 
+  // Parse file size string into numeric Megabytes (e.g. "41.3 MB" -> 41.3, "960 KB" -> 0.94)
+  function parseFileSizeMB(rawSize) {
+    if (!rawSize) return 0;
+    const s = String(rawSize).trim();
+    const match = s.match(/^([\d\.]+)\s*([a-zA-Z]+)?$/);
+    if (!match) {
+      const val = parseFloat(s);
+      return isNaN(val) ? 0 : val;
+    }
+    const val = parseFloat(match[1]);
+    const unit = (match[2] || "mb").toLowerCase();
+    if (unit === "gb") return val * 1024;
+    if (unit === "kb") return val / 1024;
+    if (unit === "b" || unit === "bytes") return val / (1024 * 1024);
+    return isNaN(val) ? 0 : val;
+  }
+
   // Parse Initial URL State (Hash or Query string)
   function parseUrlParameters() {
     const params = new URLSearchParams(window.location.search);
@@ -580,7 +597,9 @@
       aetcom: "🩺"
     };
     const emoji = subjectEmojis[item.subject] || "📚";
-    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || (item.fileSize && item.fileSize.includes("MB") && parseFloat(item.fileSize) >= 95));
+    const sizeMB = parseFileSizeMB(item.fileSize);
+    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB >= 95);
+    const isMediumStream = !isLarge && sizeMB > 25;
 
     return `
       <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
@@ -603,7 +622,7 @@
           <span class="meta-item">💾 ${item.fileSize}</span>
           <span class="meta-bullet">•</span>
           <span class="meta-item">📅 ${formatResourceDate(item.date)}</span>
-          ${isLarge ? '<span class="meta-bullet">•</span><span class="meta-item meta-large-asset" title="Hosted on GitHub Releases for high-speed download">⚡ GitHub Release</span>' : ''}
+          ${isLarge ? '<span class="meta-bullet">•</span><span class="meta-item meta-large-asset" title="Hosted on GitHub Releases for high-speed download">⚡ GitHub Release</span>' : (isMediumStream ? '<span class="meta-bullet">•</span><span class="meta-item meta-stream-asset" title="Fast online web stream">⚡ Online Stream</span>' : '')}
         </div>
 
         <div class="card-actions">
@@ -1028,11 +1047,24 @@
     const item = MBBS_RESOURCES.find(r => r.id === id);
     if (!item || !DOM.pdfModal) return;
 
+    const sizeMB = parseFileSizeMB(item.fileSize);
     // For large documents (>95MB) or GitHub Release assets, trigger direct download to prevent browser OOM
-    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || (item.fileSize && item.fileSize.includes("MB") && parseFloat(item.fileSize) >= 95));
+    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB >= 95);
     if (isLarge) {
       triggerDirectDownload(item.id);
       return;
+    }
+
+    // For medium-large documents (>25MB and <95MB):
+    // Google Docs Viewer has a hard 25MB ceiling and fails with "document is too large to preview".
+    // Directly launch browser's native hardware-accelerated streaming reader tab!
+    const isMediumStream = sizeMB > 25;
+    if (isMediumStream && item.fileUrl) {
+      try {
+        window.open(item.fileUrl, "_blank", "noopener,noreferrer");
+      } catch (err) {
+        console.warn("Direct tab launch suppressed, falling back to modal prompt:", err);
+      }
     }
 
     state.activeModalResource = item;
@@ -1076,9 +1108,9 @@
     document.documentElement.classList.add("modal-open");
     document.body.style.overflow = "hidden";
 
-    // Reset and load document into PDF.js inline viewer
+    // Reset and load document into PDF.js inline viewer or stream prompt
     resetPdfViewer();
-    loadPdfDocument(item.fileUrl);
+    loadPdfDocument(item.fileUrl, item);
   }
 
   // Progressive Byte-Range Loading State & Progress Controller
@@ -1125,8 +1157,73 @@
     }, 140);
   }
 
-  // Load PDF Document via in-app embedded viewer or PDF.js streaming engine
-  function loadPdfDocument(url) {
+  // Load PDF Document via in-app embedded viewer or browser streaming prompt
+  function loadPdfDocument(url, item) {
+    item = item || state.activeModalResource || MBBS_RESOURCES.find(r => r.fileUrl === url);
+    const sizeMB = item ? parseFileSizeMB(item.fileSize) : 0;
+
+    // For documents > 25MB (up to 95MB), Google Docs Viewer rejects with "too large to preview".
+    // Render an instant high-performance online streaming prompt inside DOM.pdfViewerContainer.
+    if (sizeMB > 25 && item) {
+      stopSmoothPdfProgress();
+      hidePdfLoading();
+
+      const oldFrame = document.getElementById("pdf-embedded-frame");
+      if (oldFrame) {
+        oldFrame.src = "about:blank";
+        oldFrame.style.display = "none";
+      }
+
+      if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
+      if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
+      if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
+      if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
+      if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
+
+      let promptContainer = document.getElementById("large-pdf-reader-prompt");
+      if (!promptContainer && DOM.pdfViewerContainer) {
+        promptContainer = document.createElement("div");
+        promptContainer.id = "large-pdf-reader-prompt";
+        promptContainer.className = "large-pdf-prompt-container";
+        DOM.pdfViewerContainer.appendChild(promptContainer);
+      }
+
+      if (promptContainer) {
+        const safeTitle = escapeHtml(item.title || "Document");
+        promptContainer.innerHTML = `
+          <div class="large-pdf-prompt-card">
+            <div class="prompt-icon-badge" aria-hidden="true">📖</div>
+            <span class="prompt-stream-pill">⚡ Fast Online Web Stream</span>
+            <h3 class="prompt-heading">${safeTitle}</h3>
+            <p class="prompt-size-note">File size: <strong>${item.fileSize || "Large PDF"}</strong> • High-Yield Academic Resource</p>
+            <p class="prompt-desc">
+              This comprehensive document exceeds 25 MB and is streamed directly via your browser's native reader with hardware acceleration, instant page loading, and zero phone storage used.
+            </p>
+            <div class="prompt-btn-group">
+              <a href="${item.fileUrl}" target="_blank" rel="noopener noreferrer" class="prompt-btn-primary" id="prompt-stream-btn">
+                <span>Open in Browser Reader</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              </a>
+              <button type="button" class="prompt-btn-secondary" id="prompt-download-btn">
+                <span>Download PDF</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
+            </div>
+          </div>
+        `;
+        promptContainer.style.display = "flex";
+
+        const dlBtn = promptContainer.querySelector("#prompt-download-btn");
+        if (dlBtn) {
+          dlBtn.onclick = (e) => {
+            e.preventDefault();
+            triggerDirectDownload(item.id);
+          };
+        }
+      }
+      return;
+    }
+
     startSmoothPdfProgress();
 
     // If external CDN URL without direct CORS, embed via Google Docs Viewer for seamless in-app reading
@@ -1814,6 +1911,10 @@
     if (frame) {
       frame.src = "about:blank";
       frame.style.display = "none";
+    }
+    const promptContainer = document.getElementById("large-pdf-reader-prompt");
+    if (promptContainer) {
+      promptContainer.style.display = "none";
     }
     if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "";
     if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "";
