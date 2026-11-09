@@ -12,6 +12,23 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-ak_jain_physiology_p-4504",
+    title: "Ak Jain Physiology Practical Manual Compress",
+    subject: "physiology",
+    category: "practicals",
+    code: "Physiology / Practicals",
+    description: "Uploaded document: ak-jain-physiology-practical-manual_compress.pdf. Organized under Physiology (Practicals).",
+    tags: ["Physiology", "Practicals", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/3ccb966b-4032-417a-8a81-4c501587e563",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/ak-jain-physiology-practical-manual_compress.pdf",
+    fileSize: "8.6 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "09 Nov 2026",
+    updatedAt: 1794224461,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-difiore_atlas_of_his-4239",
     title: "Difiore Atlas Of Histology",
     subject: "anatomy",
