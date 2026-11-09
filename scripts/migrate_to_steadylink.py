@@ -170,16 +170,19 @@ def upload_large_pdf_to_github_release(file_path, filename):
                 err_msg = res.stderr.strip() or res.stdout.strip()
                 print(f"   ⚠️  gh release upload notice: {err_msg}")
         else:
-            print(f"   ⚠️  gh CLI not logged in. Run 'gh auth login' or export GITHUB_TOKEN to upload directly.")
+            print(f"   ⚠️  gh CLI not logged in. Run 'gh auth login' or export GH_TOKEN to upload {safe_filename} directly.")
     else:
         print(f"   ⚠️  gh CLI not installed. Package 'gh' can be installed via 'pkg install gh'.")
+
+    if not uploaded:
+        return None
 
     return {
         "asset_id": f"gh-release-{safe_filename}",
         "url": download_url,
         "download_url": download_url,
         "size": size,
-        "status": "ready" if uploaded else "pending_upload",
+        "status": "ready",
         "storage": "github-release",
         "is_large_file": True
     }
@@ -285,7 +288,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
 
     norm_manifest = {}
     for name, item in manifest.items():
-        if item.get("url"):
+        if item.get("url") and item.get("status") != "pending_upload":
             norm_manifest[normalize_key(name)] = item["url"]
 
     # Rewrite any existing local fileUrl to CDN link
@@ -405,7 +408,10 @@ def main():
     if not quiet:
         print(f"📋 Found {len(phone_pdfs)} PDF document(s) on phone.")
 
-    norm_manifest = {normalize_key(k): v for k, v in manifest.items() if v.get("url")}
+    norm_manifest = {
+        normalize_key(k): v for k, v in manifest.items()
+        if v.get("url") and v.get("status") != "pending_upload"
+    }
 
     # Check if any phone PDFs are missing from manifest
     missing_from_manifest = [
@@ -421,7 +427,10 @@ def main():
             if name not in manifest:
                 manifest[name] = item
         save_manifest(manifest)
-        norm_manifest = {normalize_key(k): v for k, v in manifest.items() if v.get("url")}
+        norm_manifest = {
+            normalize_key(k): v for k, v in manifest.items()
+            if v.get("url") and v.get("status") != "pending_upload"
+        }
 
     uploaded_count = 0
     skipped_count = 0

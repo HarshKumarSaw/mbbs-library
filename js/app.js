@@ -1962,15 +1962,7 @@
     const filename = `${safeTitle}.pdf`;
     const targetUrl = item.downloadUrl || item.fileUrl;
 
-    // When downloadUrl (GitHub Release attachment) is available:
-    // Navigating via window.location.href causes GitHub to return Content-Disposition: attachment.
-    // The browser stays on the current page and immediately triggers native file download to device storage.
-    if (item.downloadUrl) {
-      window.location.href = item.downloadUrl;
-      return;
-    }
-
-    // Fallback anchor trigger
+    // Trigger native direct download via invisible anchor (target="_blank" protects SPA context)
     const a = document.createElement("a");
     a.href = targetUrl;
     a.setAttribute("download", filename);
