@@ -563,13 +563,13 @@ optimize_pdf_file() {
         qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs" || true
     fi
 
-    # 95MB Large Document Guard: Bypass secondary compression and preserve high visual quality for GitHub Releases
+    # 25MB Large Document Guard: Bypass secondary compression and preserve high visual quality for GitHub Releases
     local final_bytes
     final_bytes=$(wc -c < "$target_abs")
-    if [ "$final_bytes" -ge 99614720 ]; then # 95 MB
+    if [ "$final_bytes" -ge 26214400 ]; then # 25 MB
         local final_disp
         final_disp=$(format_file_size "$final_bytes")
-        echo -e "      ${PURPLE}📦 [Large Asset Detected]:${RESET} File is ${BOLD}$final_disp${RESET} (>95MB) after first compression pass."
+        echo -e "      ${PURPLE}📦 [Large Asset Detected]:${RESET} File is ${BOLD}$final_disp${RESET} (>25MB) after first compression pass."
         echo -e "         ${GREEN}✔ Preserving high visual quality${RESET} (bypassing secondary downsampling pass)."
         echo -e "         ${CYAN}✔ Routing directly to GitHub Releases (v1.0.0-assets)${RESET} for direct device download."
     fi

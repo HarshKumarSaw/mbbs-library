@@ -996,3 +996,28 @@
     - Updated click delegation in `js/app.js` to prioritize `[data-action="download"], .btn-large-dl` before checking view triggers.
   - Rebuilt production minified bundles via `scripts/minify.py`.
   - Updated cache-busting version query string to `?v=1794236372` across all HTML files.
+
+### Storage Architecture Optimization: GitHub Releases for >25MB Files & Universal Release Downloads: 2026-11-09 15:24:00 UTC
+- **User Requirement**:
+  - Determine optimal storage strategy for files >25MB vs SteadyLink.
+  - Fix existing documents in SteadyLink >25MB by migrating them to GitHub Releases.
+  - Update sync scripts to route all future files >25MB directly to GitHub Releases.
+  - Ensure all download options across the site download from GitHub Releases regardless of file size.
+- **Analysis & Architectural Decisions**:
+  - SteadyLink CDN is optimized for in-app inline PDF previewing for documents ≤ 25MB.
+  - For files >25MB, third-party mobile webviewers (e.g. Google Docs Viewer) fail or trigger memory crashes / download loops. Hence, files >25MB should only offer direct downloading.
+  - GitHub Releases is superior for downloads: provides zero bandwidth quota limits, resumes broken downloads, serves proper `Content-Disposition: attachment`, and bypasses CDN rate limits.
+  - Files ≤ 25MB: `fileUrl` points to SteadyLink CDN for fast in-modal viewing; `downloadUrl` points to GitHub Releases for resilient, unlimited downloads.
+  - Files > 25MB: Both `fileUrl` and `downloadUrl` point to GitHub Releases with `isLargeFile: true` and `storage: "github-release"` (Direct Download only, no viewer).
+- **Asset Migration & Verification**:
+  - Verified 100% of all 23 documents exist in GitHub Release `v1.0.0-assets`.
+  - Uploaded `diFiore Atlas of Histology.pdf` (41.3 MB) and `ak-jain-physiology-practical-manual_compress.pdf` (8.6 MB) to GitHub Releases.
+  - Verified `Anatomy Notes Johari.pdf` (52.0 MB) already active in GitHub Releases.
+  - Updated `steadylink_manifest.json` and `js/data.js` to mark `diFiore` and `Johari` as `github-release` storage with direct release download URLs.
+- **Pipeline & Sync Automation Updates**:
+  - `scripts/migrate_to_steadylink.py`: Lowered large document detection cutoff from 95MB to 25MB (`25 * 1024 * 1024`), automatically routing them to GitHub Releases `v1.0.0-assets`.
+  - `scripts/sync_from_phone.sh`: Lowered asset guard cutoff from 95MB to 25MB (`26214400` bytes) to skip unnecessary secondary compression passes and route straight to release assets.
+  - `.github/workflows/sync-release-assets.yml`: Lowered SteadyLink bypass threshold to 25MB to prevent redundant SteadyLink fetching in CI.
+- **Cache-Busting & Bundle Verification**:
+  - Updated cache-busting version query string to `?v=1794237536` across all HTML entry points.
+  - Verified JS syntax and manifest integrity.

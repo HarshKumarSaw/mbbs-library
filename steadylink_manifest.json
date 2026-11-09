@@ -18,11 +18,13 @@
     "status": "ready"
   },
   "Anatomy Notes Johari.pdf": {
-    "asset_id": "304e6533-3360-4906-b086-edee6f0c2094",
-    "url": "https://cdn.steadylink.io/a/304e6533-3360-4906-b086-edee6f0c2094",
+    "asset_id": "gh-release-Anatomy_Notes_Johari.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_Notes_Johari.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_Notes_Johari.pdf",
     "size": 54495141,
-    "filename": "Anatomy Notes Johari.pdf",
-    "uploaded_at": "2026-11-09 10:33:24 UTC"
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   },
   "General Anatomy Notes Johari.pdf": {
     "asset_id": "89736d4f-da47-489c-a1ef-cbcaad3233fb",
@@ -243,11 +245,13 @@
     "is_large_file": true
   },
   "diFiore Atlas of Histology.pdf": {
-    "asset_id": "87e9b94c-fc78-4dee-8558-373dc5fcce92",
-    "url": "https://cdn.steadylink.io/a/87e9b94c-fc78-4dee-8558-373dc5fcce92",
+    "asset_id": "gh-release-diFiore_Atlas_of_Histology.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/diFiore_Atlas_of_Histology.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/diFiore_Atlas_of_Histology.pdf",
     "size": 43258724,
-    "filename": "diFiore Atlas of Histology.pdf",
-    "uploaded_at": "2026-11-09 11:37:19 UTC"
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   },
   "ak-jain-physiology-practical-manual_compress.pdf": {
     "asset_id": "3ccb966b-4032-417a-8a81-4c501587e563",

@@ -43,12 +43,12 @@ jobs:
               url = data.get('url')
               if not url:
                   continue
-              if data.get('size', 0) > 95 * 1024 * 1024:
+              if data.get('size', 0) > 25 * 1024 * 1024:
                   continue
 
               safe_filename = filename.replace(' ', '_')
               print(f'⬇️ Downloading {filename} from SteadyLink...')
-              subprocess.run(['curl', '-f', '-s', '-L', '-A', 'Mozilla/5.0', '-o', safe_filename, url], check=True)
+              subprocess.run(['curl', '-f', '-s', '-L', '--retry', '3', '-A', 'Mozilla/5.0', '-o', safe_filename, url], check=True)
               file_size = os.path.getsize(safe_filename)
               print(f'⬆️ Uploading {safe_filename} ({file_size} bytes) to release v1.0.0-assets...')
               subprocess.run(['gh', 'release', 'upload', 'v1.0.0-assets', safe_filename, '--clobber'], check=True)

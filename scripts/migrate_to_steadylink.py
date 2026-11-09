@@ -122,13 +122,13 @@ def get_existing_bucket_objects(client, bucket_id):
 
 def upload_large_pdf_to_github_release(file_path, filename):
     """
-    Directly uploads large documents (>95MB) to GitHub Releases (v1.0.0-assets).
+    Directly uploads large documents (>25MB) to GitHub Releases (v1.0.0-assets).
     Preserves document quality without aggressive secondary downsampling.
     """
     safe_filename = filename.replace(' ', '_')
     size = os.path.getsize(file_path)
     size_str = format_file_size(size)
-    print(f"\n📦 Large Document (>95MB) detected: {filename} ({size_str})")
+    print(f"\n📦 Large Document (>25MB) detected: {filename} ({size_str})")
     print(f"   🚀 Routing directly to GitHub Releases (v1.0.0-assets)...")
 
     release_tag = "v1.0.0-assets"
@@ -189,7 +189,7 @@ def upload_large_pdf_to_github_release(file_path, filename):
 
 def upload_single_pdf_curl(client, file_path, filename, retries=3):
     size = os.path.getsize(file_path)
-    if size > 95 * 1024 * 1024:
+    if size > 25 * 1024 * 1024:
         return upload_large_pdf_to_github_release(file_path, filename)
 
     print(f"\n📦 Preparing upload: {filename} ({format_file_size(size)})...")
@@ -365,7 +365,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
             else:
                 updated_block = re.sub(r'(date:\s*"[^"]+")', rf'\1,\n    updatedAt: {f_updated_ts}', updated_block, count=1)
 
-            is_large = (f_size >= 95 * 1024 * 1024) or (meta.get("storage") == "github-release")
+            is_large = (f_size >= 25 * 1024 * 1024) or (meta.get("storage") == "github-release")
             if is_large:
                 if "isLargeFile" not in updated_block:
                     updated_block = re.sub(r'(\n\s*year:\s*"[^"]+")', r'\1,\n    isLargeFile: true,\n    storage: "github-release"', updated_block)
@@ -380,8 +380,8 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
             safe_slug = re.sub(r'[^a-z0-9]', '_', fname.lower()).strip('_')
             uid = f"user-{subj_id[:4]}-{safe_slug[:20]}-{int(time.time()) % 10000:04d}"
 
-            # Check if large document (>95MB) or hosted on GitHub Releases
-            is_large = (f_size >= 95 * 1024 * 1024) or (meta.get("storage") == "github-release")
+            # Check if large document (>25MB) or hosted on GitHub Releases
+            is_large = (f_size >= 25 * 1024 * 1024) or (meta.get("storage") == "github-release")
             tags = [subj_disp, cat_disp, "Mobile Upload"]
             if is_large:
                 tags.append("Large Book")
