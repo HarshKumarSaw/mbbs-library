@@ -3,9 +3,9 @@
   "name": "Harsh's Library – MBBS Study Resources",
   "short_name": "Harsh's Library",
   "description": "A free collection of MBBS study materials, notes, textbooks and PDFs, organised for easy access.",
-  "start_url": "./index.html",
-  "scope": "./",
-  "id": "harsh-mbbs-library-app",
+  "id": "/mbbs-library/",
+  "start_url": "/mbbs-library/",
+  "scope": "/mbbs-library/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#FAF8F4",
@@ -19,25 +19,25 @@
   ],
   "icons": [
     {
-      "src": "assets/icons/icon-192x192.png",
+      "src": "/mbbs-library/assets/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-512x512.png",
+      "src": "/mbbs-library/assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-maskable-192x192.png",
+      "src": "/mbbs-library/assets/icons/icon-maskable-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "assets/icons/icon-maskable-512x512.png",
+      "src": "/mbbs-library/assets/icons/icon-maskable-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -48,10 +48,10 @@
       "name": "Anatomy Department",
       "short_name": "Anatomy",
       "description": "Gross anatomy, histology slides, neuroanatomy and embryology notes",
-      "url": "./anatomy.html",
+      "url": "/mbbs-library/anatomy.html",
       "icons": [
         {
-          "src": "assets/icons/icon-192x192.png",
+          "src": "/mbbs-library/assets/icons/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -60,10 +60,10 @@
       "name": "Physiology Department",
       "short_name": "Physiology",
       "description": "Cardiovascular, respiratory, hematology and clinical cases",
-      "url": "./physiology.html",
+      "url": "/mbbs-library/physiology.html",
       "icons": [
         {
-          "src": "assets/icons/icon-192x192.png",
+          "src": "/mbbs-library/assets/icons/icon-192x192.png",
           "sizes": "192x192"
         }
       ]
@@ -72,10 +72,10 @@
       "name": "Biochemistry Department",
       "short_name": "Biochemistry",
       "description": "Metabolic pathways, genetics and clinical enzymology",
-      "url": "./biochemistry.html",
+      "url": "/mbbs-library/biochemistry.html",
       "icons": [
         {
-          "src": "assets/icons/icon-192x192.png",
+          "src": "/mbbs-library/assets/icons/icon-192x192.png",
           "sizes": "192x192"
         }
       ]

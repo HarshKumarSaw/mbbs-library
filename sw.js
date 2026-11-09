@@ -1,48 +1,69 @@
 /**
  * Harsh's Library Service Worker
+ * Fully compliant with Google Chrome PWA / WebAPK standards & GitHub Pages subpaths.
+ *
  * Strategy:
- *  - Network-First with Cache Fallback for Navigation/HTML requests (ensures latest content)
+ *  - Network-First with Cache Fallback for Navigation/HTML requests
  *  - Stale-While-Revalidate for CSS, JS, Fonts, and Icons (instant 0ms launch speed)
- *  - Network-Only for dynamic PDF streaming/downloads
+ *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.0.0';
+const CACHE_NAME = 'harsh-library-v1.0.2';
 
-const PRECACHE_ASSETS = [
-  './',
-  './index.html',
-  './anatomy.html',
-  './physiology.html',
-  './biochemistry.html',
-  './404.html',
-  './manifest.webmanifest',
-  './css/style.min.css',
-  './css/style.css',
-  './js/data.js',
-  './js/app.min.js',
-  './js/app.js',
-  './js/vendor/pdf.min.js',
-  './js/vendor/pdf.worker.min.js',
-  './assets/fonts/outfit.woff2',
-  './assets/fonts/plus-jakarta-sans.woff2',
-  './navbar-logo.webp',
-  './navbar-logo.png',
-  './favicon.ico',
-  './favicon-192x192.png',
-  './assets/icons/icon-192x192.png',
-  './assets/icons/icon-512x512.png',
-  './assets/icons/icon-maskable-192x192.png',
-  './assets/icons/icon-maskable-512x512.png'
+// Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
+const getBasePath = () => {
+  if (self.registration && self.registration.scope) {
+    try {
+      const p = new URL(self.registration.scope).pathname;
+      return p.endsWith('/') ? p : p + '/';
+    } catch (_) {}
+  }
+  return '/mbbs-library/';
+};
+
+const BASE = getBasePath();
+
+// Relative asset list resolved against the base subpath
+const RELATIVE_ASSETS = [
+  '',
+  'index.html',
+  'anatomy.html',
+  'physiology.html',
+  'biochemistry.html',
+  '404.html',
+  'manifest.json',
+  'manifest.webmanifest',
+  'css/style.min.css',
+  'css/style.css',
+  'js/data.js',
+  'js/app.min.js',
+  'js/app.js',
+  'js/pwa.js',
+  'js/vendor/pdf.min.js',
+  'js/vendor/pdf.worker.min.js',
+  'assets/fonts/outfit.woff2',
+  'assets/fonts/plus-jakarta-sans.woff2',
+  'navbar-logo.webp',
+  'navbar-logo.png',
+  'favicon.ico',
+  'favicon-192x192.png',
+  'assets/icons/icon-192x192.png',
+  'assets/icons/icon-512x512.png',
+  'assets/icons/icon-maskable-192x192.png',
+  'assets/icons/icon-maskable-512x512.png'
 ];
+
+const PRECACHE_URLS = RELATIVE_ASSETS.map((asset) => {
+  return new URL(asset, self.registration.scope).href;
+});
 
 // Installation: Cache core app shell
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Use individual requests to prevent one failing asset from aborting the whole precache
       return Promise.allSettled(
-        PRECACHE_ASSETS.map((url) =>
+        PRECACHE_URLS.map((url) =>
           cache.add(new Request(url, { cache: 'reload' })).catch((err) => {
             console.warn('[SW] Precache skipped for:', url, err);
           })
@@ -55,16 +76,19 @@ self.addEventListener('install', (event) => {
 // Activation: Clean up older cache versions and claim immediate client control
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[SW] Purging deprecated cache:', key);
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) => {
+        return Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) {
+              console.log('[SW] Purging deprecated cache:', key);
+              return caches.delete(key);
+            }
+          })
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
@@ -76,7 +100,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
 
-  // Skip cross-origin PDF downloads or SteadyLink / GitHub Releases from service worker cache
+  // Skip cross-origin PDF downloads or external resources
   if (url.origin !== self.location.origin) {
     return;
   }
@@ -95,16 +119,24 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cachedResponse = await caches.match(request);
           if (cachedResponse) return cachedResponse;
-          // Fallback to cached index.html or 404.html
-          return caches.match('./index.html') || caches.match('./404.html');
+
+          // Try exact matches for start_url or home
+          const startUrlMatch = await caches.match(new URL('', self.registration.scope).href);
+          if (startUrlMatch) return startUrlMatch;
+
+          const indexMatch = await caches.match(new URL('index.html', self.registration.scope).href);
+          if (indexMatch) return indexMatch;
+
+          return caches.match(new URL('404.html', self.registration.scope).href);
         })
     );
     return;
   }
 
   // 2. Static Assets (CSS, JS, Fonts, Images, Icons): Stale-While-Revalidate
-  const isStaticAsset =
-    url.pathname.match(/\.(css|js|woff2?|png|jpe?g|webp|ico|svg|json|webmanifest)$/i);
+  const isStaticAsset = url.pathname.match(
+    /\.(css|js|woff2?|png|jpe?g|webp|ico|svg|json|webmanifest)$/i
+  );
 
   if (isStaticAsset) {
     event.respondWith(
@@ -117,9 +149,7 @@ self.addEventListener('fetch', (event) => {
             }
             return networkResponse;
           })
-          .catch(() => {
-            // Network failure is fine for stale-while-revalidate if cache exists
-          });
+          .catch(() => {});
 
         return cachedResponse || fetchPromise;
       })

@@ -16,8 +16,12 @@
   // 1. Service Worker Registration
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
+      const isRepo = window.location.pathname.startsWith('/mbbs-library/');
+      const swUrl = isRepo ? '/mbbs-library/sw.js' : './sw.js';
+      const swScope = isRepo ? '/mbbs-library/' : './';
+
       navigator.serviceWorker
-        .register('./sw.js')
+        .register(swUrl, { scope: swScope })
         .then((reg) => {
           // Check for worker updates
           reg.addEventListener('updatefound', () => {
