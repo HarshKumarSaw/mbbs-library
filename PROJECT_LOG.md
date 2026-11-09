@@ -936,3 +936,15 @@
     - `og:image:type`, `og:image:width` (1200), `og:image:height` (630), and accessible `og:image:alt`.
   - Added Twitter Card metadata with `twitter:card` set to `summary_large_image` for large rich media cards.
   - Synchronized Schema.org JSON-LD structured data (`WebSite`, `CollectionPage`, `MedicalWebPage`) with matching banner image and descriptions.
+
+### WhatsApp Link Preview Resolution & Asset Optimization: 2026-11-09 12:35:00 UTC
+- **Root Cause Identified**:
+  - Live GitHub Pages `og-image.png` was 828.7 KB, well above WhatsApp's strict 300 KB crawler payload cutoff, causing WhatsApp to drop preview image downloads.
+  - Stale preview caching on WhatsApp crawler servers persisted previous failed attempts.
+- **Fixes Applied**:
+  - Optimized `og-image.png` from 828.7 KB down to 154 KB (well under the 600 KB & 300 KB limits) with visually lossless adaptive palette quantizing (PSNR ~39 dB).
+  - Optimized `og-image.jpg` down to 118 KB at quality 92 (PSNR ~43 dB).
+  - Added cache-busting query parameter `?v=2` across all `og:image`, `og:image:secure_url`, `<link rel="image_src">`, and `twitter:image` tags to invalidate stale crawler caches.
+  - Added `prefix="og: https://ogp.me/ns#"` on `<html>` across all HTML pages for strict RDFa/OG compliance.
+  - Added `<link rel="image_src">` fallback for legacy mobile/WhatsApp clients.
+  - Explicitly whitelisted `facebookexternalhit`, `WhatsApp`, `Twitterbot`, and `TelegramBot` in `robots.txt`.
