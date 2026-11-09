@@ -232,5 +232,14 @@
     "url": "https://cdn.steadylink.io/a/8006aa37-bac7-4368-ac0c-05c1c6e989c4",
     "size": 10,
     "status": "ready"
+  },
+  "AK Jain Physiology.pdf": {
+    "asset_id": "gh-release-AK_Jain_Physiology.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/AK_Jain_Physiology.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/AK_Jain_Physiology.pdf",
+    "size": 222364526,
+    "status": "pending_upload",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }

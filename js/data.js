@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-ak_jain_physiology_p-8261",
+    title: "Ak Jain Physiology",
+    subject: "physiology",
+    category: "books",
+    code: "Physiology / Books",
+    description: "Uploaded document: AK Jain Physiology.pdf. Comprehensive reference book (212.1 MB) hosted on GitHub Releases for high-speed direct download.",
+    tags: ["Physiology", "Books", "Mobile Upload", "Large Book"],
+    fileUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/AK_Jain_Physiology.pdf",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/AK_Jain_Physiology.pdf",
+    fileSize: "212.1 MB",
+    pages: "Textbook",
+    author: "HarshKumarSaw",
+    date: "09 Nov 2026",
+    year: "1st Year MBBS"
+    isLargeFile: true,
+    storage: "github-release",
+  },
+  {
     id: "user-anat-upper_limb_johari_paid-4324",
     title: "Upper Limb Johari Paid",
     subject: "anatomy",
