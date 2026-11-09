@@ -919,3 +919,20 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 23
+
+### High-Resolution Open Graph & Twitter Card Social Sharing Infrastructure: 2026-11-09 12:15:00 UTC
+- **Social Media Link Preview Overhaul**:
+  - Generated professional, academic preview banner (`1200x630` px, 1.91:1 standard aspect ratio) formatted for WhatsApp, Telegram, Facebook, Twitter/X, and LinkedIn link unfurling.
+  - Exported both `og-image.png` (high fidelity) and `og-image.jpg` (lightweight, rapid crawler loading) directly in web root.
+- **Static HTML Source Metadata Synchronization**:
+  - Implemented complete static Open Graph metadata across all site pages (`index.html`, `anatomy.html`, `physiology.html`, `biochemistry.html`, `404.html`):
+    - `og:site_name`: "Harsh's Library"
+    - `og:type`: "website"
+    - `og:locale`: "en_IN"
+    - `og:title`: Standard site title "Harsh's Library – MBBS Study Resources" and tailored department titles.
+    - `og:description`: Standard site description "A free collection of MBBS study materials, notes, textbooks and PDFs, organised for easy access." and subject-specific descriptions.
+    - `og:url`: Absolute canonical page URLs on GitHub Pages.
+    - `og:image` & `og:image:secure_url`: `https://harshkumarsaw.github.io/mbbs-library/og-image.png`
+    - `og:image:type`, `og:image:width` (1200), `og:image:height` (630), and accessible `og:image:alt`.
+  - Added Twitter Card metadata with `twitter:card` set to `summary_large_image` for large rich media cards.
+  - Synchronized Schema.org JSON-LD structured data (`WebSite`, `CollectionPage`, `MedicalWebPage`) with matching banner image and descriptions.
