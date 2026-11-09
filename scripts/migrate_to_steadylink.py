@@ -341,6 +341,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         size_disp = format_file_size(f_size)
         f_mtime = os.path.getmtime(fpath) if os.path.exists(fpath) else time.time()
         f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
+        f_updated_ts = int(f_mtime)
         safe_fname = fname.replace(' ', '_')
         dl_url = meta.get("download_url") or f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
 
@@ -358,6 +359,11 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
             updated_block = re.sub(r'downloadUrl:\s*"[^"]+"', f'downloadUrl: "{dl_url}"', updated_block, count=1)
             updated_block = re.sub(r'fileSize:\s*"[^"]+"', f'fileSize: "{size_disp}"', updated_block, count=1)
             updated_block = re.sub(r'date:\s*"[^"]+"', f'date: "{f_date}"', updated_block, count=1)
+
+            if "updatedAt:" in updated_block:
+                updated_block = re.sub(r'updatedAt:\s*\d+', f'updatedAt: {f_updated_ts}', updated_block, count=1)
+            else:
+                updated_block = re.sub(r'(date:\s*"[^"]+")', rf'\1,\n    updatedAt: {f_updated_ts}', updated_block, count=1)
 
             is_large = (f_size >= 95 * 1024 * 1024) or (meta.get("storage") == "github-release")
             if is_large:
@@ -404,6 +410,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
     pages: "{pages_disp}",
     author: "HarshKumarSaw",
     date: "{f_date}",
+    updatedAt: {f_updated_ts},
     year: "1st Year MBBS"{large_meta}
   }},"""
             missing_entries.append(entry)
@@ -413,6 +420,39 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         if insert_marker in new_content:
             parts = new_content.split(insert_marker, 1)
             new_content = parts[0] + insert_marker + "\n" + "\n".join(missing_entries) + parts[1]
+
+    # Re-sort all auto-synced resources from newest to oldest by updated date / timestamp
+    start_marker = "// __AUTO_RESOURCES_START__"
+    end_marker = "// __AUTO_RESOURCES_END__"
+    if start_marker in new_content and end_marker in new_content:
+        pre, rest = new_content.split(start_marker, 1)
+        mid, post = rest.split(end_marker, 1)
+
+        blocks = [b.group(1).strip() for b in re.finditer(r'(\{\s*id:\s*"[^"]+"[^{}]*?\})', mid)]
+
+        def block_sort_key(b):
+            m_up = re.search(r'updatedAt:\s*(\d+)', b)
+            if m_up:
+                return int(m_up.group(1))
+            m_d = re.search(r'date:\s*"([^"]+)"', b)
+            if m_d:
+                try:
+                    return int(time.mktime(time.strptime(m_d.group(1), "%d %b %Y")))
+                except Exception:
+                    pass
+            return 0
+
+        blocks.sort(key=block_sort_key, reverse=True)
+
+        formatted_blocks = []
+        for b in blocks:
+            lines = b.splitlines()
+            if lines and not lines[0].startswith("  "):
+                lines[0] = "  " + lines[0]
+            formatted_blocks.append("\n".join(lines))
+
+        sorted_mid = "\n" + ",\n".join(formatted_blocks) + ",\n  "
+        new_content = pre + start_marker + sorted_mid + end_marker + post
 
     if new_content != content:
         with open(DATA_FILE, "w", encoding="utf-8") as f:

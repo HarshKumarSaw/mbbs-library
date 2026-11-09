@@ -101,7 +101,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1794221789">
+  <link rel="stylesheet" href="css/style.min.css?v=1794223094">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -246,7 +246,23 @@
         
         <!-- Results Counter & Info Bar -->
         <div class="results-info-bar">
-          <div class="results-count" id="results-count">Showing all 9 MBBS study resources</div>
+          <div class="results-count" id="results-count">Showing all 21 MBBS study resources</div>
+          <div class="results-sort-wrap">
+            <label for="sort-select" class="sort-label">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="6" y1="12" x2="18" y2="12"></line>
+                <line x1="9" y1="18" x2="15" y2="18"></line>
+              </svg>
+              <span>Sort:</span>
+            </label>
+            <select id="sort-select" class="sort-select" aria-label="Sort documents">
+              <option value="updated-desc" selected>Newest Updated</option>
+              <option value="updated-asc">Oldest Updated</option>
+              <option value="title-asc">Title (A to Z)</option>
+              <option value="title-desc">Title (Z to A)</option>
+            </select>
+          </div>
         </div>
 
         <!-- Resource Cards Grid (Static crawlable HTML for search engine indexing; dynamic client-side filtering via JS) -->
@@ -578,6 +594,20 @@
             <!-- Populated dynamically via JS -->
           </div>
         </div>
+
+        <!-- Sort Order Section -->
+        <div class="filter-group">
+          <div class="filter-group-header">
+            <span class="filter-group-label">Sort Order</span>
+            <span class="filter-group-hint">Arrange document list</span>
+          </div>
+          <select id="modal-sort-select" class="sort-select modal-sort-select" aria-label="Sort order">
+            <option value="updated-desc" selected>Newest Updated (Default)</option>
+            <option value="updated-asc">Oldest Updated</option>
+            <option value="title-asc">Title (A to Z)</option>
+            <option value="title-desc">Title (Z to A)</option>
+          </select>
+        </div>
       </div>
 
       <div class="filter-modal-footer">
@@ -703,7 +733,7 @@
     </div>
   </footer>
 
-  <script src="js/data.js?v=1794221789"></script>
-  <script src="js/app.min.js?v=1794221789"></script>
+  <script src="js/data.js?v=1794223094"></script>
+  <script src="js/app.min.js?v=1794223094"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@
     selectedSubject: "all",
     selectedCategory: "all",
     searchQuery: "",
+    sortBy: "updated-desc", // Default: Newest updated date to oldest
     favorites: new Set(),
     activeModalResource: null,
     // Lazy loading & pagination state
@@ -121,6 +122,9 @@
     statAnatomy: document.getElementById("stat-anatomy"),
     statPhysiology: document.getElementById("stat-physiology"),
     statBiochem: document.getElementById("stat-biochem"),
+    // Sorting controls
+    sortSelect: document.getElementById("sort-select"),
+    modalSortSelect: document.getElementById("modal-sort-select"),
     // Filter Modal & Toggle Elements
     filterToggleBtn: document.getElementById("filter-toggle-btn"),
     filterBadge: document.getElementById("filter-badge"),
@@ -148,9 +152,59 @@
     share: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`
   };
 
+  // Get epoch timestamp (ms) for document date sorting
+  function getResourceUpdatedTime(item) {
+    if (!item) return 0;
+    if (typeof item.updatedAt === "number") {
+      return item.updatedAt > 1e11 ? item.updatedAt : item.updatedAt * 1000;
+    }
+    if (item.updatedAt) {
+      const parsed = Date.parse(item.updatedAt);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    if (item.date) {
+      const parsed = Date.parse(item.date);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    return 0;
+  }
+
+  // Sort resources by chosen criteria (Default: Newest updated date to oldest)
+  function sortResources(list, sortBy = state.sortBy || "updated-desc") {
+    return [...list].sort((a, b) => {
+      if (sortBy === "updated-desc") {
+        const timeA = getResourceUpdatedTime(a);
+        const timeB = getResourceUpdatedTime(b);
+        if (timeB !== timeA) return timeB - timeA; // Newest first
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      if (sortBy === "updated-asc") {
+        const timeA = getResourceUpdatedTime(a);
+        const timeB = getResourceUpdatedTime(b);
+        if (timeA !== timeB) return timeA - timeB; // Oldest first
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      if (sortBy === "title-asc") {
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      if (sortBy === "title-desc") {
+        return (b.title || "").localeCompare(a.title || "");
+      }
+      return 0;
+    });
+  }
+
   // Initialize
   function init() {
     loadFavorites();
+    if (typeof MBBS_RESOURCES !== "undefined" && Array.isArray(MBBS_RESOURCES)) {
+      MBBS_RESOURCES.sort((a, b) => {
+        const timeA = getResourceUpdatedTime(a);
+        const timeB = getResourceUpdatedTime(b);
+        if (timeB !== timeA) return timeB - timeA;
+        return (a.title || "").localeCompare(b.title || "");
+      });
+    }
     parseUrlParameters();
     renderSubjectPills();
     renderCategoryPills();
@@ -457,7 +511,7 @@
       return true;
     });
 
-    state.filteredResources = filtered;
+    state.filteredResources = sortResources(filtered, state.sortBy);
     state.displayedCount = 0;
 
     initLazyGrid();
@@ -715,7 +769,8 @@
 
   // Backwards-compatible Render Cards Helper
   function renderCards(list) {
-    state.filteredResources = Array.isArray(list) ? list : MBBS_RESOURCES;
+    const rawList = Array.isArray(list) ? list : MBBS_RESOURCES;
+    state.filteredResources = sortResources(rawList, state.sortBy);
     state.displayedCount = 0;
     initLazyGrid();
   }
@@ -2112,6 +2167,25 @@
         }
       });
     });
+
+    // Sorting controls (Desktop & Mobile toolbar + Filter modal)
+    if (DOM.sortSelect) {
+      DOM.sortSelect.value = state.sortBy;
+      DOM.sortSelect.addEventListener("change", (e) => {
+        state.sortBy = e.target.value;
+        if (DOM.modalSortSelect) DOM.modalSortSelect.value = state.sortBy;
+        applyFilterAndRender();
+      });
+    }
+
+    if (DOM.modalSortSelect) {
+      DOM.modalSortSelect.value = state.sortBy;
+      DOM.modalSortSelect.addEventListener("change", (e) => {
+        state.sortBy = e.target.value;
+        if (DOM.sortSelect) DOM.sortSelect.value = state.sortBy;
+        applyFilterAndRender();
+      });
+    }
 
     // Subject quick cards click (in Hero / Showcase section)
     document.querySelectorAll("[data-navigate-subject]").forEach(elem => {

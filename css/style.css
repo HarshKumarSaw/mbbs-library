@@ -2159,6 +2159,64 @@ textarea,
   font-weight: 800;
 }
 
+/* Sorting Controls (Desktop & Mobile) */
+.results-sort-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.sort-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sort-label svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.sort-select {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text-headline);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: var(--radius-pill, 9999px);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sort-select:hover {
+  border-color: #94A3B8;
+}
+
+.sort-select:focus {
+  border-color: var(--primary-color, #3B82F6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.modal-sort-select {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  border-radius: var(--radius-md, 12px);
+  margin-top: 0.35rem;
+  background: var(--bg-surface, #F8FAFC);
+}
+
 /* Subtle educational subject status dots in results counter */
 .page-anatomy .results-count::before,
 .page-physiology .results-count::before,
