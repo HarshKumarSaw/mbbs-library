@@ -12,6 +12,23 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-difiore_atlas_of_his-4239",
+    title: "Difiore Atlas Of Histology",
+    subject: "anatomy",
+    category: "histology",
+    code: "Anatomy / Histology",
+    description: "Uploaded document: diFiore Atlas of Histology.pdf. Organized under Anatomy (Histology).",
+    tags: ["Anatomy", "Histology", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/87e9b94c-fc78-4dee-8558-373dc5fcce92",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/diFiore_Atlas_of_Histology.pdf",
+    fileSize: "41.3 MB",
+    pages: "Document",
+    author: "HarshKumarSaw",
+    date: "09 Nov 2026",
+    updatedAt: 1794223998,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_assignment-0203",
     title: "Physiology Assignment",
     subject: "physiology",

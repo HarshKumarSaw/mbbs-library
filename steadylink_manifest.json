@@ -241,5 +241,12 @@
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
+  },
+  "diFiore Atlas of Histology.pdf": {
+    "asset_id": "87e9b94c-fc78-4dee-8558-373dc5fcce92",
+    "url": "https://cdn.steadylink.io/a/87e9b94c-fc78-4dee-8558-373dc5fcce92",
+    "size": 43258724,
+    "filename": "diFiore Atlas of Histology.pdf",
+    "uploaded_at": "2026-11-09 11:37:19 UTC"
   }
 }
