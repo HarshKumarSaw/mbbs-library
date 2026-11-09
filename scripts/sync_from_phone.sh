@@ -237,8 +237,7 @@ repo_to_phone_path() {
     local top="${parts[0]}"
     local phone_subj
     phone_subj=$(get_phone_subject_name "$top")
-    local raw_base
-    raw_base=$(basename "$repo_url")
+    local raw_base="${repo_url##*/}"
     local phone_fname
     phone_fname="$(format_display "$raw_base").pdf"
     if [ "$num" -ge 3 ]; then
@@ -283,8 +282,9 @@ find_matching_subfolder() {
     for d in "$parent_dir"/*/; do
         [ -d "$d" ] || continue
         [ -n "$(find "$d" -type f ! -name ".*" -print -quit 2>/dev/null)" ] || continue
-        local dname=$(basename "$d")
-        local dname_l=$(echo "$dname" | tr '[:upper:]' '[:lower:]')
+        local trimmed_d="${d%/}"
+        local dname="${trimmed_d##*/}"
+        local dname_l="${dname,,}"
         if [ "$dname_l" = "$word_l" ]; then
             echo "$dname"
             return 0
@@ -294,8 +294,9 @@ find_matching_subfolder() {
     for d in "$parent_dir"/*/; do
         [ -d "$d" ] || continue
         [ -n "$(find "$d" -type f ! -name ".*" -print -quit 2>/dev/null)" ] || continue
-        local dname=$(basename "$d")
-        local dname_l=$(echo "$dname" | tr '[:upper:]' '[:lower:]')
+        local trimmed_d="${d%/}"
+        local dname="${trimmed_d##*/}"
+        local dname_l="${dname,,}"
         local d_stem="${dname_l%s}"
         if [ -n "$stem" ] && [ "$d_stem" = "$stem" ]; then
             echo "$dname"
@@ -468,8 +469,7 @@ is_pdf_already_optimized() {
 
     # 3. Check if already recorded in steadylink_manifest.json
     if [ -f "$REPO_DIR/steadylink_manifest.json" ]; then
-        local base_fname
-        base_fname=$(basename "$pdf_file")
+        local base_fname="${pdf_file##*/}"
         if grep -F -q "\"$base_fname\":" "$REPO_DIR/steadylink_manifest.json" 2>/dev/null; then
             save_opt_cache_entry "$rel_name" "$f_size" "$f_mtime"
             return 0
@@ -484,7 +484,7 @@ is_pdf_already_optimized() {
 # ==============================================================================
 optimize_pdf_file() {
     local target_abs="$1"
-    local display_name="${2:-$(basename "$target_abs")}"
+    local display_name="${2:-${target_abs##*/}}"
     local orig_file="${3:-}"
 
     command -v gs >/dev/null 2>&1 || return 0
@@ -612,8 +612,8 @@ done < <(find "$PHONE_DIR" -type f ! -name ".*" -print0)
 DEDUP_SUMMARY=()
 for file in "${ALL_PHONE_FILES[@]}"; do
     [ -f "$file" ] || continue
-    base_name=$(basename "$file")
-    dir_name=$(dirname "$file")
+    base_name="${file##*/}"
+    dir_name="${file%/*}"
     canonical_name=$(get_canonical_name "$base_name")
 
     if [ "$base_name" != "$canonical_name" ]; then
@@ -624,7 +624,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             IFS='/' read -r -a dir_parts <<< "$rel_dir"
             if [ "${#dir_parts[@]}" -lt 2 ]; then
                 for pf in "${ALL_PHONE_FILES[@]}"; do
-                    if [ "$(basename "$pf")" = "$canonical_name" ] && [ -f "$pf" ]; then
+                    if [ "${pf##*/}" = "$canonical_name" ] && [ -f "$pf" ]; then
                         target_path="$pf"
                         break
                     fi
@@ -664,7 +664,7 @@ declare -A FILE_INSTANCES=()
 # Pre-group instances by canonical name in a single pass
 for cand in "${ALL_PHONE_FILES[@]}"; do
     [ -f "$cand" ] || continue
-    cand_base=$(basename "$cand")
+    cand_base="${cand##*/}"
     cand_canonical=$(get_canonical_name "$cand_base")
     if [ -n "${FILE_INSTANCES[$cand_canonical]:-}" ]; then
         FILE_INSTANCES["$cand_canonical"]="${FILE_INSTANCES[$cand_canonical]}|$cand"
@@ -675,7 +675,7 @@ done
 
 for file in "${ALL_PHONE_FILES[@]}"; do
     [ -f "$file" ] || continue
-    base_name=$(basename "$file")
+    base_name="${file##*/}"
     canonical_name=$(get_canonical_name "$base_name")
 
     [ "${SEEN_CANONICAL[$canonical_name]:-0}" -eq 1 ] && continue
@@ -705,7 +705,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             target_dest="$preferred_subfolder_inst"
             target_rel="${target_dest#$PHONE_DIR/}"
         fi
-        mkdir -p "$(dirname "$target_dest")"
+        mkdir -p "${target_dest%/*}"
 
         best_file=""
         best_mtime=-1
@@ -732,7 +732,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         if [ -n "$best_file" ] && [ "$best_file" != "$target_dest" ]; then
             mv -f "$best_file" "$target_dest"
             ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
-            ORGANIZED_SUMMARY+=("$canonical_name ➔ $(dirname "$target_rel")/")
+            ORGANIZED_SUMMARY+=("$canonical_name ➔ ${target_rel%/*}/")
         fi
 
         for inst in "${matching_instances[@]}"; do
@@ -750,7 +750,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
             continue
         fi
 
-        mkdir -p "$(dirname "$target_dest")"
+        mkdir -p "${target_dest%/*}"
         if [ "$single_file" != "$target_dest" ]; then
             if [ -f "$target_dest" ]; then
                 file_mtime=$(stat -c %Y "$single_file" 2>/dev/null || echo 0)
@@ -764,7 +764,7 @@ for file in "${ALL_PHONE_FILES[@]}"; do
                 mv "$single_file" "$target_dest"
             fi
             ORGANIZED_COUNT=$((ORGANIZED_COUNT + 1))
-            ORGANIZED_SUMMARY+=("$canonical_name ➔ $(dirname "$target_rel")/")
+            ORGANIZED_SUMMARY+=("$canonical_name ➔ ${target_rel%/*}/")
         fi
     fi
 done
@@ -824,7 +824,7 @@ for pf in "${ALL_PHONE_FILES[@]}"; do
     [[ "${pf,,}" == *.pdf ]] || continue
     if ! is_pdf_already_optimized "$pf"; then
         OPT_COUNT=$((OPT_COUNT + 1))
-        optimize_pdf_file "$pf" "$(basename "$pf")"
+        optimize_pdf_file "$pf" "${pf##*/}"
     fi
 done
 
@@ -840,7 +840,7 @@ fi
 
 # Enforce zero local PDF binaries in Git repository
 rm -rf "$REPO_DIR/assets/docs" 2>/dev/null || true
-TOTAL_OFFLINE_FILES=$(find "$PHONE_DIR" -type f ! -name ".*" | wc -l)
+TOTAL_OFFLINE_FILES="${#ALL_PHONE_FILES[@]}"
 
 # ==============================================================================
 # PHASE 5: Integrity Audit & Live Deployment
