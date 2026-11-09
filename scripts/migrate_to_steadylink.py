@@ -321,7 +321,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
                         return ""
             return block
 
-        return re.sub(r'\{\s*id:\s*"[^"]+",[\s\S]*?\n\s*\},?', obj_filter, text)
+        return re.sub(r'\{\s*id:\s*"[^"]+"[^{}]*?\n\s*\},?', obj_filter, text)
 
     new_content = prune_deleted_items(new_content)
 
@@ -342,24 +342,33 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         f_mtime = os.path.getmtime(fpath) if os.path.exists(fpath) else time.time()
         f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
         safe_fname = fname.replace(' ', '_')
-        dl_url = f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
+        dl_url = meta.get("download_url") or f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
 
-        # Match existing entry in data.js by uploaded filename or title
-        doc_pattern = rf'(\{{\s*id:\s*"[^"]+",[\s\S]*?Uploaded document:\s*{re.escape(fname)}[\s\S]*?\n\s*\}})'
+        # Match existing entry in data.js by uploaded filename or title strictly within single object braces
+        doc_pattern = rf'(\{{\s*id:\s*"[^"]+"[^{{}}]*?Uploaded document:\s*{re.escape(fname)}[^{{}}]*?\n\s*\}})'
         m = re.search(doc_pattern, new_content, re.IGNORECASE)
         if not m:
-            doc_pattern = rf'(\{{\s*id:\s*"[^"]+",[\s\S]*?title:\s*"{re.escape(title)}"[\s\S]*?\n\s*\}})'
+            doc_pattern = rf'(\{{\s*id:\s*"[^"]+"[^{{}}]*?title:\s*"{re.escape(title)}"[^{{}}]*?\n\s*\}})'
             m = re.search(doc_pattern, new_content)
 
         if m:
             old_block = m.group(1)
             updated_block = old_block
-            updated_block = re.sub(r'fileUrl:\s*"[^"]+"', f'fileUrl: "{cdn_url}"', updated_block)
-            updated_block = re.sub(r'downloadUrl:\s*"[^"]+"', f'downloadUrl: "{dl_url}"', updated_block)
-            updated_block = re.sub(r'fileSize:\s*"[^"]+"', f'fileSize: "{size_disp}"', updated_block)
-            updated_block = re.sub(r'date:\s*"[^"]+"', f'date: "{f_date}"', updated_block)
+            updated_block = re.sub(r'fileUrl:\s*"[^"]+"', f'fileUrl: "{cdn_url}"', updated_block, count=1)
+            updated_block = re.sub(r'downloadUrl:\s*"[^"]+"', f'downloadUrl: "{dl_url}"', updated_block, count=1)
+            updated_block = re.sub(r'fileSize:\s*"[^"]+"', f'fileSize: "{size_disp}"', updated_block, count=1)
+            updated_block = re.sub(r'date:\s*"[^"]+"', f'date: "{f_date}"', updated_block, count=1)
+
+            is_large = (f_size >= 95 * 1024 * 1024) or (meta.get("storage") == "github-release")
+            if is_large:
+                if "isLargeFile" not in updated_block:
+                    updated_block = re.sub(r'(\n\s*year:\s*"[^"]+")', r'\1,\n    isLargeFile: true,\n    storage: "github-release"', updated_block)
+                else:
+                    updated_block = re.sub(r'isLargeFile:\s*(?:true|false)', 'isLargeFile: true', updated_block)
+                    updated_block = re.sub(r'storage:\s*"[^"]+"', 'storage: "github-release"', updated_block)
+
             if updated_block != old_block:
-                new_content = new_content.replace(old_block, updated_block)
+                new_content = new_content.replace(old_block, updated_block, 1)
                 print(f"✔ Updated entry in js/data.js: {title} ({size_disp})")
         else:
             safe_slug = re.sub(r'[^a-z0-9]', '_', fname.lower()).strip('_')
