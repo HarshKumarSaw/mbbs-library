@@ -267,5 +267,14 @@
     "size": 5552902,
     "filename": "Physiology Assignment (1).pdf",
     "uploaded_at": "2026-11-09 16:53:23 UTC"
+  },
+  "Biochemistry Notes Jambhulkar 4th Ed.pdf": {
+    "asset_id": "gh-release-Biochemistry_Notes_Jambhulkar_4th_Ed.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Biochemistry_Notes_Jambhulkar_4th_Ed.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Biochemistry_Notes_Jambhulkar_4th_Ed.pdf",
+    "size": 82030881,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }

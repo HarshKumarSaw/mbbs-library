@@ -29,6 +29,26 @@ const MBBS_RESOURCES = [
     year: "1st Year MBBS"
   },
   {
+    id: "user-bioc-biochemistry_notes_j-4425",
+    title: "Biochemistry Notes Jambhulkar 4Th Ed",
+    subject: "biochemistry",
+    category: "notes",
+    code: "Biochemistry / Notes",
+    description: "Uploaded document: Biochemistry Notes Jambhulkar 4th Ed.pdf. Comprehensive reference book (78.2 MB) hosted on GitHub Releases for high-speed direct download.",
+    tags: ["Biochemistry", "Notes", "Mobile Upload", "Large Book"],
+    fileUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Biochemistry_Notes_Jambhulkar_4th_Ed.pdf",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Biochemistry_Notes_Jambhulkar_4th_Ed.pdf",
+    fileSize: "78.2 MB",
+    pages: "Textbook",
+    author: "HarshKumarSaw",
+    date: "09 Nov 2026",
+    updatedAt: 1794243012,
+    year: "1st Year MBBS",
+    isLargeFile: true,
+    storage: "github-release"
+
+  },
+  {
     id: "user-phys-physiology_assignmen-3364",
     title: "Physiology Assignment (1)",
     subject: "physiology",
