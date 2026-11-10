@@ -4289,6 +4289,62 @@ body.modal-open {
   border-color: var(--primary-navy);
 }
 
+/* Push Notification Buttons */
+.push-notify-trigger {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.push-nav-btn {
+  padding: 6px 14px;
+  font-size: 0.84rem;
+  background: #FAF8F4;
+  color: var(--primary-navy);
+  border: 1.5px solid var(--border-light, #E8E0D5);
+}
+
+.push-nav-btn:hover {
+  background: #FFFFFF;
+  border-color: var(--primary-navy);
+  transform: translateY(-1px);
+}
+
+.push-nav-btn.is-subscribed {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #A7F3D0;
+}
+
+.push-nav-btn.is-subscribed:hover {
+  background: #D1FAE5;
+  border-color: #6EE7B7;
+}
+
+.push-footer-btn {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+}
+
+.push-footer-btn:hover {
+  color: var(--primary-navy);
+  border-color: var(--primary-navy);
+}
+
+.push-footer-btn.is-subscribed {
+  color: #065F46;
+  border-color: #A7F3D0;
+  background: #ECFDF5;
+}
+
 /* Floating Bottom PWA Install Banner */
 .pwa-install-banner {
   position: fixed;

@@ -9,3 +9,5 @@ assets/docs/**
 __pycache__/
 .DS_Store
 node_modules/
+.onesignal_key
+*.key

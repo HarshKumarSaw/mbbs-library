@@ -39,6 +39,15 @@ REPO_DIR="/data/data/com.termux/files/home/mbbs-resource-library"
 DATA_FILE="$REPO_DIR/js/data.js"
 MANIFEST_FILE="$REPO_DIR/.mbbs_sync_manifest"
 LOG_FILE="$REPO_DIR/PROJECT_LOG.md"
+ONESIGNAL_APP_ID="54db441e-edff-4024-8e24-87bacea1d5fe"
+ONESIGNAL_API_KEY="${ONESIGNAL_API_KEY:-}"
+if [ -z "$ONESIGNAL_API_KEY" ]; then
+    if [ -f "$REPO_DIR/.onesignal_key" ]; then
+        ONESIGNAL_API_KEY="$(cat "$REPO_DIR/.onesignal_key" | tr -d ' \t\r\n')"
+    elif [ -f "$HOME/.onesignal_key" ]; then
+        ONESIGNAL_API_KEY="$(cat "$HOME/.onesignal_key" | tr -d ' \t\r\n')"
+    fi
+fi
 TMP_DIR="${TMPDIR:-/data/data/com.termux/files/usr/tmp}"
 mkdir -p "$TMP_DIR"
 LOCK_FILE="$TMP_DIR/mbbs_sync.lock"
@@ -95,6 +104,45 @@ fi
 mkdir -p "$PHONE_DIR" 2>/dev/null || true
 
 # Helper string functions
+send_onesignal_notification() {
+    local title="$1"
+    local message="$2"
+    local url="https://harshkumarsaw.github.io/mbbs-library/"
+
+    if [ -z "$ONESIGNAL_API_KEY" ] || [ -z "$ONESIGNAL_APP_ID" ]; then
+        return 0
+    fi
+
+    echo -e "🔔 ${CYAN}Dispatching OneSignal Web Push to subscribers...${RESET}"
+    local payload
+    payload=$(cat <<JSON_EOF
+{
+  "app_id": "$ONESIGNAL_APP_ID",
+  "target_channel": "push",
+  "included_segments": ["Subscribed Users"],
+  "headings": {"en": "$title"},
+  "contents": {"en": "$message"},
+  "url": "$url"
+}
+JSON_EOF
+)
+    local res
+    res=$(curl -s -X POST "https://api.onesignal.com/notifications" \
+        -H "Authorization: Basic $ONESIGNAL_API_KEY" \
+        -H "Content-Type: application/json; charset=utf-8" \
+        -d "$payload" 2>&1 || true)
+
+    if echo "$res" | grep -q '"id"'; then
+        if echo "$res" | grep -q 'All included players are not subscribed'; then
+            echo -e "${DIM}ℹ️  OneSignal push dispatched (waiting for subscribers to opt in).${RESET}"
+        else
+            echo -e "${GREEN}✅ OneSignal push notification delivered to subscribers!${RESET}"
+        fi
+    else
+        echo -e "${DIM}ℹ️  OneSignal push notice.${RESET}"
+    fi
+}
+
 to_safe_id() {
     echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '_' | sed 's/__*/_/g; s/^_//; s/_$//'
 }
@@ -1007,6 +1055,10 @@ if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
         echo -e "${GREEN}${BOLD}✅ Successfully synchronized with GitHub Pages!${RESET}"
         echo -e "   🌐 Live site: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
         rm -f "$PUSH_LOG"
+
+        if [ "$OPT_COUNT" -gt 0 ]; then
+            send_onesignal_notification "Harsh's Library: New Study Notes" "$OPT_COUNT new medical study resource(s) uploaded! Tap to view & download."
+        fi
     else
         echo -e "${RED}${BOLD}❌ Git push failed!${RESET}"
         echo -e "${YELLOW}Detailed reason from GitHub:${RESET}"

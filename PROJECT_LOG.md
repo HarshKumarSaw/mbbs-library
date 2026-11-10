@@ -1159,3 +1159,28 @@
     - `404.html` (Error Fallback)
   - Added official Google Tag Manager `<noscript>` fallback iframe immediately following opening `<body>` tags.
   - Bumped Service Worker cache version in `sw.js` to `v1.0.5` to ensure returning visitors load the fresh HTML containing the analytics tag.
+
+### OneSignal Web Push Notification Engine Integration: 2026-11-10 17:00:00 UTC
+- **User Requirement**:
+  - Implement zero-maintenance, zero-backend native Web Push notifications for students.
+  - Zero complication for maintainer (no manual maintenance, automatic alert dispatch on new PDF syncs).
+- **Implementation**:
+  - **Credentials & API Authentication**:
+    - Configured OneSignal App ID `54db441e-edff-4024-8e24-87bacea1d5fe` and App API Key (`os_v2_app_...`).
+    - Verified connectivity with OneSignal v2 REST API endpoint (`https://api.onesignal.com/notifications`).
+  - **Service Worker Integration**:
+    - Embedded `importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js")` at the synchronous top level of `sw.js`.
+    - Added root worker proxy `OneSignalSDKWorker.js` for OneSignal domain validators.
+    - Added `OneSignalSDKWorker.js` and `js/push.js` to `RELATIVE_ASSETS` in `sw.js`.
+    - Bumped Service Worker cache version to `harsh-library-v1.0.6`.
+  - **Frontend Client Controller (`js/push.js`)**:
+    - Added asynchronous OneSignal v16 loader via `OneSignalDeferred`.
+    - Configured gentle medical-themed Slidedown prompt after 3s delay: *"Get instant notifications on your phone when new MBBS notes, books, and practical guides are uploaded."*
+    - Added interactive `🔔 Get Alerts` / `🔔 Alerts Active` toggle buttons in header navigation bar and footer across `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html`.
+    - Styled with soft ivory/navy/emerald transitions in `css/style.css` and recompiled `css/style.min.css`.
+  - **Zero-Maintenance Sync Integration (`scripts/sync_from_phone.sh`)**:
+    - Added `send_onesignal_notification` hook to phone sync engine.
+    - Whenever new study materials are detected and pushed to GitHub Pages, a push notification is automatically broadcast to all subscribed student phones with zero manual effort.
+  - **Instant Push CLI Utility (`scripts/send_push.sh`)**:
+    - Built standalone CLI helper script allowing the maintainer to dispatch custom notifications on-demand with: `./scripts/send_push.sh "Title" "Message"`.
+

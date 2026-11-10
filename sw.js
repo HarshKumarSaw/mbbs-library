@@ -1,3 +1,10 @@
+// OneSignal Web Push Worker
+try {
+  importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+} catch (e) {
+  console.warn("[SW] OneSignal worker import error:", e);
+}
+
 /**
  * Harsh's Library Service Worker
  * Fully compliant with Google Chrome PWA / WebAPK standards & GitHub Pages subpaths.
@@ -8,7 +15,7 @@
  *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.0.5';
+const CACHE_NAME = 'harsh-library-v1.0.6';
 
 // Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
 const getBasePath = () => {
@@ -31,6 +38,7 @@ const RELATIVE_ASSETS = [
   'physiology.html',
   'biochemistry.html',
   '404.html',
+  'OneSignalSDKWorker.js',
   'manifest.json',
   'manifest.webmanifest',
   'css/style.min.css',
@@ -39,6 +47,7 @@ const RELATIVE_ASSETS = [
   'js/app.min.js',
   'js/app.js',
   'js/pwa.js',
+  'js/push.js',
   'js/vendor/pdf.min.js',
   'js/vendor/pdf.worker.min.js',
   'assets/fonts/outfit.woff2',
