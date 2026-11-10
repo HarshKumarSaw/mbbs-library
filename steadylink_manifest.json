@@ -276,5 +276,23 @@
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
+  },
+  "GK Pal Physiology (1st Ed).pdf": {
+    "asset_id": "gh-release-GK_Pal_Physiology_(1st_Ed).pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Physiology_(1st_Ed).pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Physiology_(1st_Ed).pdf",
+    "size": 65762326,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "GK Pal Practical Physiology.pdf": {
+    "asset_id": "gh-release-GK_Pal_Practical_Physiology.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Practical_Physiology.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Practical_Physiology.pdf",
+    "size": 105239136,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }

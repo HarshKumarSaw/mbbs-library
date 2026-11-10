@@ -12,6 +12,46 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-gk_pal_practical_phy-0759",
+    title: "Gk Pal Practical Physiology",
+    subject: "physiology",
+    category: "practicals",
+    code: "Physiology / Practicals",
+    description: "Uploaded document: GK Pal Practical Physiology.pdf. Comprehensive reference book (100.4 MB) hosted on GitHub Releases for high-speed direct download.",
+    tags: ["Physiology", "Practicals", "Mobile Upload", "Large Book"],
+    fileUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Practical_Physiology.pdf",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Practical_Physiology.pdf",
+    fileSize: "100.4 MB",
+    pages: "451 Pages",
+    author: "HarshKumarSaw",
+    date: "10 Nov 2026",
+    updatedAt: 1794289750,
+    year: "1st Year MBBS",
+    isLargeFile: true,
+    storage: "github-release"
+
+  },
+  {
+    id: "user-phys-gk_pal_physiology__1-0759",
+    title: "Gk Pal Physiology (1St Ed)",
+    subject: "physiology",
+    category: "books",
+    code: "Physiology / Books",
+    description: "Uploaded document: GK Pal Physiology (1st Ed).pdf. Comprehensive reference book (62.7 MB) hosted on GitHub Releases for high-speed direct download.",
+    tags: ["Physiology", "Books", "Mobile Upload", "Large Book"],
+    fileUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Physiology_(1st_Ed).pdf",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/GK_Pal_Physiology_(1st_Ed).pdf",
+    fileSize: "62.7 MB",
+    pages: "1395 Pages",
+    author: "HarshKumarSaw",
+    date: "10 Nov 2026",
+    updatedAt: 1794289736,
+    year: "1st Year MBBS",
+    isLargeFile: true,
+    storage: "github-release"
+
+  },
+  {
     id: "user-phys-physiology_assignment-0203",
     title: "Physiology Assignment",
     subject: "physiology",
