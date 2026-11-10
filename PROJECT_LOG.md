@@ -1254,5 +1254,22 @@
   - Retained the clean, high-visibility `.push-top-bell-btn` in the sticky top navigation header next to the menu hamburger button.
   - Bumped asset cache-busting timestamps across all pages.
 
+### Push Notification Header Bell Click Handler & Permission Flow Fix: 2026-11-10 17:54:00 UTC
+- **User Issue**:
+  - Clicking the top bell icon produced no visible reaction or permission prompt.
+- **Root Cause**:
+  1. `OneSignal.Slidedown.promptPush()` was called without `{ force: true }`, causing OneSignal to evaluate soft prompt rules (time delays, cool-off periods) and silently skip showing anything.
+  2. In modern browsers (Chrome/Safari), requesting notification permission requires an active, synchronous user gesture; delayed callbacks outside the click event were blocked.
+  3. `swPath` in `OneSignal.init` had an invalid leading slash (`/mbbs-library/sw.js`), causing worker resolution issues on GitHub Pages.
+  4. Silent suppression on denied permissions left users unaware if browser site settings were blocking alerts.
+- **Resolution**:
+  - Overhauled `js/push.js` with direct, synchronous user gesture dispatch for `Notification.requestPermission()`, guaranteeing the browser's native permission modal pops up immediately.
+  - Fixed `swPath` to relative `"mbbs-library/sw.js"` without leading slash for GitHub Pages compatibility.
+  - Added helpful status prompts for browser-blocked permissions (guiding users to allow notifications in browser site settings), iOS Safari Home Screen installation instructions, and instant unsubscribe confirmation toggles.
+  - Synced granted subscriptions immediately with OneSignal `User.PushSubscription.optIn()`.
+  - Added `pointer-events: none` on `.push-top-bell-btn span` and explicit touch-action styling.
+  - Bumped service worker cache to `harsh-library-v1.0.8` and refreshed cache-busting timestamps across all HTML files.
+
+
 
 

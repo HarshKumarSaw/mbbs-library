@@ -15,7 +15,7 @@ try {
  *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.0.7';
+const CACHE_NAME = 'harsh-library-v1.0.8';
 
 // Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
 const getBasePath = () => {

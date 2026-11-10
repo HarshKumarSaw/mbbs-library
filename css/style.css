@@ -4330,6 +4330,9 @@ body.modal-open {
 
 /* Top Navbar Quick Bell Icon (Next to Menu Toggle) */
 .push-top-bell-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
   width: 42px;
   height: 42px;
   padding: 0;
@@ -4340,6 +4343,17 @@ body.modal-open {
   font-size: 1.15rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   position: relative;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  pointer-events: auto;
+  flex-shrink: 0;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
+}
+
+.push-top-bell-btn span {
+  pointer-events: none;
+  line-height: 1;
 }
 
 @media (min-width: 860px) {
