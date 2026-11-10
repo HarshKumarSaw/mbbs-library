@@ -68,8 +68,22 @@ RESPONSE=$(curl -s -X POST "https://api.onesignal.com/notifications" \
 
 if echo "$RESPONSE" | grep -q '"id"'; then
   if echo "$RESPONSE" | grep -q 'All included players are not subscribed'; then
-    echo -e "${YELLOW}ℹ️  OneSignal API acknowledged notification.${RESET}"
-    echo -e "   (No active subscribers yet. Once students click 'Allow Alerts' on the site, they will receive notifications!)\n"
+    echo -e "${YELLOW}ℹ️  OneSignal API acknowledged notification (0 active subscribers registered).${RESET}"
+    
+    # Check if Web Push has been activated in OneSignal dashboard
+    CONFIG_CHECK=$(curl -s "https://api.onesignal.com/sync/$ONESIGNAL_APP_ID/web" 2>/dev/null || true)
+    if echo "$CONFIG_CHECK" | grep -q "This app is not configured for web push"; then
+      echo -e "${YELLOW}${BOLD}⚠️  ACTION REQUIRED IN ONESIGNAL DASHBOARD:${RESET}"
+      echo -e "   Web Push platform is not yet configured for App ID: ${CYAN}$ONESIGNAL_APP_ID${RESET}"
+      echo -e "   Please complete the 1-minute Web setup in your OneSignal dashboard:"
+      echo -e "   1. Open: ${CYAN}https://dashboard.onesignal.com/apps/$ONESIGNAL_APP_ID/settings${RESET}"
+      echo -e "   2. Under 'Platforms' (or 'Push & In-App' -> 'Web'), click 'Configure' on Web"
+      echo -e "   3. Select 'Custom Code' and enter Site URL: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
+      echo -e "   4. Click 'Save' at the bottom."
+      echo -e "   Once saved, any student or phone visiting the site will be automatically registered!\n"
+    else
+      echo -e "   (Web push is active! Once students visit the site and allow alerts, they will receive notifications.)\n"
+    fi
   else
     echo -e "${GREEN}${BOLD}✅ Notification sent successfully to all subscribers!${RESET}\n"
   fi

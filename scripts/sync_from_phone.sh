@@ -134,7 +134,14 @@ JSON_EOF
 
     if echo "$res" | grep -q '"id"'; then
         if echo "$res" | grep -q 'All included players are not subscribed'; then
-            echo -e "${DIM}ℹ️  OneSignal push dispatched (waiting for subscribers to opt in).${RESET}"
+            local check_web
+            check_web=$(curl -s "https://api.onesignal.com/sync/$ONESIGNAL_APP_ID/web" 2>/dev/null || true)
+            if echo "$check_web" | grep -q "This app is not configured for web push"; then
+                echo -e "${YELLOW}ℹ️  OneSignal push queued (Web Push setup pending in OneSignal dashboard).${RESET}"
+                echo -e "${DIM}   Visit https://dashboard.onesignal.com/apps/$ONESIGNAL_APP_ID/settings -> Web to activate.${RESET}"
+            else
+                echo -e "${DIM}ℹ️  OneSignal push dispatched (waiting for active subscribers to opt in).${RESET}"
+            fi
         else
             echo -e "${GREEN}✅ OneSignal push notification delivered to subscribers!${RESET}"
         fi

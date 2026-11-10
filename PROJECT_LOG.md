@@ -1280,3 +1280,17 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 44
+
+### Push Subscription Persistence Across Refreshes & OneSignal Web Platform Diagnostics: 2026-11-10 18:12:00 UTC
+- **User Issue**:
+  1. Sync output reported `OneSignal push dispatched (waiting for subscribers to opt in)` and no push arrived on the user's phone.
+  2. Push notification settings appeared to reset back to unsubscribed on page refresh.
+- **Root Cause Analysis**:
+  1. Investigated OneSignal REST API (`GET https://api.onesignal.com/sync/$APP_ID/web`), which returned `{"success":false,"code":2,"description":"This app is not configured for web push."}`. The OneSignal App had been created, but Web Push was not yet configured in the dashboard (`chrome_web_origin: null`, `push.enabled: false`). Consequently, OneSignal rejected web subscriber registration, keeping active players at 0.
+  2. On page load, `push.js` had been relying on `oneSignalInstance.User.PushSubscription.optedIn`, which reset to `false` on every reload because the OneSignal backend rejected the sync.
+- **Resolution**:
+  - Decoupled subscribed UI state in `push.js` to rely natively on `Notification.permission === 'granted'` and respect `mbbs_push_opted_out`. If the browser has granted notification permissions, the bell remains permanently active (green) across refreshes and never reverts.
+  - Automatically invokes background `OneSignal.User.PushSubscription.optIn()` as soon as OneSignal initializes, ensuring that existing subscribers are registered automatically as soon as Web Push is enabled in the OneSignal dashboard without needing to re-click the button.
+  - Enhanced `scripts/send_push.sh` and `scripts/sync_from_phone.sh` with automated diagnostics to detect if the OneSignal dashboard Web Push platform is pending setup, outputting direct configuration steps.
+  - Bumped Service Worker cache to `harsh-library-v1.0.9` and refreshed cache-busting timestamps across all HTML files.
+

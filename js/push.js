@@ -16,19 +16,16 @@
 
   let oneSignalInstance = null;
 
+  /**
+   * Determine whether notifications are currently active for this user.
+   * Uses browser-level native permission and respects explicit user opt-outs.
+   * This guarantees that subscribed state is never reset on page refresh.
+   */
   function isCurrentlySubscribed() {
-    const osSubscribed = Boolean(
-      oneSignalInstance &&
-      oneSignalInstance.User &&
-      oneSignalInstance.User.PushSubscription &&
-      oneSignalInstance.User.PushSubscription.optedIn
-    );
-    const localSubscribed = Boolean(
-      window.Notification &&
-      Notification.permission === "granted" &&
-      localStorage.getItem("mbbs_push_subscribed") === "true"
-    );
-    return osSubscribed || localSubscribed;
+    if (!("Notification" in window)) return false;
+    if (Notification.permission !== "granted") return false;
+    if (localStorage.getItem("mbbs_push_opted_out") === "true") return false;
+    return true;
   }
 
   function updateUIState() {
@@ -39,7 +36,7 @@
       btn.style.display = "inline-flex";
       if (isSubscribed) {
         btn.classList.add("is-subscribed");
-        btn.setAttribute("title", "You are subscribed to MBBS library alerts. Tap to manage.");
+        btn.setAttribute("title", "Study alerts active. Tap to manage notifications.");
         btn.setAttribute("aria-label", "Notifications active. Tap to manage.");
         const label = btn.querySelector(".push-btn-label");
         if (label) label.textContent = "Alerts Active";
@@ -97,14 +94,14 @@
         "You are currently subscribed to alerts for new MBBS notes and books!\n\nWould you like to turn off notifications?"
       );
       if (confirmDisable) {
+        localStorage.setItem("mbbs_push_opted_out", "true");
         try {
           if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
             await oneSignalInstance.User.PushSubscription.optOut();
           }
         } catch (e) {
-          console.warn("[Push] Error opting out:", e);
+          console.warn("[Push] Opt-out notice:", e);
         }
-        localStorage.removeItem("mbbs_push_subscribed");
         updateUIState();
         alert("Push notifications have been turned off.");
       }
@@ -112,6 +109,8 @@
     }
 
     // 5. User wants to subscribe: Request permission directly within this active user gesture
+    localStorage.removeItem("mbbs_push_opted_out");
+
     let perm = Notification.permission;
     if (perm !== "granted") {
       try {
@@ -131,7 +130,10 @@
       return;
     }
 
-    // 6. Permission granted! Register subscription with OneSignal
+    // 6. Permission granted! Immediately update UI state (persistent across refreshes)
+    updateUIState();
+
+    // 7. Register subscription token with OneSignal
     try {
       if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
         await oneSignalInstance.User.PushSubscription.optIn();
@@ -150,8 +152,6 @@
       console.warn("[Push] OneSignal registration notice:", err);
     }
 
-    localStorage.setItem("mbbs_push_subscribed", "true");
-    updateUIState();
     alert("🎉 You are now subscribed! You will receive instant notifications when new MBBS notes, books, and practical materials are added.");
   }
 
@@ -187,6 +187,13 @@
           enable: false
         }
       });
+
+      // If user already granted permission, ensure OneSignal registers them as subscriber
+      if (isCurrentlySubscribed() && OneSignal.User && OneSignal.User.PushSubscription) {
+        OneSignal.User.PushSubscription.optIn().catch((err) => {
+          console.warn("[Push] OneSignal auto-optIn notice:", err);
+        });
+      }
 
       updateUIState();
 
