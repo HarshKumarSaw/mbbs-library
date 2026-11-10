@@ -79,9 +79,9 @@
   "general anat johari paid .pdf": {
     "asset_id": "95c4a8fc-2532-4f09-86fa-1c4cc23153e6",
     "url": "https://cdn.steadylink.io/a/95c4a8fc-2532-4f09-86fa-1c4cc23153e6",
-    "size": 1496419,
+    "size": 1496412,
     "filename": "general anat johari paid .pdf",
-    "uploaded_at": "2026-11-09 10:41:21 UTC"
+    "uploaded_at": "2026-11-10 18:33:34 UTC"
   },
   "neuro johari paid .pdf": {
     "asset_id": "36805bfc-99e4-4d99-b482-26f707f2dcd5",
@@ -451,6 +451,15 @@
     "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Guyton_and_Hall.pdf",
     "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Guyton_and_Hall.pdf",
     "size": 56734421,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Complete Anatomy Notes Johari.pdf": {
+    "asset_id": "gh-release-Complete_Anatomy_Notes_Johari.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Complete_Anatomy_Notes_Johari.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Complete_Anatomy_Notes_Johari.pdf",
+    "size": 54495143,
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
