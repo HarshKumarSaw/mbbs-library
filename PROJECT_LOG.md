@@ -1229,3 +1229,19 @@
   - Enhanced `js/push.js` to initialize click events immediately on DOM ready and preserve badge icons across state updates.
   - Recompiled `css/style.min.css` and bumped Service Worker cache to `v1.0.7`.
 
+### Comprehensive URL Sanitization for Recent Uploads & Manifest Sync: 2026-11-10 17:41:00 UTC
+- **User Issue**:
+  - Download errors reported on recently uploaded documents (Yogesh Sontakke Embryology, Vishram Singh, Bajrang Notes) uploaded prior to the full sanitization engine rollout.
+- **Root Cause**:
+  - Auto-sync run at 17:28 UTC imported 9 newly synced documents with unsanitized release URLs and re-populated old unsanitized URLs from `steadylink_manifest.json`.
+- **Resolution**:
+  - Automatically audited all catalog entries against all 52 live GitHub Release assets.
+  - Resolved all 6 remaining URL mismatches in `js/data.js` and `steadylink_manifest.json`:
+    - `Yogesh Sontakke Textbook of Human Embryology (2018, CBS Publishers & Distributors)` -> Sanitized dots replacing commas/parens/ampersands.
+    - `Vishram Singh Textbook of Anatomy Upper Limb and Thorax.` -> Stripped double dot before extension (`.pdf`).
+    - `Bajrang Abdomen & Pelvis Notes` -> Sanitized `&` to `._`.
+    - `DM Vasudevan 6th Ed`, `BDC Vol 3 & 4`, `GK Pal Physiology` -> Permanent sanitized URLs enforced.
+  - Enhanced `load_manifest()` and `migrate_to_steadylink.py` to auto-sanitize every GitHub Release URL upon manifest load and data sync, preventing legacy unsanitized URLs from ever re-entering `data.js`.
+  - Bumped cache query strings across all HTML templates.
+
+

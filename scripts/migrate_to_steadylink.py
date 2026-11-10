@@ -106,7 +106,15 @@ def load_manifest():
     if os.path.exists(MANIFEST_FILE):
         try:
             with open(MANIFEST_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+            # Auto-sanitize any GitHub release download URLs in manifest
+            for item in data.values():
+                for field in ("url", "download_url"):
+                    val = item.get(field, "")
+                    if "releases/download/v1.0.0-assets/" in val:
+                        asset = val.split("releases/download/v1.0.0-assets/")[1]
+                        item[field] = f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{sanitize_github_asset_name(asset)}"
+            return data
         except Exception as e:
             print(f"Warning loading manifest: {e}")
     return {}
@@ -514,6 +522,12 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         f_updated_ts = int(f_mtime)
         safe_fname = sanitize_github_asset_name(fname)
         dl_url = meta.get("download_url") or f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
+        if "releases/download/v1.0.0-assets/" in dl_url:
+            old_asset = dl_url.split("releases/download/v1.0.0-assets/")[1]
+            dl_url = f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{sanitize_github_asset_name(old_asset)}"
+        is_large = (f_size >= 25 * 1024 * 1024) or (meta.get("storage") == "github-release")
+        if is_large:
+            cdn_url = dl_url
 
         # Match existing entry in data.js by uploaded filename or title strictly within single object braces
         doc_pattern = rf'(\{{\s*id:\s*"[^"]+"[^{{}}]*?Uploaded document:\s*{re.escape(fname)}[^{{}}]*?\n\s*\}})'
