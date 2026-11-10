@@ -11,7 +11,7 @@
 
   const path = window.location.pathname;
   const isRepo = path.startsWith("/mbbs-library");
-  const swPath = isRepo ? "mbbs-library/sw.js" : "sw.js";
+  const swPath = isRepo ? "mbbs-library/OneSignalSDKWorker.js" : "OneSignalSDKWorker.js";
   const swScope = isRepo ? "/mbbs-library/" : "./";
 
   let oneSignalInstance = null;

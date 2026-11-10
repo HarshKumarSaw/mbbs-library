@@ -1294,3 +1294,16 @@
   - Enhanced `scripts/send_push.sh` and `scripts/sync_from_phone.sh` with automated diagnostics to detect if the OneSignal dashboard Web Push platform is pending setup, outputting direct configuration steps.
   - Bumped Service Worker cache to `harsh-library-v1.0.9` and refreshed cache-busting timestamps across all HTML files.
 
+### OneSignal Dashboard Web Push Activated & Service Worker Integration Finalized: 2026-11-10 18:29:00 UTC
+- **User Action**:
+  - Successfully configured Web Push in the OneSignal dashboard.
+  - Uploaded official `OneSignalSDK-v16-ServiceWorker.zip`.
+- **Backend Verification**:
+  - Verified live endpoint `https://api.onesignal.com/sync/$APP_ID/web`: returns `{"success": true}` with active Web Push configuration (`origin: https://harshkumarsaw.github.io`, `serviceWorker: OneSignalSDKWorker.js`).
+- **Code & Service Worker Alignment**:
+  - Extracted and established both `OneSignalSDKWorker.js` and `OneSignalSDKUpdaterWorker.js` at the repository root.
+  - Chained PWA offline caching via `importScripts("./sw.js")` inside `OneSignalSDKWorker.js` to ensure zero conflicts between background push alerts and PWA offline caching.
+  - Aligned `push.js` with `serviceWorkerPath: "mbbs-library/OneSignalSDKWorker.js"` and scope `"/mbbs-library/"` for GitHub Pages subfolder compatibility.
+  - Staged and synced all manifest updates.
+
+

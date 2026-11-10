@@ -51,16 +51,16 @@
   "lower limb johari paid .pdf": {
     "asset_id": "b064981e-90cb-4fae-a8cb-2279d2eb4e94",
     "url": "https://cdn.steadylink.io/a/b064981e-90cb-4fae-a8cb-2279d2eb4e94",
-    "size": 3724623,
+    "size": 3724579,
     "filename": "lower limb johari paid .pdf",
-    "uploaded_at": "2026-11-09 10:37:30 UTC"
+    "uploaded_at": "2026-11-10 18:29:59 UTC"
   },
   "head and neck johari paid.pdf": {
     "asset_id": "87755371-aedc-4313-a655-dd2445942173",
     "url": "https://cdn.steadylink.io/a/87755371-aedc-4313-a655-dd2445942173",
-    "size": 3954229,
+    "size": 3954011,
     "filename": "head and neck johari paid.pdf",
-    "uploaded_at": "2026-11-09 10:38:45 UTC"
+    "uploaded_at": "2026-11-10 18:29:25 UTC"
   },
   "abdomen pelvis johari paid.pdf": {
     "asset_id": "5116126b-2c85-4d46-aaa8-b02e04aa17b6",
@@ -363,7 +363,7 @@
     "asset_id": "gh-release-Bajrang_Thorax_Anatomy_Notes.pdf",
     "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Thorax_Anatomy_Notes.pdf",
     "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Thorax_Anatomy_Notes.pdf",
-    "size": 27632729,
+    "size": 27558591,
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
@@ -372,7 +372,7 @@
     "asset_id": "gh-release-Bajrang_Upper_Limb_Anatomy_Notes.pdf",
     "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Upper_Limb_Anatomy_Notes.pdf",
     "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Upper_Limb_Anatomy_Notes.pdf",
-    "size": 32828339,
+    "size": 32828332,
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
@@ -381,7 +381,7 @@
     "asset_id": "gh-release-Bajrang_Lower_Limb_Anatomy_Notes.pdf",
     "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Lower_Limb_Anatomy_Notes.pdf",
     "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Lower_Limb_Anatomy_Notes.pdf",
-    "size": 42905020,
+    "size": 42905013,
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
@@ -390,7 +390,7 @@
     "asset_id": "gh-release-Bajrang_Abdomen_._Pelvis_Notes_.pdf",
     "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Abdomen_._Pelvis_Notes_.pdf",
     "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Abdomen_._Pelvis_Notes_.pdf",
-    "size": 75539733,
+    "size": 75523503,
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
