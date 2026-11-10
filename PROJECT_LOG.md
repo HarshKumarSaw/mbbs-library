@@ -1109,3 +1109,13 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 2
 - **Total In-Sync Files**: 26
+
+### Real-Time Upload Progress & ETA Engine for GitHub Releases & SteadyLink: 2026-11-10 06:15:00 UTC
+- **User Requirement**:
+  - Replace silent background uploads (`gh release upload`) with real-time feedback showing actual percentage, transfer speed, elapsed time, and ETA.
+- **Implementation in `scripts/migrate_to_steadylink.py`**:
+  - **`ProgressFileStream`**: Created custom chunked streaming reader calculating exact bytes transferred across network sockets without buffering large files in RAM.
+  - **`render_upload_progress()`**: Built dynamic terminal progress bar (`⏳ [████░░░░] %3d%% (sent / total @ speed) • elapsed • ETA: Xs`) styled consistently with compression and git push indicators.
+  - **Direct GitHub Releases Streaming**: Connected directly to GitHub Releases API endpoint (`https://uploads.github.com/repos/.../releases/{id}/assets`) with token auto-detection and asset clobber replacement.
+  - **SteadyLink CDN Integration**: Applied `ProgressFileStream` streaming to `upload_single_pdf_curl` for full visibility during all library uploads.
+  - **Fallback Safety**: Graceful fallback to `gh release upload` with unsuppressed terminal output if direct streaming is interrupted.

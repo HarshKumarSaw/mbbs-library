@@ -11,6 +11,8 @@ import re
 import time
 import json
 import subprocess
+import urllib.request
+import urllib.parse
 import steadylink
 
 API_KEY = os.getenv("STEADYLINK_API_KEY", "slk_8Zsm4lcaK1VUbRTnnmf9y2zVGiaxmFq2EYsYGozCTrE")
@@ -134,9 +136,74 @@ def get_existing_bucket_objects(client, bucket_id):
         print(f"Could not fetch bucket objects: {e}")
         return {}
 
+def format_speed(bps):
+    if bps >= 1073741824:
+        return f"{bps / 1073741824:.2f} GB/s"
+    elif bps >= 1048576:
+        return f"{bps / 1048576:.2f} MB/s"
+    elif bps >= 1024:
+        return f"{bps / 1024:.0f} KB/s"
+    return f"{bps:.0f} B/s"
+
+def render_upload_progress(pct, sent_bytes, total_bytes, speed_bps, elapsed_sec, eta_sec):
+    bar_len = 20
+    filled = int(pct * bar_len / 100)
+    empty = max(0, bar_len - filled)
+    bar_str = "█" * filled + "░" * empty
+
+    sent_str = format_file_size(sent_bytes)
+    tot_str = format_file_size(total_bytes)
+    spd_str = format_speed(speed_bps) if speed_bps > 0 else "-- KB/s"
+
+    if eta_sec is not None and eta_sec > 0:
+        sec = int(eta_sec)
+        if sec >= 3600:
+            eta_str = f" • ETA: {sec // 3600}h{(sec % 3600) // 60}m"
+        elif sec >= 60:
+            eta_str = f" • ETA: {sec // 60}m{sec % 60}s"
+        else:
+            eta_str = f" • ETA: {sec}s"
+    else:
+        eta_str = ""
+
+    sys.stdout.write(f"\r   ⏳ [{bar_str}] {pct:3d}% ({sent_str} / {tot_str} @ {spd_str}) • {int(elapsed_sec)}s{eta_str}\033[K")
+    sys.stdout.flush()
+
+class ProgressFileStream:
+    def __init__(self, filepath, on_progress=None, chunk_size=131072):
+        self.file_obj = open(filepath, "rb")
+        self.total_size = os.path.getsize(filepath)
+        self.bytes_sent = 0
+        self.on_progress = on_progress
+        self.chunk_size = chunk_size
+        self.start_time = time.time()
+        self.last_update = 0
+
+    def read(self, size=-1):
+        amt = self.chunk_size if size <= 0 else min(size, self.chunk_size)
+        chunk = self.file_obj.read(amt)
+        if chunk:
+            self.bytes_sent += len(chunk)
+            now = time.time()
+            if self.on_progress and (now - self.last_update >= 0.25 or self.bytes_sent >= self.total_size):
+                self.last_update = now
+                elapsed = max(now - self.start_time, 0.001)
+                pct = int(self.bytes_sent * 100 / self.total_size)
+                speed = self.bytes_sent / elapsed
+                eta = (self.total_size - self.bytes_sent) / max(speed, 1) if speed > 0 else 0
+                self.on_progress(pct, self.bytes_sent, self.total_size, speed, elapsed, eta)
+        return chunk
+
+    def __len__(self):
+        return self.total_size
+
+    def close(self):
+        self.file_obj.close()
+
 def upload_large_pdf_to_github_release(file_path, filename):
     """
-    Directly uploads large documents (>25MB) to GitHub Releases (v1.0.0-assets).
+    Directly uploads large documents (>25MB) to GitHub Releases (v1.0.0-assets)
+    with real-time animated upload progress (percentage, transfer speed, elapsed, and ETA).
     Preserves document quality without aggressive secondary downsampling.
     """
     safe_filename = filename.replace(' ', '_')
@@ -149,44 +216,104 @@ def upload_large_pdf_to_github_release(file_path, filename):
     repo = "HarshKumarSaw/mbbs-library"
     download_url = f"https://github.com/{repo}/releases/download/{release_tag}/{safe_filename}"
 
-    # Check gh CLI availability
-    gh_available = subprocess.run(["command", "-v", "gh"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
+    # 1. Obtain GitHub token
+    token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
+    if not token:
+        try:
+            tok_res = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
+            if tok_res.returncode == 0:
+                token = tok_res.stdout.strip()
+        except Exception:
+            token = None
+
     uploaded = False
 
-    if gh_available:
-        auth_proc = subprocess.run(["gh", "auth", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        has_token = bool(os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN"))
-
-        if auth_proc.returncode == 0 or has_token:
-            print(f"   ⬆️  Uploading {safe_filename} to release {release_tag} via gh CLI...")
-            import tempfile
-            tmp_file = os.path.join(tempfile.gettempdir(), safe_filename)
-            upload_target = file_path
+    # 2. Primary Route: Direct GitHub Releases Streaming API with Live Progress Bar
+    if token:
+        for attempt in range(1, 4):
             try:
-                if os.path.exists(tmp_file):
-                    os.remove(tmp_file)
-                os.symlink(file_path, tmp_file)
-                upload_target = tmp_file
-            except Exception:
-                upload_target = file_path
+                # Fetch release details and release ID
+                tag_url = f"https://api.github.com/repos/{repo}/releases/tags/{release_tag}"
+                tag_req = urllib.request.Request(tag_url)
+                tag_req.add_header("Authorization", f"token {token}")
+                tag_req.add_header("User-Agent", "MBBS-Sync-Client")
+                tag_req.add_header("Accept", "application/vnd.github+json")
 
-            upload_cmd = ["gh", "release", "upload", release_tag, upload_target, "--clobber", "--repo", repo]
-            res = subprocess.run(upload_cmd, text=True, capture_output=True)
+                with urllib.request.urlopen(tag_req, timeout=30) as resp:
+                    rel_data = json.load(resp)
+                    release_id = rel_data.get("id")
+                    assets = rel_data.get("assets", [])
 
-            if upload_target != file_path and os.path.exists(upload_target):
-                try: os.remove(upload_target)
-                except Exception: pass
+                # Clobber: Delete old asset if already exists
+                for asset in assets:
+                    if asset.get("name") == safe_filename:
+                        del_url = f"https://api.github.com/repos/{repo}/releases/assets/{asset.get('id')}"
+                        del_req = urllib.request.Request(del_url, method="DELETE")
+                        del_req.add_header("Authorization", f"token {token}")
+                        del_req.add_header("User-Agent", "MBBS-Sync-Client")
+                        try:
+                            urllib.request.urlopen(del_req, timeout=30)
+                        except Exception:
+                            pass
 
-            if res.returncode == 0:
-                print(f"   ✅ Successfully uploaded {safe_filename} to GitHub Releases!")
-                uploaded = True
+                # Upload asset with streaming ProgressFileStream
+                encoded_name = urllib.parse.quote(safe_filename)
+                upload_url = f"https://uploads.github.com/repos/{repo}/releases/{release_id}/assets?name={encoded_name}"
+
+                pstream = ProgressFileStream(file_path, render_upload_progress, chunk_size=131072)
+                up_req = urllib.request.Request(upload_url, data=pstream, method="POST")
+                up_req.add_header("Authorization", f"token {token}")
+                up_req.add_header("User-Agent", "MBBS-Sync-Client")
+                up_req.add_header("Content-Type", "application/octet-stream")
+                up_req.add_header("Content-Length", str(size))
+
+                # Render initial 0% frame
+                render_upload_progress(0, 0, size, 0, 0, 0)
+                t0 = time.time()
+                try:
+                    with urllib.request.urlopen(up_req, timeout=3600) as up_resp:
+                        if up_resp.status in (200, 201):
+                            sys.stdout.write("\r\033[K")
+                            sys.stdout.flush()
+                            elapsed = time.time() - t0
+                            speed_mb = (size / 1048576) / max(elapsed, 0.1)
+                            print(f"   ✅ Successfully uploaded {safe_filename} to GitHub Releases in {elapsed:.1f}s ({speed_mb:.2f} MB/s)!")
+                            uploaded = True
+                            break
+                        else:
+                            sys.stdout.write("\r\033[K")
+                            sys.stdout.flush()
+                            print(f"   ⚠️  GitHub API returned status {up_resp.status} (attempt {attempt}/3)")
+                finally:
+                    pstream.close()
+
+            except Exception as api_err:
+                sys.stdout.write("\r\033[K")
+                sys.stdout.flush()
+                if attempt < 3:
+                    print(f"   ⚠️  Upload attempt {attempt} failed ({api_err}). Retrying in 2s...")
+                    time.sleep(2)
+                else:
+                    print(f"   ⚠️  Direct API upload encountered an issue ({api_err}), trying gh CLI fallback...")
+
+    # 3. Fallback: gh CLI if token was missing or direct API was interrupted
+    if not uploaded:
+        gh_available = subprocess.run(["command", "-v", "gh"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
+        if gh_available:
+            auth_proc = subprocess.run(["gh", "auth", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if auth_proc.returncode == 0 or token:
+                print(f"   ⬆️  Uploading {safe_filename} to release {release_tag} via gh CLI...")
+                upload_cmd = ["gh", "release", "upload", release_tag, file_path, "--clobber", "--repo", repo]
+                res = subprocess.run(upload_cmd)
+                if res.returncode == 0:
+                    print(f"   ✅ Successfully uploaded {safe_filename} to GitHub Releases!")
+                    uploaded = True
+                else:
+                    print(f"   ⚠️  gh release upload failed with exit code {res.returncode}")
             else:
-                err_msg = res.stderr.strip() or res.stdout.strip()
-                print(f"   ⚠️  gh release upload notice: {err_msg}")
+                print(f"   ⚠️  gh CLI not logged in. Run 'gh auth login' or export GH_TOKEN.")
         else:
-            print(f"   ⚠️  gh CLI not logged in. Run 'gh auth login' or export GH_TOKEN to upload {safe_filename} directly.")
-    else:
-        print(f"   ⚠️  gh CLI not installed. Package 'gh' can be installed via 'pkg install gh'.")
+            print(f"   ⚠️  gh CLI not installed.")
 
     if not uploaded:
         return None
@@ -223,27 +350,48 @@ def upload_single_pdf_curl(client, file_path, filename, retries=3):
             session_id = file_info["id"]
 
             content_url = f"https://api.steadylink.io/api/upload-sessions/{session_id}/content"
-            print(f"   ⬆️  Streaming bytes via curl (attempt {attempt}/{retries})...")
+            print(f"   ⬆️  Streaming {filename} to SteadyLink CDN (attempt {attempt}/{retries})...")
 
-            cmd = [
-                "curl", "-sS", "-w", "\nHTTP %{http_code} in %{time_total}s\n",
-                "--connect-timeout", "30",
-                "--max-time", "300",
-                "-X", "PUT",
-                "-T", file_path,
-                "-H", f"X-API-Key: {API_KEY}",
-                "-H", "Content-Type: application/octet-stream",
-                content_url
-            ]
+            # Stream via ProgressFileStream with real-time animated progress bar
+            pstream = ProgressFileStream(file_path, render_upload_progress, chunk_size=65536)
+            put_req = urllib.request.Request(content_url, data=pstream, method="PUT")
+            put_req.add_header("X-API-Key", API_KEY)
+            put_req.add_header("Content-Type", "application/octet-stream")
+            put_req.add_header("Content-Length", str(size))
 
+            render_upload_progress(0, 0, size, 0, 0, 0)
             t0 = time.time()
-            res = subprocess.run(cmd, capture_output=True, text=True)
-            if "200" not in res.stdout and "204" not in res.stdout:
-                raise RuntimeError(f"Curl content upload failed: {res.stdout} / {res.stderr}")
-
-            elapsed = time.time() - t0
-            speed_mb = (size / (1024 * 1024)) / max(elapsed, 0.1)
-            print(f"   ✔ Bytes transferred in {elapsed:.1f}s ({speed_mb:.2f} MB/s)")
+            try:
+                with urllib.request.urlopen(put_req, timeout=300) as put_resp:
+                    if put_resp.status in (200, 204):
+                        sys.stdout.write("\r\033[K")
+                        sys.stdout.flush()
+                        elapsed = time.time() - t0
+                        speed_mb = (size / 1048576) / max(elapsed, 0.1)
+                        print(f"   ✔ Bytes transferred in {elapsed:.1f}s ({speed_mb:.2f} MB/s)")
+            except Exception:
+                sys.stdout.write("\r\033[K")
+                sys.stdout.flush()
+                # Fallback to curl
+                cmd = [
+                    "curl", "-sS", "-w", "\nHTTP %{http_code} in %{time_total}s\n",
+                    "--connect-timeout", "30",
+                    "--max-time", "300",
+                    "-X", "PUT",
+                    "-T", file_path,
+                    "-H", f"X-API-Key: {API_KEY}",
+                    "-H", "Content-Type: application/octet-stream",
+                    content_url
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                if "200" in res.stdout or "204" in res.stdout:
+                    elapsed = time.time() - t0
+                    speed_mb = (size / 1048576) / max(elapsed, 0.1)
+                    print(f"   ✔ Bytes transferred in {elapsed:.1f}s ({speed_mb:.2f} MB/s)")
+                else:
+                    raise RuntimeError(f"Curl content upload failed: {res.stdout} / {res.stderr}")
+            finally:
+                pstream.close()
 
             # 3. Complete session
             print("   🔄 Finalizing session...")
