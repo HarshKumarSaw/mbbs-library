@@ -1218,3 +1218,14 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 0
 - **Total In-Sync Files**: 43
+
+### Push Notification Bell UI Enhancements (Floating FAB & Header Quick Bell): 2026-11-10 17:35:00 UTC
+- **User Issue**:
+  - The notification bell was not visible on the website because navigation items were collapsed inside the drawer menu and initially hidden by CSS.
+- **Resolution**:
+  - Added a permanent **Floating Action Bell (FAB)** in the bottom-right corner (`.push-floating-bell`) on all pages with pulsing gold notification dot and smooth ivory/navy aesthetics.
+  - Added a **Header Quick Bell** button (`.push-top-bell-btn`) directly in the top navigation bar beside the menu toggle for instant mobile and desktop access without opening menus.
+  - Updated `.push-notify-trigger` to `display: inline-flex` by default so buttons appear immediately with zero delay.
+  - Enhanced `js/push.js` to initialize click events immediately on DOM ready and preserve badge icons across state updates.
+  - Recompiled `css/style.min.css` and bumped Service Worker cache to `v1.0.7`.
+

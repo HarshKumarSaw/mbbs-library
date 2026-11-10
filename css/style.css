@@ -4291,14 +4291,16 @@ body.modal-open {
 
 /* Push Notification Buttons */
 .push-notify-trigger {
-  display: none;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
   cursor: pointer;
   border-radius: 9999px;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .push-nav-btn {
@@ -4324,6 +4326,114 @@ body.modal-open {
 .push-nav-btn.is-subscribed:hover {
   background: #D1FAE5;
   border-color: #6EE7B7;
+}
+
+/* Top Navbar Quick Bell Icon (Next to Menu Toggle) */
+.push-top-bell-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 11px;
+  background: var(--canvas-pure, #FFFFFF);
+  border: 1.5px solid var(--border-subtle, #E8E0D5);
+  color: var(--text-headline, #151B2B);
+  font-size: 1.15rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+@media (min-width: 860px) {
+  .push-top-bell-btn {
+    border-radius: 9999px;
+  }
+}
+
+.push-top-bell-btn:hover {
+  background: var(--canvas-subtle, #FAF8F4);
+  border-color: var(--primary-navy, #151B2B);
+  transform: translateY(-1px);
+}
+
+.push-top-bell-btn:active {
+  transform: scale(0.92);
+}
+
+.push-top-bell-btn.is-subscribed {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #A7F3D0;
+}
+
+/* Floating Action Bell Widget (Prominent in Bottom-Right Corner) */
+.push-floating-bell {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #151B2B;
+  color: #FFFFFF;
+  border: 2px solid #FAF8F4;
+  box-shadow: 0 6px 20px rgba(21, 27, 43, 0.28), 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-size: 1.45rem;
+  z-index: 990;
+}
+
+@media (max-width: 600px) {
+  .push-floating-bell {
+    bottom: 20px;
+    right: 18px;
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+}
+
+.push-floating-bell:hover {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 10px 28px rgba(21, 27, 43, 0.38);
+  background: #0A0F1D;
+}
+
+.push-floating-bell:active {
+  transform: scale(0.92);
+}
+
+.push-floating-bell.is-subscribed {
+  background: #065F46;
+  border-color: #A7F3D0;
+  box-shadow: 0 4px 18px rgba(6, 95, 70, 0.3);
+}
+
+.push-floating-bell.is-subscribed:hover {
+  background: #047857;
+}
+
+.push-floating-bell .bell-pulse-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #F9E88A;
+  border: 2px solid #151B2B;
+  box-shadow: 0 0 8px rgba(249, 232, 138, 0.9);
+  animation: push-bell-pulse 2s infinite ease-in-out;
+}
+
+.push-floating-bell.is-subscribed .bell-pulse-dot {
+  background: #10B981;
+  border-color: #065F46;
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes push-bell-pulse {
+  0% { transform: scale(0.9); opacity: 0.85; }
+  50% { transform: scale(1.35); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.85; }
 }
 
 .push-footer-btn {

@@ -122,7 +122,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1794331708">
+  <link rel="stylesheet" href="css/style.min.css?v=1794332138">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -169,13 +169,18 @@
         </ul>
       </nav>
 
-      <button type="button" class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="4" y1="6" x2="20" y2="6"></line>
-          <line x1="4" y1="12" x2="20" y2="12"></line>
-          <line x1="4" y1="18" x2="20" y2="18"></line>
-        </svg>
-      </button>
+      <div style="display: inline-flex; align-items: center; gap: 8px; margin-left: auto;">
+        <button type="button" class="push-notify-trigger push-top-bell-btn" id="push-top-bell-btn" aria-label="Study Alerts" title="Get study alerts">
+          <span aria-hidden="true">🔔</span>
+        </button>
+        <button type="button" class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -575,6 +580,12 @@
     </div>
   </footer>
 
+  <!-- Floating Push Notification Bell -->
+  <button type="button" class="push-notify-trigger push-floating-bell" id="push-floating-bell" aria-label="Get study alerts" title="Get instant alerts for new MBBS notes">
+    <span class="bell-icon" aria-hidden="true">🔔</span>
+    <span class="bell-pulse-dot" aria-hidden="true"></span>
+  </button>
+
   <!-- Floating PWA Install Banner -->
   <aside class="pwa-install-banner" id="pwa-install-banner" aria-label="Install Application" role="complementary">
     <div class="pwa-banner-left">
@@ -590,9 +601,9 @@
     </div>
   </aside>
 
-  <script src="js/data.js?v=1794331708"></script>
-  <script src="js/app.min.js?v=1794331708"></script>
+  <script src="js/data.js?v=1794332138"></script>
+  <script src="js/app.min.js?v=1794332138"></script>
   <script src="js/pwa.js" defer></script>
-  <script src="js/push.js" defer></script>
+  <script src="js/push.js?v=1794332138" defer></script>
 </body>
 </html>

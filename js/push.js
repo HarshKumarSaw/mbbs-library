@@ -13,14 +13,17 @@
   const swPath = isRepo ? "/mbbs-library/sw.js" : "sw.js";
   const swScope = isRepo ? "/mbbs-library/" : "./";
 
+  let oneSignalInstance = null;
+  let pendingOptIn = false;
+
   window.OneSignalDeferred = window.OneSignalDeferred || [];
 
-  function updateUIState(OneSignal) {
+  function updateUIState() {
     const isSubscribed = Boolean(
-      OneSignal &&
-      OneSignal.User &&
-      OneSignal.User.PushSubscription &&
-      OneSignal.User.PushSubscription.optedIn
+      oneSignalInstance &&
+      oneSignalInstance.User &&
+      oneSignalInstance.User.PushSubscription &&
+      oneSignalInstance.User.PushSubscription.optedIn
     );
 
     const buttons = document.querySelectorAll(".push-notify-trigger");
@@ -28,24 +31,31 @@
       btn.style.display = "inline-flex";
       if (isSubscribed) {
         btn.classList.add("is-subscribed");
-        btn.innerHTML = `<span class="push-btn-icon" aria-hidden="true">🔔</span><span class="push-btn-label">Alerts Active</span>`;
-        btn.setAttribute("title", "You are subscribed to MBBS updates. Click to manage.");
+        btn.setAttribute("title", "You are subscribed to MBBS library updates. Click to manage.");
         btn.setAttribute("aria-label", "Notifications active. Click to manage.");
+        const label = btn.querySelector(".push-btn-label");
+        if (label) label.textContent = "Alerts Active";
       } else {
         btn.classList.remove("is-subscribed");
-        btn.innerHTML = `<span class="push-btn-icon" aria-hidden="true">🔔</span><span class="push-btn-label">Get Alerts</span>`;
         btn.setAttribute("title", "Get instant alerts on your phone when new notes are added.");
         btn.setAttribute("aria-label", "Subscribe to notifications for new study materials");
+        const label = btn.querySelector(".push-btn-label");
+        if (label) label.textContent = "Get Alerts";
       }
     });
   }
 
-  async function handleButtonClick(OneSignal) {
-    if (!OneSignal || !OneSignal.User || !OneSignal.User.PushSubscription) {
+  async function triggerSubscriptionFlow() {
+    if (!oneSignalInstance) {
+      pendingOptIn = true;
       return;
     }
 
-    const isSubscribed = OneSignal.User.PushSubscription.optedIn;
+    const isSubscribed = Boolean(
+      oneSignalInstance.User &&
+      oneSignalInstance.User.PushSubscription &&
+      oneSignalInstance.User.PushSubscription.optedIn
+    );
 
     if (isSubscribed) {
       const confirmDisable = confirm(
@@ -53,22 +63,24 @@
       );
       if (confirmDisable) {
         try {
-          await OneSignal.User.PushSubscription.optOut();
-          updateUIState(OneSignal);
+          await oneSignalInstance.User.PushSubscription.optOut();
+          updateUIState();
         } catch (e) {
           console.warn("[Push] Error opting out:", e);
         }
       }
     } else {
       try {
-        if (OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
-          await OneSignal.Slidedown.promptPush();
-        } else {
-          await OneSignal.User.PushSubscription.optIn();
+        if (oneSignalInstance.Slidedown && typeof oneSignalInstance.Slidedown.promptPush === "function") {
+          await oneSignalInstance.Slidedown.promptPush();
+        } else if (oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
+          await oneSignalInstance.User.PushSubscription.optIn();
         }
       } catch (err) {
         try {
-          await OneSignal.User.PushSubscription.optIn();
+          if (oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
+            await oneSignalInstance.User.PushSubscription.optIn();
+          }
         } catch (e) {
           console.warn("[Push] Permission request error:", e);
         }
@@ -76,13 +88,38 @@
     }
   }
 
+  // Bind click handlers immediately upon DOM ready
+  function initButtons() {
+    const buttons = document.querySelectorAll(".push-notify-trigger");
+    buttons.forEach((btn) => {
+      btn.style.display = "inline-flex";
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        triggerSubscriptionFlow();
+      });
+    });
+    updateUIState();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initButtons);
+  } else {
+    initButtons();
+  }
+
+  // Initialize OneSignal
   window.OneSignalDeferred.push(async function (OneSignal) {
     try {
+      oneSignalInstance = OneSignal;
+
       await OneSignal.init({
         appId: ONESIGNAL_APP_ID,
         serviceWorkerPath: swPath,
         serviceWorkerParam: { scope: swScope },
         allowLocalhostAsSecureOrigin: true,
+        notifyButton: {
+          enable: false // Use custom floating bell for pixel-perfect site integration
+        },
         promptOptions: {
           slidedown: {
             prompts: [
@@ -105,19 +142,17 @@
         }
       });
 
-      // Bind button events
-      const buttons = document.querySelectorAll(".push-notify-trigger");
-      buttons.forEach((btn) => {
-        btn.addEventListener("click", () => handleButtonClick(OneSignal));
-      });
+      updateUIState();
 
-      // Set initial button state
-      updateUIState(OneSignal);
+      if (pendingOptIn) {
+        pendingOptIn = false;
+        triggerSubscriptionFlow();
+      }
 
       // Listen for subscription changes
       if (OneSignal.User && OneSignal.User.PushSubscription) {
         OneSignal.User.PushSubscription.addEventListener("change", () => {
-          updateUIState(OneSignal);
+          updateUIState();
         });
       }
     } catch (err) {
