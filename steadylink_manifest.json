@@ -463,5 +463,53 @@
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
+  },
+  "ANATOMY_MUHS_PYQ_By_BAKHTIYAR.pdf": {
+    "asset_id": "83d4a07b-9da6-4498-8337-0516f399390d",
+    "url": "https://cdn.steadylink.io/a/83d4a07b-9da6-4498-8337-0516f399390d",
+    "size": 233427,
+    "filename": "ANATOMY_MUHS_PYQ_By_BAKHTIYAR.pdf",
+    "uploaded_at": "2026-11-10 18:35:49 UTC"
+  },
+  "Inderbir Singh s Textbook of HUMAN HISTOLOGY 8th edition.pdf": {
+    "asset_id": "gh-release-Inderbir_Singh_s_Textbook_of_HUMAN_HISTOLOGY_8th_edition.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Inderbir_Singh_s_Textbook_of_HUMAN_HISTOLOGY_8th_edition.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Inderbir_Singh_s_Textbook_of_HUMAN_HISTOLOGY_8th_edition.pdf",
+    "size": 27280429,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Netter's Atlas of Human Anatomy 7ed.pdf": {
+    "asset_id": "gh-release-Netter.s_Atlas_of_Human_Anatomy_7ed.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Netter.s_Atlas_of_Human_Anatomy_7ed.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Netter.s_Atlas_of_Human_Anatomy_7ed.pdf",
+    "size": 117019021,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Inderbir Singh Human Embryology 1st MBBS Notes official .pdf": {
+    "asset_id": "gh-release-Inderbir_Singh_Human_Embryology_1st_MBBS_Notes_official_.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Inderbir_Singh_Human_Embryology_1st_MBBS_Notes_official_.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Inderbir_Singh_Human_Embryology_1st_MBBS_Notes_official_.pdf",
+    "size": 41174323,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "PHYSIOLOGY_MUHS_PYQ_BY_BAKHTIYAR.pdf": {
+    "asset_id": "bbd30d74-cde3-46fa-ae20-7a4974469846",
+    "url": "https://cdn.steadylink.io/a/bbd30d74-cde3-46fa-ae20-7a4974469846",
+    "size": 270534,
+    "filename": "PHYSIOLOGY_MUHS_PYQ_BY_BAKHTIYAR.pdf",
+    "uploaded_at": "2026-11-10 18:46:17 UTC"
+  },
+  "BIOCHEMISTRY_MUHS_PYQ _By_BAKHTIYAR.pdf": {
+    "asset_id": "4bf28b02-dd5c-4122-a7f1-704a1cf3872a",
+    "url": "https://cdn.steadylink.io/a/4bf28b02-dd5c-4122-a7f1-704a1cf3872a",
+    "size": 224796,
+    "filename": "BIOCHEMISTRY_MUHS_PYQ _By_BAKHTIYAR.pdf",
+    "uploaded_at": "2026-11-10 18:46:27 UTC"
   }
 }
