@@ -1085,3 +1085,20 @@
 - **Minification**:
   - Re-minified `css/style.min.css` (71.6 KB, 26.5% savings).
 
+### Custom Anatomy Department Navbar Logo: 2026-11-10 04:45:00 UTC
+- **User Requirement**:
+  - Replace the bone emoji (`🦴`) emblem in `anatomy.html` navbar with the custom uploaded logo `logo-anatomy.png`.
+- **Image Optimization & Multi-Format Generation**:
+  - Preserved original 2048×2048 master artwork at `assets/icons/logo-anatomy-master.png`.
+  - Created high-fidelity 256×256 production assets:
+    - `logo-anatomy.webp` (16.6 KB, quality 95) for modern browsers.
+    - `logo-anatomy.png` (70.1 KB) with transparent background and lossless Lanczos resampling.
+    - Synchronized mirrors in `assets/icons/`.
+- **HTML & Preload Integration (`anatomy.html`)**:
+  - Replaced `<span>🦴</span>` with responsive `<picture>` container utilizing WebP source and fallback PNG at `46x46` px with `fetchpriority="high"`.
+  - Added `<link rel="preload" as="image" href="logo-anatomy.webp" type="image/webp" fetchpriority="high">` to `<head>` for instantaneous rendering.
+- **Styling & PWA Integration**:
+  - Added border reset to `.brand-emblem-logo` in `css/style.css` and regenerated `css/style.min.css` (71.7 KB) via `scripts/minify.py`.
+  - Updated Service Worker `sw.js` (bumped to cache `v1.0.3`) to precache `logo-anatomy.webp` and `logo-anatomy.png`.
+  - Updated CSS cache-busting timestamp `?v=1794285701` across all HTML templates.
+

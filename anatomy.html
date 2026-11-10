@@ -113,7 +113,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1794246441">
+  <link rel="stylesheet" href="css/style.min.css?v=1794285701">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -126,6 +126,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Harsh's Library">
+  <!-- Preload Anatomy Navbar Brand Logo for instantaneous rendering -->
+  <link rel="preload" as="image" href="logo-anatomy.webp" type="image/webp" fetchpriority="high">
 </head>
 <body class="page-anatomy">
 
@@ -133,8 +135,11 @@
   <header class="navbar" role="banner">
     <div class="container nav-container">
       <a href="index.html" class="brand" aria-label="Harsh's Library Home">
-        <div class="brand-emblem brand-emblem-anatomy" aria-hidden="true">
-          <span>🦴</span>
+        <div class="brand-emblem brand-emblem-logo" aria-hidden="true">
+          <picture>
+            <source srcset="logo-anatomy.webp" type="image/webp">
+            <img src="logo-anatomy.png" alt="Anatomy Logo" class="brand-logo-img" width="46" height="46" fetchpriority="high" decoding="async">
+          </picture>
         </div>
         <div class="brand-text">
           <span class="brand-title">Anatomy</span>

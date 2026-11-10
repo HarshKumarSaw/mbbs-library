@@ -8,7 +8,7 @@
  *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.0.2';
+const CACHE_NAME = 'harsh-library-v1.0.3';
 
 // Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
 const getBasePath = () => {
@@ -45,6 +45,8 @@ const RELATIVE_ASSETS = [
   'assets/fonts/plus-jakarta-sans.woff2',
   'navbar-logo.webp',
   'navbar-logo.png',
+  'logo-anatomy.webp',
+  'logo-anatomy.png',
   'favicon.ico',
   'favicon-192x192.png',
   'assets/icons/icon-192x192.png',

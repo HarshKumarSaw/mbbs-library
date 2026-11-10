@@ -406,6 +406,7 @@ textarea,
 .brand-emblem:has(.brand-logo-img) {
   background: transparent !important;
   box-shadow: none !important;
+  border: none !important;
 }
 
 .brand-emblem picture {
