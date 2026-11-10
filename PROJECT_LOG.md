@@ -1146,3 +1146,16 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 8
 - **Total In-Sync Files**: 34
+
+### Google Tag Manager & Google Analytics (GA4) Integration: 2026-11-10 09:38:00 UTC
+- **User Requirement**:
+  - Integrate Google Analytics / Google Tag Manager tag (`GTM-PFL9BMBD`).
+- **Implementation**:
+  - Integrated asynchronous Google Tag Manager loader script and `dataLayer` / `gtag()` initialization in `<head>` across all 5 site pages:
+    - `index.html` (Library Portal)
+    - `anatomy.html` (Anatomy Department)
+    - `physiology.html` (Physiology Department)
+    - `biochemistry.html` (Biochemistry Department)
+    - `404.html` (Error Fallback)
+  - Added official Google Tag Manager `<noscript>` fallback iframe immediately following opening `<body>` tags.
+  - Bumped Service Worker cache version in `sw.js` to `v1.0.5` to ensure returning visitors load the fresh HTML containing the analytics tag.
