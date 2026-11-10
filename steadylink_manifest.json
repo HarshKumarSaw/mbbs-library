@@ -430,5 +430,14 @@
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
+  },
+  "Vishram Singh Embryology 2nd edition.pdf": {
+    "asset_id": "gh-release-Vishram_Singh_Embryology_2nd_edition.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Embryology_2nd_edition.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Embryology_2nd_edition.pdf",
+    "size": 83043835,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }
