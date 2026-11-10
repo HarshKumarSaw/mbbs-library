@@ -1184,3 +1184,23 @@
   - **Instant Push CLI Utility (`scripts/send_push.sh`)**:
     - Built standalone CLI helper script allowing the maintainer to dispatch custom notifications on-demand with: `./scripts/send_push.sh "Title" "Message"`.
 
+### Fix GitHub Release Asset URLs (Vasudevan, BDC Vol 3 & 4, Cunningham, GK Pal): 2026-11-10 17:20:00 UTC
+- **User Issue**:
+  - Download error 404 reported for `DM Vasudevan Textbook of Biochemistry, 6th Ed`, `BDC Vol 3 & 4 (10th Ed)`, and other documents.
+- **Root Cause**:
+  - GitHub Releases automatically sanitizes asset filenames by replacing special characters (commas, ampersands, parentheses, single quotes) with dots (`.`).
+  - `data.js` and `steadylink_manifest.json` stored URLs with unsanitized characters (e.g. `DM_Vasudevan..._,_6th_Ed.pdf` and `BDC_Vol_3_&_4_(10th_ed).PDF`), resulting in HTTP 404 on download.
+- **Resolution**:
+  - Audited all resources against actual release assets on GitHub.
+  - Corrected mismatched download and preview URLs in `js/data.js` and `steadylink_manifest.json`:
+    - `DM_Vasudevan_Textbook_of_Biochemistry_,_6th_Ed.pdf` -> `DM_Vasudevan_Textbook_of_Biochemistry_._6th_Ed.pdf`
+    - `BDC_Vol_3_&_4_(10th_ed).PDF` -> `BDC_Vol_3_._4_.10th_ed.PDF`
+    - `CUNNINGHAM’S_MANUAL_OF_PRACTICAL_ANATOMY_Volume-3.pdf` -> `CUNNINGHAM.S_MANUAL_OF_PRACTICAL_ANATOMY_Volume-3.pdf`
+    - `CUNNINGHAM’S_MANUAL_OF_PRACTICAL_ANATOMY_Volume-2.pdf` -> `CUNNINGHAM.S_MANUAL_OF_PRACTICAL_ANATOMY_Volume-2.pdf`
+    - `Cunningham’s_Manual_of_Practical_Anatomy_Volume_1_Upper_and_lower.pdf` -> `Cunningham.s_Manual_of_Practical_Anatomy_Volume_1_Upper_and_lower.pdf`
+    - `GK_Pal_Physiology_(1st_Ed).pdf` -> `GK_Pal_Physiology_.1st_Ed.pdf`
+    - `general_anat_johari_paid_.pdf` -> `general_anat_johari_paid.pdf`
+  - Updated `scripts/migrate_to_steadylink.py` with `sanitize_github_asset_name()` to ensure all future uploads automatically conform to GitHub release naming conventions.
+  - Bumped cache query strings across HTML entry points.
+
+

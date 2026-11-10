@@ -43,6 +43,13 @@ def format_title(name):
     clean = re.sub(r'\s+', ' ', clean).strip()
     return clean.title()
 
+def sanitize_github_asset_name(name):
+    # GitHub sanitizes release asset filenames: spaces -> _, non-alphanumeric -> .
+    clean = name.replace(' ', '_')
+    clean = re.sub(r'[^a-zA-Z0-9_\-\.]', '.', clean)
+    clean = re.sub(r'\.{2,}', '.', clean)
+    return clean
+
 def detect_subject(path_or_name):
     low = path_or_name.lower()
     if 'anat' in low:
@@ -206,7 +213,7 @@ def upload_large_pdf_to_github_release(file_path, filename):
     with real-time animated upload progress (percentage, transfer speed, elapsed, and ETA).
     Preserves document quality without aggressive secondary downsampling.
     """
-    safe_filename = filename.replace(' ', '_')
+    safe_filename = sanitize_github_asset_name(filename)
     size = os.path.getsize(file_path)
     size_str = format_file_size(size)
     print(f"\n📦 Large Document (>25MB) detected: {filename} ({size_str})")
@@ -505,7 +512,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         f_mtime = os.path.getmtime(fpath) if os.path.exists(fpath) else time.time()
         f_date = time.strftime("%d %b %Y", time.localtime(f_mtime))
         f_updated_ts = int(f_mtime)
-        safe_fname = fname.replace(' ', '_')
+        safe_fname = sanitize_github_asset_name(fname)
         dl_url = meta.get("download_url") or f"https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/{safe_fname}"
 
         # Match existing entry in data.js by uploaded filename or title strictly within single object braces

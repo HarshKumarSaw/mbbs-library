@@ -358,5 +358,77 @@
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
+  },
+  "Bajrang Thorax Anatomy Notes.pdf": {
+    "asset_id": "gh-release-Bajrang_Thorax_Anatomy_Notes.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Thorax_Anatomy_Notes.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Thorax_Anatomy_Notes.pdf",
+    "size": 27632729,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Bajrang Upper Limb Anatomy Notes.pdf": {
+    "asset_id": "gh-release-Bajrang_Upper_Limb_Anatomy_Notes.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Upper_Limb_Anatomy_Notes.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Upper_Limb_Anatomy_Notes.pdf",
+    "size": 32828339,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Bajrang Lower Limb Anatomy Notes.pdf": {
+    "asset_id": "gh-release-Bajrang_Lower_Limb_Anatomy_Notes.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Lower_Limb_Anatomy_Notes.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Lower_Limb_Anatomy_Notes.pdf",
+    "size": 42905020,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Bajrang Abdomen & Pelvis Notes .pdf": {
+    "asset_id": "gh-release-Bajrang_Abdomen_&_Pelvis_Notes_.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Abdomen_&_Pelvis_Notes_.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Bajrang_Abdomen_&_Pelvis_Notes_.pdf",
+    "size": 75539733,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Yogesh Sontakke - Textbook of Human Embryology (2018, CBS Publishers & Distributors) - libgen.li.pdf": {
+    "asset_id": "gh-release-Yogesh_Sontakke_-_Textbook_of_Human_Embryology_(2018,_CBS_Publishers_&_Distributors)_-_libgen.li.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Yogesh_Sontakke_-_Textbook_of_Human_Embryology_(2018,_CBS_Publishers_&_Distributors)_-_libgen.li.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Yogesh_Sontakke_-_Textbook_of_Human_Embryology_(2018,_CBS_Publishers_&_Distributors)_-_libgen.li.pdf",
+    "size": 168481192,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Vishram Singh Textbook of Anatomy  Upper Limb and Thorax..pdf": {
+    "asset_id": "gh-release-Vishram_Singh_Textbook_of_Anatomy__Upper_Limb_and_Thorax..pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Textbook_of_Anatomy__Upper_Limb_and_Thorax..pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Textbook_of_Anatomy__Upper_Limb_and_Thorax..pdf",
+    "size": 47275968,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Vishram Singh Textbook of Anatomy Vol 2.pdf": {
+    "asset_id": "gh-release-Vishram_Singh_Textbook_of_Anatomy_Vol_2.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Textbook_of_Anatomy_Vol_2.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Textbook_of_Anatomy_Vol_2.pdf",
+    "size": 41099264,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
+  },
+  "Vishram Singh Textbook of Anatomy Vol 3.pdf": {
+    "asset_id": "gh-release-Vishram_Singh_Textbook_of_Anatomy_Vol_3.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Textbook_of_Anatomy_Vol_3.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vishram_Singh_Textbook_of_Anatomy_Vol_3.pdf",
+    "size": 41073949,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }
