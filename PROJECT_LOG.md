@@ -1244,4 +1244,15 @@
   - Enhanced `load_manifest()` and `migrate_to_steadylink.py` to auto-sanitize every GitHub Release URL upon manifest load and data sync, preventing legacy unsanitized URLs from ever re-entering `data.js`.
   - Bumped cache query strings across all HTML templates.
 
+### UI Streamlining: Remove Bottom-Right Floating Bell, Keep Top Header Bell: 2026-11-10 17:46:00 UTC
+- **User Request**:
+  - Remove the floating bottom-right bell icon; keep only the top navigation bar bell icon.
+- **Resolution**:
+  - Removed `.push-floating-bell` DOM elements from `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html`.
+  - Cleaned up `.push-floating-bell`, `.bell-pulse-dot`, and `@keyframes push-bell-pulse` styles from `css/style.css`.
+  - Re-minified CSS via `scripts/minify.py` (`css/style.min.css`).
+  - Retained the clean, high-visibility `.push-top-bell-btn` in the sticky top navigation header next to the menu hamburger button.
+  - Bumped asset cache-busting timestamps across all pages.
+
+
 
