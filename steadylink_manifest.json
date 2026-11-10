@@ -439,5 +439,20 @@
     "status": "ready",
     "storage": "github-release",
     "is_large_file": true
+  },
+  "Cunningham’s_Manual_of_Practical_Anatomy_Volume_1_Upper_and_lower.pdf": {
+    "asset_id": "6b1a210d-0429-4916-9759-c288b965005f",
+    "url": "https://cdn.steadylink.io/a/6b1a210d-0429-4916-9759-c288b965005f",
+    "size": 10717054,
+    "status": "ready"
+  },
+  "Guyton and Hall.pdf": {
+    "asset_id": "gh-release-Guyton_and_Hall.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Guyton_and_Hall.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Guyton_and_Hall.pdf",
+    "size": 56734421,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }

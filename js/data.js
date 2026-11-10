@@ -12,6 +12,26 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-guyton_and_hall_pdf-3804",
+    title: "Guyton And Hall",
+    subject: "physiology",
+    category: "books",
+    code: "Physiology / Books",
+    description: "Uploaded document: Guyton and Hall.pdf. Comprehensive reference book (54.1 MB) hosted on GitHub Releases for high-speed direct download.",
+    tags: ["Physiology", "Books", "Mobile Upload", "Large Book"],
+    fileUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Guyton_and_Hall.pdf",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Guyton_and_Hall.pdf",
+    fileSize: "54.1 MB",
+    pages: "1112 Pages",
+    author: "HarshKumarSaw",
+    date: "10 Nov 2026",
+    updatedAt: 1794333473,
+    year: "1st Year MBBS",
+    isLargeFile: true,
+    storage: "github-release"
+
+  },
+  {
     id: "user-anat-vishram_singh_textbo-1684",
     title: "Vishram Singh Textbook Of Anatomy Vol 2",
     subject: "anatomy",
