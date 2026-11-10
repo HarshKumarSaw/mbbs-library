@@ -253,36 +253,92 @@
               .replace(/\b\w/g, char => char.toUpperCase());
   }
 
-  // Format exact date as "DD MMM YYYY" (e.g. "07 Nov 2026"), or "Date unavailable"
-  function formatResourceDate(rawDate) {
-    if (!rawDate || typeof rawDate !== "string") return "Date unavailable";
-    const trimmed = rawDate.trim();
-    if (!trimmed || trimmed.toLowerCase() === "date unavailable") return "Date unavailable";
+  // Format resource date info:
+  // If uploaded or updated less than 24 hours ago: "Updated X hours ago" (or mins/just now)
+  // Otherwise: "DD MMM YYYY" (e.g. "07 Nov 2026")
+  function formatResourceDateInfo(rawDate, rawUpdatedAt) {
+    let dateStr = rawDate;
+    let updatedAtVal = rawUpdatedAt;
 
-    // Matches exact date: e.g. "07 Nov 2026" or "7 Nov 2026"
-    const dmyMatch = trimmed.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})$/);
-    if (dmyMatch) {
-      const day = dmyMatch[1].padStart(2, "0");
-      const monthStr = dmyMatch[2].substring(0, 3);
-      const cleanMonth = monthStr.charAt(0).toUpperCase() + monthStr.slice(1).toLowerCase();
-      const year = dmyMatch[3];
-      return `${day} ${cleanMonth} ${year}`;
+    if (rawDate && typeof rawDate === "object") {
+      dateStr = rawDate.date;
+      updatedAtVal = rawDate.updatedAt;
     }
 
-    // Matches ISO dates like "2026-11-07"
-    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
-      const parsed = new Date(trimmed);
-      if (!isNaN(parsed.getTime())) {
-        const day = String(parsed.getDate()).padStart(2, "0");
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const month = months[parsed.getMonth()];
-        const year = parsed.getFullYear();
-        return `${day} ${month} ${year}`;
+    // Extract exact standard calendar date (e.g. "07 Nov 2026")
+    let standardDate = "Date unavailable";
+    if (dateStr && typeof dateStr === "string") {
+      const trimmed = dateStr.trim();
+      const dmyMatch = trimmed.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})$/);
+      if (dmyMatch) {
+        const day = dmyMatch[1].padStart(2, "0");
+        const monthStr = dmyMatch[2].substring(0, 3);
+        const cleanMonth = monthStr.charAt(0).toUpperCase() + monthStr.slice(1).toLowerCase();
+        standardDate = `${day} ${cleanMonth} ${dmyMatch[3]}`;
+      } else if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+        const parsed = new Date(trimmed);
+        if (!isNaN(parsed.getTime())) {
+          const day = String(parsed.getDate()).padStart(2, "0");
+          const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          const month = months[parsed.getMonth()];
+          const year = parsed.getFullYear();
+          standardDate = `${day} ${month} ${year}`;
+        }
       }
     }
 
-    // Incomplete dates like "Nov 2026" or "2026" have no exact day
-    return "Date unavailable";
+    // Check epoch time in milliseconds
+    let epochMs = 0;
+    if (typeof updatedAtVal === "number" && updatedAtVal > 0) {
+      epochMs = updatedAtVal > 1e11 ? updatedAtVal : updatedAtVal * 1000;
+    } else if (updatedAtVal) {
+      const parsed = Date.parse(updatedAtVal);
+      if (!isNaN(parsed) && parsed > 0) epochMs = parsed;
+    }
+
+    if (!epochMs && standardDate !== "Date unavailable") {
+      const parsed = Date.parse(standardDate);
+      if (!isNaN(parsed) && parsed > 0) epochMs = parsed;
+    }
+
+    if (epochMs > 0) {
+      const now = Date.now();
+      const diffMs = now - epochMs;
+      // If within 24 hours (with tolerance for minor clock skew)
+      if (diffMs >= -60000 && diffMs < 24 * 60 * 60 * 1000) {
+        const diffMinutes = Math.floor(diffMs / (60 * 1000));
+        let relText = "";
+        if (diffMinutes < 1) {
+          relText = "Updated just now";
+        } else if (diffMinutes < 60) {
+          relText = `Updated ${diffMinutes} min${diffMinutes === 1 ? "" : "s"} ago`;
+        } else {
+          const diffHours = Math.floor(diffMinutes / 60);
+          relText = `Updated ${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+        }
+        return {
+          text: relText,
+          isRecent: true,
+          fullDate: standardDate,
+          tooltip: standardDate !== "Date unavailable"
+            ? `Uploaded / Updated on ${standardDate} (${relText})`
+            : relText
+        };
+      }
+    }
+
+    return {
+      text: standardDate,
+      isRecent: false,
+      fullDate: standardDate,
+      tooltip: standardDate !== "Date unavailable"
+        ? `Added on ${standardDate}`
+        : "Date unavailable"
+    };
+  }
+
+  function formatResourceDate(rawDate, rawUpdatedAt) {
+    return formatResourceDateInfo(rawDate, rawUpdatedAt).text;
   }
 
   // Parse file size string into numeric Megabytes (e.g. "41.3 MB" -> 41.3, "960 KB" -> 0.94)
@@ -615,6 +671,8 @@
       pagesDisplay = "Textbook";
     }
 
+    const dateInfo = formatResourceDateInfo(item);
+
     return `
       <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
         <div class="card-header">
@@ -635,7 +693,7 @@
           <span class="meta-bullet">•</span>
           <span class="meta-item">💾 ${item.fileSize}</span>
           <span class="meta-bullet">•</span>
-          <span class="meta-item">🗓️ ${formatResourceDate(item.date)}</span>
+          <span class="meta-item ${dateInfo.isRecent ? 'meta-recent' : ''}" title="${escapeHtml(dateInfo.tooltip)}">🗓️ ${dateInfo.text}</span>
           ${isLarge ? '<span class="meta-bullet">•</span><span class="meta-item meta-large-asset" title="Large document – direct download available">⚡ Direct Download</span>' : ''}
         </div>
 

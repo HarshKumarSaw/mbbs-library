@@ -2760,6 +2760,18 @@ textarea,
   letter-spacing: 0.01em;
 }
 
+/* Recent Upload / Update Badge (<24 Hours) */
+.meta-recent {
+  color: #065F46;
+  background: rgba(5, 150, 105, 0.09);
+  border: 1px solid rgba(5, 150, 105, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.12rem 0.42rem;
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.01em;
+}
+
 .btn-large-dl {
   width: 100%;
   background: #1E3A8A;

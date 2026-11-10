@@ -1119,3 +1119,16 @@
   - **Direct GitHub Releases Streaming**: Connected directly to GitHub Releases API endpoint (`https://uploads.github.com/repos/.../releases/{id}/assets`) with token auto-detection and asset clobber replacement.
   - **SteadyLink CDN Integration**: Applied `ProgressFileStream` streaming to `upload_single_pdf_curl` for full visibility during all library uploads.
   - **Fallback Safety**: Graceful fallback to `gh release upload` with unsuppressed terminal output if direct streaming is interrupted.
+
+### Relative Timestamp ("Updated X hours ago") for Recent Documents (<24h): 2026-11-10 06:35:00 UTC
+- **User Requirement**:
+  - For any file uploaded or updated less than 24 hours ago, display a relative timestamp like "Updated (hours) hours ago" (or mins/just now) instead of only a static calendar date.
+- **Frontend Implementation (`js/app.js` & `js/app.min.js`)**:
+  - Implemented `formatResourceDateInfo(rawDate, rawUpdatedAt)`:
+    - Calculates exact difference between current client time and resource `updatedAt` / `date`.
+    - If `< 24 hours`: Renders dynamic relative text (`Updated just now`, `Updated X mins ago`, `Updated X hour(s) ago`).
+    - Tooltip retains full calendar date (`Uploaded / Updated on DD MMM YYYY (Updated X hours ago)`).
+    - If `≥ 24 hours`: Gracefully falls back to standard exact calendar date (`DD MMM YYYY`).
+  - Added `.meta-recent` CSS styling in `css/style.css` and `css/style.min.css`:
+    - Distinct, high-contrast forest emerald badge (`#065F46` on `#FAF8F4` ivory canvas, > 6.5:1 WCAG contrast) identifying freshly added study materials.
+  - Bumped Service Worker cache to `v1.0.4` and updated cache-busting version query string to `?v=1794292214`.
