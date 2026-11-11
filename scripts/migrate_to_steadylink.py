@@ -225,7 +225,7 @@ def upload_large_pdf_to_github_release(file_path, filename):
     size = os.path.getsize(file_path)
     size_str = format_file_size(size)
     print(f"\n📦 Large Document (>25MB) detected: {filename} ({size_str})")
-    print(f"   🚀 Routing directly to GitHub Releases (v1.0.0-assets)...")
+    print(f"   🚀 Streaming optimized document to GitHub Releases CDN (v1.0.0-assets)...")
 
     release_tag = "v1.0.0-assets"
     repo = "HarshKumarSaw/mbbs-library"
@@ -348,7 +348,7 @@ def upload_single_pdf_curl(client, file_path, filename, retries=3):
     if size > 25 * 1024 * 1024:
         return upload_large_pdf_to_github_release(file_path, filename)
 
-    print(f"\n📦 Preparing upload: {filename} ({format_file_size(size)})...")
+    print(f"\n📦 Uploading optimized document ({format_file_size(size)}): {filename}...")
 
     for attempt in range(1, retries + 1):
         try:
@@ -707,7 +707,7 @@ def main():
                 skipped_count += 1
                 continue
             else:
-                print(f"🔄 Detected updated document: {filename} (was {format_file_size(existing_meta.get('size', 0))}, now {format_file_size(curr_size)})")
+                print(f"🔄 Detected updated/re-compressed document: {filename} (was {format_file_size(existing_meta.get('size', 0))}, now {format_file_size(curr_size)})")
 
         if client is None:
             client = steadylink.SteadyLink(api_key=API_KEY)

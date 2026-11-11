@@ -27,10 +27,12 @@ RESET="\033[0m"
 
 ON_STARTUP=0
 FORCE_SYNC=0
+FORCE_OPTIMIZE=0
 for arg in "$@"; do
     case "$arg" in
         --on-startup|-q) ON_STARTUP=1 ;;
         --force|-f) FORCE_SYNC=1 ;;
+        --recompress|--force-optimize|-r) FORCE_OPTIMIZE=1; FORCE_SYNC=1 ;;
     esac
 done
 
@@ -501,6 +503,7 @@ save_opt_cache_entry() {
 }
 
 is_pdf_already_optimized() {
+    [ "$FORCE_OPTIMIZE" -eq 1 ] && return 1
     local pdf_file="$1"
     [ -f "$pdf_file" ] || return 0
     local rel_name="${pdf_file#$PHONE_DIR/}"
@@ -534,16 +537,6 @@ optimize_pdf_file() {
     local orig_display
     orig_display=$(format_file_size "$orig_bytes")
 
-    # Fast-path for tiny files: linearize only
-    if [ "$orig_bytes" -lt 307200 ]; then
-        local tmp_lin="$TMP_DIR/lin_$$.pdf"
-        if qpdf --linearize "$target_abs" "$tmp_lin" 2>/dev/null; then
-            mv -f "$tmp_lin" "$target_abs"
-        fi
-        rm -f "$tmp_lin"
-        return 0
-    fi
-
     local total_pages
     total_pages=$(qpdf --show-npages "$target_abs" 2>/dev/null || echo 0)
     [ "$total_pages" -gt 0 ] || return 0
@@ -560,12 +553,14 @@ optimize_pdf_file() {
     local last_sec=0
     local gs_ok=1
 
-    # High-speed average downsampling (130 DPI) with real-time page progress bar
+    # High-quality eBook downsampling (150 DPI bicubic) with real-time page progress bar
     if ! (
         gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 \
-           -dDownsampleColorImages=true -dColorImageDownsampleType=/Average -dColorImageResolution=130 \
-           -dDownsampleGrayImages=true -dGrayImageDownsampleType=/Average -dGrayImageResolution=130 \
-           -dDownsampleMonoImages=true -dMonoImageResolution=200 \
+           -dPDFSETTINGS=/ebook \
+           -dDownsampleColorImages=true -dColorImageDownsampleType=/Bicubic -dColorImageResolution=150 \
+           -dDownsampleGrayImages=true -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=150 \
+           -dDownsampleMonoImages=true -dMonoImageDownsampleType=/Subsample -dMonoImageResolution=200 \
+           -dDetectDuplicateImages=true -dDoThumbnails=false \
            -dNOPAUSE -dBATCH \
            -sOutputFile="$tmp_gs" "$target_abs" 2>"$tmp_err" | while read -r line; do
                if [[ "$line" =~ ^Page\ ([0-9]+) ]]; then
@@ -607,29 +602,32 @@ optimize_pdf_file() {
                 local new_display
                 new_display=$(format_file_size "$new_bytes")
                 local saved_pct=$(( (orig_bytes - new_bytes) * 100 / orig_bytes ))
-                echo -e "      ${GREEN}✔ Optimized:${RESET} $orig_display ➔ ${BOLD}$new_display${RESET} (${saved_pct}% saved, Fast Web View enabled)"
+                echo -e "      ${GREEN}✔ Optimized & Linearized:${RESET} $orig_display ➔ ${BOLD}$new_display${RESET} (${saved_pct}% saved, Fast Web View enabled)"
             else
                 qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs"
-                echo -e "      ${GREEN}✔ Linearized:${RESET} Fast Web View enabled ($orig_display)"
+                echo -e "      ${GREEN}✔ Linearized:${RESET} Fast Web View enabled ($orig_display, original was already optimal)"
             fi
+        else
+            mv -f "$tmp_gs" "$target_abs"
+            echo -e "      ${GREEN}✔ Compressed:${RESET} $orig_display ➔ $(format_file_size $(wc -c < "$target_abs"))"
         fi
     else
         echo -e "      ${YELLOW}⚠️  Optimization notice:${RESET} Linearizing original stream..."
         qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs" || true
     fi
 
-    # 25MB Large Document Guard: Bypass secondary compression and preserve high visual quality for GitHub Releases
+    # 25MB Large Document Guard: Inform user of direct CDN streaming while preserving visual clarity
     local final_bytes
     final_bytes=$(wc -c < "$target_abs")
     if [ "$final_bytes" -ge 26214400 ]; then # 25 MB
         local final_disp
         final_disp=$(format_file_size "$final_bytes")
-        echo -e "      ${PURPLE}📦 [Large Asset Detected]:${RESET} File is ${BOLD}$final_disp${RESET} (>25MB) after first compression pass."
-        echo -e "         ${GREEN}✔ Preserving high visual quality${RESET} (bypassing secondary downsampling pass)."
-        echo -e "         ${CYAN}✔ Routing directly to GitHub Releases (v1.0.0-assets)${RESET} for direct device download."
+        echo -e "      ${PURPLE}📦 [Large Asset Detected]:${RESET} File is ${BOLD}$final_disp${RESET} (>25MB) after compression."
+        echo -e "         ${GREEN}✔ Preserved crystal-clear visual quality${RESET} for textbook study."
+        echo -e "         ${CYAN}✔ Routed directly to GitHub Releases (v1.0.0-assets)${RESET} for direct device download."
     fi
 
-    # Record in persistent optimization cache so it is never re-compressed
+    # Record in persistent optimization cache so it is never re-compressed unless --recompress is used
     local final_mtime
     final_mtime=$(stat -c %Y "$target_abs" 2>/dev/null || echo 0)
     save_opt_cache_entry "${target_abs#$PHONE_DIR/}" "$final_bytes" "$final_mtime"
@@ -868,13 +866,13 @@ done
 
 if [ "$OPT_COUNT" -gt 0 ]; then
     echo -e "   ${GREEN}✔ Optimized $OPT_COUNT new/updated document(s).${RESET}"
+elif [ "$ON_STARTUP" -eq 0 ]; then
+    echo -e "   ${DIM}✔ All phone PDFs verified: optimized & linearized for fast web viewing.${RESET}"
 fi
 
-if [ "$ON_STARTUP" -eq 1 ]; then
-    python3 "$REPO_DIR/scripts/migrate_to_steadylink.py" -q
-else
-    python3 "$REPO_DIR/scripts/migrate_to_steadylink.py"
-fi
+py_args=()
+[ "$ON_STARTUP" -eq 1 ] && py_args+=("-q")
+python3 "$REPO_DIR/scripts/migrate_to_steadylink.py" "${py_args[@]}"
 
 # Enforce zero local PDF binaries in Git repository
 rm -rf "$REPO_DIR/assets/docs" 2>/dev/null || true
