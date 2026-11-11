@@ -1328,3 +1328,19 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 0
 - **Total In-Sync Files**: 50
+
+### High-Contrast Emerald Green Bell UI & Dual Cookie + LocalStorage Push Persistence: 2026-11-11 02:30:00 UTC
+- **User Issue**:
+  1. Bell icon appeared white/unsubscribed after page reload.
+  2. Turning off alerts via the bell dialog immediately re-prompted to re-subscribe on subsequent clicks.
+  3. Requested utilizing browser cookies to guarantee state persistence.
+- **Root Cause**:
+  1. The subscribed styling previously used a very faint `#ECFDF5` pastel background (nearly 99% white) with a static yellow `🔔` emoji, appearing completely white on mobile screens.
+  2. Once browser permission was granted, subsequent clicks had no explicit paused status handler, immediately re-triggering the subscription flow.
+- **Resolution**:
+  - Replaced the emoji glyph with a dedicated vector SVG bell icon and glowing status indicator dot (`.bell-status-dot`).
+  - Added high-contrast, bold Emerald Green styling (`#059669`) with white vector stroke and pulsing gold dot for `.is-subscribed`, making the active state undeniably green.
+  - Implemented dual-layer persistence utilizing both HTTP-compatible Cookies (`mbbs_push_status=subscribed|unsubscribed; max-age=1year; SameSite=Lax`) and `localStorage`.
+  - Added distinct handling for paused state: tapping while paused offers to resume alerts without looping, and turning off alerts cleanly switches the bell back to white and persists across reloads.
+  - Bumped Service Worker cache to `harsh-library-v1.1.0` and regenerated all minified assets and cache-busting timestamps.
+

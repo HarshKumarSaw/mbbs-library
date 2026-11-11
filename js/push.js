@@ -1,13 +1,14 @@
 /**
  * Harsh's Library - Push Notification Engine (OneSignal Web Push)
  * Handles instant alerts for new study materials & notes.
- * Free • Zero-Backend • Automatic sync integration
+ * Free • Zero-Backend • Dual Cookie + LocalStorage Persistence
  */
 
 (() => {
   "use strict";
 
   const ONESIGNAL_APP_ID = "54db441e-edff-4024-8e24-87bacea1d5fe";
+  const COOKIE_NAME = "mbbs_push_status";
 
   const path = window.location.pathname;
   const isRepo = path.startsWith("/mbbs-library");
@@ -16,16 +17,80 @@
 
   let oneSignalInstance = null;
 
+  // --- Cookie Helpers ---
+  function getCookie(name) {
+    try {
+      const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+      return match ? decodeURIComponent(match[2]) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function setCookie(name, value, days = 365) {
+    try {
+      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      const secure = window.location.protocol === "https:" ? "; Secure" : "";
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax${secure}`;
+    } catch (_) {}
+  }
+
+  // --- Dual Storage Status (Cookie + LocalStorage) ---
+  function getStoredStatus() {
+    const fromCookie = getCookie(COOKIE_NAME);
+    if (fromCookie) return fromCookie;
+    try {
+      return localStorage.getItem(COOKIE_NAME);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function setStoredStatus(status) {
+    setCookie(COOKIE_NAME, status);
+    try {
+      localStorage.setItem(COOKIE_NAME, status);
+    } catch (_) {}
+  }
+
   /**
-   * Determine whether notifications are currently active for this user.
-   * Uses browser-level native permission and respects explicit user opt-outs.
-   * This guarantees that subscribed state is never reset on page refresh.
+   * Determine subscription state reliably across all devices & browsers.
+   * Priority:
+   * 1. Explicit user choice in Cookie / LocalStorage ("subscribed" vs "unsubscribed")
+   * 2. Browser native permission state (granted -> subscribed)
+   * 3. OneSignal active subscription state
    */
   function isCurrentlySubscribed() {
-    if (!("Notification" in window)) return false;
-    if (Notification.permission !== "granted") return false;
-    if (localStorage.getItem("mbbs_push_opted_out") === "true") return false;
-    return true;
+    const stored = getStoredStatus();
+
+    // Explicit opt-out / paused
+    if (stored === "unsubscribed") {
+      return false;
+    }
+
+    // Explicitly subscribed in cookie/storage
+    if (stored === "subscribed") {
+      return true;
+    }
+
+    // Browser permission check
+    if ("Notification" in window && Notification.permission === "granted") {
+      setStoredStatus("subscribed");
+      return true;
+    }
+
+    // OneSignal state
+    if (
+      oneSignalInstance &&
+      oneSignalInstance.User &&
+      oneSignalInstance.User.PushSubscription &&
+      oneSignalInstance.User.PushSubscription.optedIn
+    ) {
+      setStoredStatus("subscribed");
+      return true;
+    }
+
+    return false;
   }
 
   function updateUIState() {
@@ -36,8 +101,8 @@
       btn.style.display = "inline-flex";
       if (isSubscribed) {
         btn.classList.add("is-subscribed");
-        btn.setAttribute("title", "Study alerts active. Tap to manage notifications.");
-        btn.setAttribute("aria-label", "Notifications active. Tap to manage.");
+        btn.setAttribute("title", "Study alerts active. Tap to turn off.");
+        btn.setAttribute("aria-label", "Notifications active. Tap to turn off.");
         const label = btn.querySelector(".push-btn-label");
         if (label) label.textContent = "Alerts Active";
       } else {
@@ -56,6 +121,45 @@
       event.stopPropagation();
     }
 
+    // Scenario 1: Already Subscribed -> Prompt to Turn Off / Pause
+    if (isCurrentlySubscribed()) {
+      const confirmDisable = confirm(
+        "You are currently subscribed to alerts for new MBBS notes and books!\n\nWould you like to turn off notifications?"
+      );
+      if (confirmDisable) {
+        setStoredStatus("unsubscribed");
+        try {
+          if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
+            await oneSignalInstance.User.PushSubscription.optOut();
+          }
+        } catch (e) {
+          console.warn("[Push] Opt-out notice:", e);
+        }
+        updateUIState();
+        alert("Push notifications have been turned off.");
+      }
+      return;
+    }
+
+    // Scenario 2: Unsubscribed / Paused -> Subscribe or Resume
+    const stored = getStoredStatus();
+    if (stored === "unsubscribed" && "Notification" in window && Notification.permission === "granted") {
+      const resume = confirm("Study alerts are currently turned off.\n\nWould you like to turn alerts back ON?");
+      if (!resume) return;
+      setStoredStatus("subscribed");
+      try {
+        if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
+          await oneSignalInstance.User.PushSubscription.optIn();
+        }
+      } catch (e) {
+        console.warn("[Push] Opt-in resume notice:", e);
+      }
+      updateUIState();
+      alert("🎉 Study alerts turned back ON! You will receive notifications for new MBBS notes and books.");
+      return;
+    }
+
+    // Scenario 3: First-Time Subscription Flow
     // 1. Check iOS Safari standalone constraint
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isStandalone = window.navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
@@ -76,7 +180,7 @@
       return;
     }
 
-    // 3. If notifications are blocked by browser settings
+    // 3. If notifications are permanently blocked by browser site settings
     if (Notification.permission === "denied") {
       alert(
         "⚠️ Notifications are currently blocked in your browser settings.\n\n" +
@@ -88,35 +192,12 @@
       return;
     }
 
-    // 4. If already subscribed, prompt to toggle/unsubscribe
-    if (isCurrentlySubscribed()) {
-      const confirmDisable = confirm(
-        "You are currently subscribed to alerts for new MBBS notes and books!\n\nWould you like to turn off notifications?"
-      );
-      if (confirmDisable) {
-        localStorage.setItem("mbbs_push_opted_out", "true");
-        try {
-          if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
-            await oneSignalInstance.User.PushSubscription.optOut();
-          }
-        } catch (e) {
-          console.warn("[Push] Opt-out notice:", e);
-        }
-        updateUIState();
-        alert("Push notifications have been turned off.");
-      }
-      return;
-    }
-
-    // 5. User wants to subscribe: Request permission directly within this active user gesture
-    localStorage.removeItem("mbbs_push_opted_out");
-
+    // 4. Request native browser notification permission
     let perm = Notification.permission;
     if (perm !== "granted") {
       try {
         perm = await Notification.requestPermission();
       } catch (err) {
-        // Fallback for older callback-based browsers
         perm = await new Promise((res) => Notification.requestPermission(res));
       }
     }
@@ -130,10 +211,11 @@
       return;
     }
 
-    // 6. Permission granted! Immediately update UI state (persistent across refreshes)
+    // 5. Permission granted: Save status in Cookie & LocalStorage and update UI
+    setStoredStatus("subscribed");
     updateUIState();
 
-    // 7. Register subscription token with OneSignal
+    // 6. Register subscription token with OneSignal
     try {
       if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
         await oneSignalInstance.User.PushSubscription.optIn();
@@ -188,7 +270,7 @@
         }
       });
 
-      // If user already granted permission, ensure OneSignal registers them as subscriber
+      // If user already subscribed, ensure OneSignal registers them as subscriber
       if (isCurrentlySubscribed() && OneSignal.User && OneSignal.User.PushSubscription) {
         OneSignal.User.PushSubscription.optIn().catch((err) => {
           console.warn("[Push] OneSignal auto-optIn notice:", err);
