@@ -1381,3 +1381,12 @@
      - Minified CSS via `scripts/minify.py` (`style.min.css`) and JS (`app.min.js`).
      - Bumped Service Worker cache to `harsh-library-v1.2.0` in `sw.js`.
      - Bumped cache-busting version timestamps (`v=1794380178`) across all HTML files.
+
+### Hamburger Menu Redundant Alert Button Removal: 2026-11-11 07:25:00 UTC
+- **User Request**:
+  - Remove "Get Alerts" from the hamburger drawer menu to avoid redundant buttons doing the same task.
+- **Resolution**:
+  - Removed `<li><button type="button" class="push-notify-trigger push-nav-btn"...>🔔 Get Alerts</button></li>` from `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html`.
+  - Cleaned up obsolete `.push-nav-btn` styles from `css/style.css` and re-minified `css/style.min.css`.
+  - Updated `js/push.js` to eliminate dead DOM lookups for `.push-nav-btn`.
+  - The sticky header quick bell icon (`#push-top-bell-btn`) now acts as the single primary entry point for notifications and alerts.

@@ -4303,32 +4303,6 @@ body.modal-open {
   -webkit-tap-highlight-color: transparent;
 }
 
-.push-nav-btn {
-  padding: 6px 14px;
-  font-size: 0.84rem;
-  background: #FAF8F4;
-  color: var(--primary-navy);
-  border: 1.5px solid var(--border-light, #E8E0D5);
-}
-
-.push-nav-btn:hover {
-  background: #FFFFFF;
-  border-color: var(--primary-navy);
-  transform: translateY(-1px);
-}
-
-.push-nav-btn.is-subscribed {
-  background: #059669 !important;
-  color: #FFFFFF !important;
-  border-color: #047857 !important;
-  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3) !important;
-}
-
-.push-nav-btn.is-subscribed:hover {
-  background: #047857 !important;
-  border-color: #065F46 !important;
-}
-
 /* Top Navbar Quick Bell Icon (Next to Menu Toggle) */
 .push-top-bell-btn {
   display: inline-flex !important;

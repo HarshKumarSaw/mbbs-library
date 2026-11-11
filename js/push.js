@@ -347,9 +347,9 @@
       btn.setAttribute("aria-expanded", String(isNotifCenterOpen));
     });
 
-    // Navigation and Footer notification buttons
-    const navButtons = document.querySelectorAll(".push-nav-btn, .push-footer-btn");
-    navButtons.forEach((btn) => {
+    // Footer notification button
+    const footerButtons = document.querySelectorAll(".push-footer-btn");
+    footerButtons.forEach((btn) => {
       btn.style.display = "inline-flex";
       const countSuffix = unreadCount > 0 ? ` (${unreadCount})` : "";
       if (isSubscribed) {
