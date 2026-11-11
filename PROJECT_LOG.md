@@ -1467,3 +1467,19 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 0
 - **Total In-Sync Files**: 50
+
+### Notification Center Default Tab & OneSignal 256x256 Branding: 2026-11-11 14:18:00 UTC
+- **User Request**:
+  - Provide 256x256 HTTPS logo URL for OneSignal web push branding.
+  - Send test push to verify the logo appears.
+  - Make "Unread" tab the default view when opening notifications instead of "All".
+- **Resolution**:
+  1. **Branding Assets**:
+     - Generated `assets/icons/logo-256x256.png` (official medical crest) and `assets/icons/icon-256x256.png` (PWA square icon).
+     - Deployed live over HTTPS on GitHub Pages CDN (`https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png`).
+     - Updated `scripts/send_push.sh` to include `chrome_web_icon` and `firefox_icon` pointing to the 256x256 crest logo. Verified push delivery to active device.
+  2. **Notification Center Default Tab**:
+     - Updated `activeTab` initialization to `"unread"` by default in `js/push.js`.
+     - Updated segmented control DOM template so `#notif-tab-unread` has `is-active` and `aria-selected="true"` on initial render.
+     - Added `switchTab(tabName)` handler and wired `openNotificationCenter()` to always switch to `"unread"` tab on open.
+     - Re-minified assets and bumped HTML cache-buster versions (`v=1794406696`).
