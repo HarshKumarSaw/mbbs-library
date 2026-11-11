@@ -22,7 +22,7 @@
   const swScope = isRepo ? "/mbbs-library/" : "/";
 
   let oneSignalInstance = null;
-  let activeTab = "all"; // 'all' or 'unread'
+  let activeTab = "unread"; // 'unread' or 'all' (defaults to 'unread')
   let isNotifCenterOpen = false;
 
   // Pinned Welcome Notification
@@ -513,6 +513,33 @@
     }
   }
 
+  // --- Switch Segmented Tab (Unread / All) ---
+  function switchTab(tabName) {
+    activeTab = tabName === "all" ? "all" : "unread";
+    const tabAll = document.getElementById("notif-tab-all");
+    const tabUnread = document.getElementById("notif-tab-unread");
+    if (activeTab === "unread") {
+      if (tabUnread) {
+        tabUnread.classList.add("is-active");
+        tabUnread.setAttribute("aria-selected", "true");
+      }
+      if (tabAll) {
+        tabAll.classList.remove("is-active");
+        tabAll.setAttribute("aria-selected", "false");
+      }
+    } else {
+      if (tabAll) {
+        tabAll.classList.add("is-active");
+        tabAll.setAttribute("aria-selected", "true");
+      }
+      if (tabUnread) {
+        tabUnread.classList.remove("is-active");
+        tabUnread.setAttribute("aria-selected", "false");
+      }
+    }
+    renderNotificationCenterContent();
+  }
+
   // --- Notification Center Feed Rendering with Date Grouping ---
   function renderNotificationCenterContent() {
     renderPushBar();
@@ -724,11 +751,11 @@
         <!-- Slim Segmented Control (All / Unread) -->
         <div class="notif-segmented-wrap">
           <div class="notif-segmented" role="tablist">
-            <button type="button" class="notif-seg-btn is-active" data-tab="all" id="notif-tab-all" role="tab" aria-selected="true">
+            <button type="button" class="notif-seg-btn" data-tab="all" id="notif-tab-all" role="tab" aria-selected="false">
               <span>All</span>
               <span class="notif-seg-count" id="notif-tab-all-count">0</span>
             </button>
-            <button type="button" class="notif-seg-btn" data-tab="unread" id="notif-tab-unread" role="tab" aria-selected="false">
+            <button type="button" class="notif-seg-btn is-active" data-tab="unread" id="notif-tab-unread" role="tab" aria-selected="true">
               <span>Unread</span>
               <span class="notif-seg-count" id="notif-tab-unread-count">0</span>
             </button>
@@ -764,29 +791,11 @@
     const tabUnread = document.getElementById("notif-tab-unread");
 
     if (tabAll) {
-      tabAll.addEventListener("click", () => {
-        activeTab = "all";
-        tabAll.classList.add("is-active");
-        tabAll.setAttribute("aria-selected", "true");
-        if (tabUnread) {
-          tabUnread.classList.remove("is-active");
-          tabUnread.setAttribute("aria-selected", "false");
-        }
-        renderNotificationCenterContent();
-      });
+      tabAll.addEventListener("click", () => switchTab("all"));
     }
 
     if (tabUnread) {
-      tabUnread.addEventListener("click", () => {
-        activeTab = "unread";
-        tabUnread.classList.add("is-active");
-        tabUnread.setAttribute("aria-selected", "true");
-        if (tabAll) {
-          tabAll.classList.remove("is-active");
-          tabAll.setAttribute("aria-selected", "false");
-        }
-        renderNotificationCenterContent();
-      });
+      tabUnread.addEventListener("click", () => switchTab("unread"));
     }
 
     // Keyboard navigation: Escape key closes modal
@@ -966,8 +975,9 @@
 
     lockPageScroll();
 
+    // Default to Unread tab on open
     updateBellUI();
-    renderNotificationCenterContent();
+    switchTab("unread");
   }
 
   function closeNotificationCenter() {
