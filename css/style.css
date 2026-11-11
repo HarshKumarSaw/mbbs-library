@@ -4605,6 +4605,103 @@ body.notif-center-open {
   color: var(--primary-navy, #151B2B);
 }
 
+/* Push Alerts Control Bar in Notification Center */
+.notif-push-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--canvas-subtle, #FAF8F4);
+  border-bottom: 1px solid var(--border-subtle, #E8E0D5);
+  font-size: 0.74rem;
+  gap: 10px;
+  flex-shrink: 0;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.notif-push-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.notif-push-icon {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.notif-push-text-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.notif-push-label {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-weight: 700;
+  color: var(--primary-navy, #151B2B);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notif-push-desc {
+  font-size: 0.68rem;
+  color: var(--text-muted, #5A6578);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notif-push-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5px 11px;
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.notif-push-action-btn.btn-enable {
+  background: #059669;
+  color: #FFFFFF;
+  border: 1px solid #047857;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
+}
+
+.notif-push-action-btn.btn-enable:hover {
+  background: #047857;
+}
+
+.notif-push-action-btn.btn-disable {
+  background: #FFFFFF;
+  color: #64748B;
+  border: 1px solid #CBD5E1;
+}
+
+.notif-push-action-btn.btn-disable:hover {
+  background: #F1F5F9;
+  color: var(--primary-navy, #151B2B);
+  border-color: #94A3B8;
+}
+
+.notif-push-action-btn.btn-blocked {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
 /* Slim Segmented Control (All / Unread) */
 .notif-segmented-wrap {
   padding: 6px 14px;

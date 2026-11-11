@@ -121,7 +121,7 @@ send_onesignal_notification() {
 {
   "app_id": "$ONESIGNAL_APP_ID",
   "target_channel": "push",
-  "included_segments": ["Subscribed Users"],
+  "included_segments": ["Total Subscriptions", "Subscribed Users"],
   "headings": {"en": "$title"},
   "contents": {"en": "$message"},
   "url": "$url"

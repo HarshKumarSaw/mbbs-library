@@ -1440,3 +1440,23 @@
      - Bumped Service Worker cache to `harsh-library-v1.3.3` in `sw.js`.
      - Bumped asset cache-busting timestamps across all 4 HTML files (`v=1794392935`).
      - Verified with headless unit test suite covering backdrop touch, header touch, top/bottom boundaries, wheel containment, and scroll restoration.
+
+### Web Push Notification Subsystem Alignment & In-Drawer Device Subscription Engine: 2026-11-11 11:15:00 UTC
+- **User Issue**:
+  - In-app notification center was working, but users were not receiving device-level Web Push notifications.
+- **Root Cause Analysis**:
+  1. **Service Worker 404 Resolution Error**: `swPath` in `js/push.js` was defined as `mbbs-library/OneSignalSDKWorker.js` without a leading slash. On GitHub Pages (`/mbbs-library/`), relative resolution resulted in `https://harshkumarsaw.github.io/mbbs-library/mbbs-library/OneSignalSDKWorker.js` (HTTP 404 Not Found), causing OneSignal worker initialization to fail completely.
+  2. **Service Worker Collision**: `js/pwa.js` was registering `/mbbs-library/sw.js` under the same scope `/mbbs-library/`, overwriting and competing with OneSignal's worker.
+  3. **Missing Opt-in Trigger & UI Control**: In previous commits, the Push Alerts row was removed from the drawer and hamburger menu, leaving no interactive button or gesture to invoke `Notification.requestPermission()` or `OneSignal.User.PushSubscription.optIn()`. Modern browsers block push permission without a user gesture.
+  4. **False Positive Subscribed Detection**: `isCurrentlySubscribed()` previously returned `true` if `localStorage` had `"subscribed"` even when `Notification.permission !== "granted"`, falsely presenting the user as active when browser permission was missing.
+- **Resolution**:
+  1. **Normalized Path & Scope**: Set `swPath = "/mbbs-library/OneSignalSDKWorker.js"` and scope `"/mbbs-library/"` (or root when on custom domain/localhost). Verified HTTP 200 response on GitHub Pages.
+  2. **Unified Master Service Worker**: Updated `js/pwa.js` to register `OneSignalSDKWorker.js`, which chains both OneSignal v16 push listeners and PWA offline caching (`sw.js`) without duplicate registrations or collision.
+  3. **In-Drawer Push Alerts Control Bar (`.notif-push-bar`)**:
+     - Integrated a compact, non-intrusive control bar in the Notification Center header.
+     - State 1 (Unsubscribed / Need Permission): High-contrast emerald CTA "Turn On" that directly invokes browser permission prompt and registers the device in OneSignal.
+     - State 2 (Subscribed): Shows active device indicator ("● Device Alerts Active") with 1-click "Turn Off" toggle.
+     - State 3 (Denied/Blocked): Displays "Alerts Blocked in Browser" with "How to Fix" guide.
+  4. **Auto-OptIn & Slidedown Support**: If browser permission was already granted, OneSignal immediately registers the subscription on boot; for first-time visitors with default permission, OneSignal's polite slidedown prompt triggers after 3 seconds.
+  5. **Backend Segment Broadening**: Updated `send_push.sh` and `sync_from_phone.sh` to target both `["Total Subscriptions", "Subscribed Users"]`.
+  6. **Asset Minification & PWA Cache Bump**: Re-minified CSS via `scripts/minify.py`, bumped service worker cache to `harsh-library-v1.3.4`, and bumped asset cache busters to `v=1794395501`.

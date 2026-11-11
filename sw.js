@@ -1,8 +1,10 @@
-// OneSignal Web Push Worker
-try {
-  importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
-} catch (e) {
-  console.warn("[SW] OneSignal worker import error:", e);
+// OneSignal Web Push Worker (load if not already present in global scope)
+if (typeof OneSignalWorker === "undefined") {
+  try {
+    importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+  } catch (e) {
+    console.warn("[SW] OneSignal worker import error:", e);
+  }
 }
 
 /**
@@ -15,7 +17,7 @@ try {
  *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.3.3';
+const CACHE_NAME = 'harsh-library-v1.3.4';
 
 // Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
 const getBasePath = () => {

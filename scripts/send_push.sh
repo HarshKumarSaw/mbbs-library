@@ -52,7 +52,7 @@ PAYLOAD=$(cat <<JSON_EOF
 {
   "app_id": "$ONESIGNAL_APP_ID",
   "target_channel": "push",
-  "included_segments": ["Subscribed Users"],
+  "included_segments": ["Total Subscriptions", "Subscribed Users"],
   "headings": {"en": "$TITLE"},
   "contents": {"en": "$MESSAGE"},
   "url": "$TARGET_URL"

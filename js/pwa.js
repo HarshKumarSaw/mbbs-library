@@ -13,12 +13,12 @@
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
 
-  // 1. Service Worker Registration
+  // 1. Service Worker Registration (Unified OneSignal + PWA Worker)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const isRepo = window.location.pathname.startsWith('/mbbs-library/');
-      const swUrl = isRepo ? '/mbbs-library/sw.js' : './sw.js';
-      const swScope = isRepo ? '/mbbs-library/' : './';
+      const isRepo = window.location.pathname.startsWith('/mbbs-library');
+      const swUrl = isRepo ? '/mbbs-library/OneSignalSDKWorker.js' : '/OneSignalSDKWorker.js';
+      const swScope = isRepo ? '/mbbs-library/' : '/';
 
       navigator.serviceWorker
         .register(swUrl, { scope: swScope })

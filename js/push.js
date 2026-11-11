@@ -17,8 +17,8 @@
 
   const path = window.location.pathname;
   const isRepo = path.startsWith("/mbbs-library");
-  const swPath = isRepo ? "mbbs-library/OneSignalSDKWorker.js" : "OneSignalSDKWorker.js";
-  const swScope = isRepo ? "/mbbs-library/" : "./";
+  const swPath = isRepo ? "/mbbs-library/OneSignalSDKWorker.js" : "/OneSignalSDKWorker.js";
+  const swScope = isRepo ? "/mbbs-library/" : "/";
 
   let oneSignalInstance = null;
   let activeTab = "all"; // 'all' or 'unread'
@@ -79,36 +79,26 @@
    * Determine push subscription state reliably across all devices & browsers.
    */
   function isCurrentlySubscribed() {
-    const stored = getStoredStatus();
-
-    // Explicit opt-out / paused
-    if (stored === "unsubscribed") {
+    // If browser doesn't support notifications or permission is not granted, device cannot receive push
+    if (!("Notification" in window) || Notification.permission !== "granted") {
       return false;
     }
 
-    // Explicitly subscribed in cookie/storage
-    if (stored === "subscribed") {
-      return true;
-    }
-
-    // Browser permission check
-    if ("Notification" in window && Notification.permission === "granted") {
-      setStoredStatus("subscribed");
-      return true;
+    const stored = getStoredStatus();
+    if (stored === "unsubscribed") {
+      return false;
     }
 
     // OneSignal state
     if (
       oneSignalInstance &&
       oneSignalInstance.User &&
-      oneSignalInstance.User.PushSubscription &&
-      oneSignalInstance.User.PushSubscription.optedIn
+      oneSignalInstance.User.PushSubscription
     ) {
-      setStoredStatus("subscribed");
-      return true;
+      return Boolean(oneSignalInstance.User.PushSubscription.optedIn);
     }
 
-    return false;
+    return true;
   }
 
   // --- Read / Unread Storage & Logic ---
@@ -205,8 +195,12 @@
   // --- Push Subscription Actions ---
   async function subscribeToPush() {
     // 1. Check iOS Safari standalone constraint
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isStandalone = window.navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
+    const userAgent = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(typeof window !== "undefined" && window.MSStream);
+    const isStandalone = Boolean(
+      (typeof window !== "undefined" && window.navigator && window.navigator.standalone) ||
+      (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+    );
     if (isIOS && !isStandalone) {
       alert(
         "📱 iPhone / iPad Setup:\n\n" +
@@ -229,7 +223,7 @@
       alert(
         "⚠️ Notifications are blocked in your browser settings.\n\n" +
         "To enable alerts:\n" +
-        "1. Tap the lock/tune icon beside the URL in the address bar.\n" +
+        "1. Tap the lock/tune/settings icon beside the URL in the address bar.\n" +
         "2. Choose Site Settings -> Notifications -> Allow.\n" +
         "3. Reload the page."
       );
@@ -240,17 +234,27 @@
     let perm = Notification.permission;
     if (perm !== "granted") {
       try {
-        perm = await Notification.requestPermission();
+        if (oneSignalInstance && oneSignalInstance.Notifications && typeof oneSignalInstance.Notifications.requestPermission === "function") {
+          const accepted = await oneSignalInstance.Notifications.requestPermission();
+          perm = accepted ? "granted" : Notification.permission;
+        } else {
+          perm = await Notification.requestPermission();
+        }
       } catch (_) {
         perm = await new Promise((res) => Notification.requestPermission(res));
       }
     }
 
-    if (perm !== "granted") return;
+    if (perm !== "granted") {
+      updateBellUI();
+      renderPushBar();
+      return;
+    }
 
     // 5. Save subscribed state
     setStoredStatus("subscribed");
     updateBellUI();
+    renderPushBar();
 
     // 6. Sync with OneSignal
     try {
@@ -280,6 +284,7 @@
       console.warn("[Push] OneSignal optOut notice:", e);
     }
     updateBellUI();
+    renderPushBar();
   }
 
   async function resumePush() {
@@ -292,6 +297,76 @@
       console.warn("[Push] OneSignal resume notice:", e);
     }
     updateBellUI();
+    renderPushBar();
+  }
+
+  // --- Push Alerts Bar in Notification Center ---
+  function renderPushBar() {
+    const bar = document.getElementById("notif-push-bar");
+    if (!bar) return;
+
+    const isSubscribed = isCurrentlySubscribed();
+    const isDenied = "Notification" in window && Notification.permission === "denied";
+
+    if (isDenied) {
+      bar.innerHTML = `
+        <div class="notif-push-left">
+          <span class="notif-push-icon">⚠️</span>
+          <div class="notif-push-text-wrap">
+            <span class="notif-push-label">Alerts Blocked</span>
+            <span class="notif-push-desc">Enable in browser site settings</span>
+          </div>
+        </div>
+        <button type="button" class="notif-push-action-btn btn-blocked" id="notif-push-toggle-btn">
+          How to Fix
+        </button>
+      `;
+      const btn = document.getElementById("notif-push-toggle-btn");
+      if (btn) {
+        btn.onclick = () => {
+          alert(
+            "⚠️ Notifications are blocked in your browser settings.\n\n" +
+            "To enable alerts:\n" +
+            "1. Tap the lock/tune/settings icon beside the URL in your browser address bar.\n" +
+            "2. Select 'Site settings' -> 'Notifications' -> 'Allow'.\n" +
+            "3. Refresh the page to activate instant study notifications!"
+          );
+        };
+      }
+      return;
+    }
+
+    if (isSubscribed) {
+      bar.innerHTML = `
+        <div class="notif-push-left">
+          <span class="notif-push-icon" style="color: #059669; font-size: 0.85rem;">●</span>
+          <div class="notif-push-text-wrap">
+            <span class="notif-push-label">Device Alerts Active</span>
+            <span class="notif-push-desc">Receiving instant study notifications</span>
+          </div>
+        </div>
+        <button type="button" class="notif-push-action-btn btn-disable" id="notif-push-toggle-btn">
+          Turn Off
+        </button>
+      `;
+      const btn = document.getElementById("notif-push-toggle-btn");
+      if (btn) btn.onclick = () => unsubscribeFromPush();
+    } else {
+      bar.innerHTML = `
+        <div class="notif-push-left">
+          <span class="notif-push-icon">🔔</span>
+          <div class="notif-push-text-wrap">
+            <span class="notif-push-label">Device Push Alerts</span>
+            <span class="notif-push-desc">Get notified when new notes or books are uploaded</span>
+          </div>
+        </div>
+        <button type="button" class="notif-push-action-btn btn-enable" id="notif-push-toggle-btn">
+          Turn On
+        </button>
+      `;
+      const btn = document.getElementById("notif-push-toggle-btn");
+      if (btn) btn.onclick = () => subscribeToPush();
+    }
   }
 
   // --- Date Grouping Helper ---
@@ -439,6 +514,7 @@
 
   // --- Notification Center Feed Rendering with Date Grouping ---
   function renderNotificationCenterContent() {
+    renderPushBar();
     const container = document.getElementById("notif-feed-container");
     const emptyState = document.getElementById("notif-empty-state");
     if (!container) return;
@@ -643,6 +719,9 @@
             </button>
           </div>
         </div>
+
+        <!-- Push Alerts Control Bar -->
+        <div class="notif-push-bar" id="notif-push-bar"></div>
 
         <!-- Slim Segmented Control (All / Unread) -->
         <div class="notif-segmented-wrap">
@@ -974,19 +1053,46 @@
         }
       });
 
-      // If user already subscribed, ensure OneSignal registers them
-      if (isCurrentlySubscribed() && OneSignal.User && OneSignal.User.PushSubscription) {
-        OneSignal.User.PushSubscription.optIn().catch((err) => {
-          console.warn("[Push] OneSignal auto-optIn notice:", err);
-        });
+      // If browser permission is already granted, ensure OneSignal registers them
+      if ("Notification" in window && Notification.permission === "granted") {
+        setStoredStatus("subscribed");
+        if (OneSignal.User && OneSignal.User.PushSubscription && !OneSignal.User.PushSubscription.optedIn) {
+          OneSignal.User.PushSubscription.optIn().catch((err) => {
+            console.warn("[Push] OneSignal auto-optIn notice:", err);
+          });
+        }
       }
 
       updateBellUI();
+      renderPushBar();
 
       if (OneSignal.User && OneSignal.User.PushSubscription) {
-        OneSignal.User.PushSubscription.addEventListener("change", () => {
+        OneSignal.User.PushSubscription.addEventListener("change", (state) => {
+          if (state && state.current && state.current.optedIn) {
+            setStoredStatus("subscribed");
+          } else if (state && state.current && !state.current.optedIn) {
+            if (getStoredStatus() === "subscribed") {
+              setStoredStatus("unsubscribed");
+            }
+          }
           updateBellUI();
+          renderPushBar();
         });
+      }
+
+      // If first-time visitor with default permission, offer the slidedown prompt after 3s
+      if (
+        "Notification" in window &&
+        Notification.permission === "default" &&
+        getStoredStatus() !== "unsubscribed"
+      ) {
+        setTimeout(() => {
+          try {
+            if (OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
+              OneSignal.Slidedown.promptPush().catch(() => {});
+            }
+          } catch (_) {}
+        }, 3000);
       }
     } catch (err) {
       console.warn("[Push] OneSignal initialization notice:", err);
