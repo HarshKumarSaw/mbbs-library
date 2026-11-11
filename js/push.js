@@ -721,9 +721,6 @@
           </div>
         </div>
 
-        <!-- Push Alerts Control Bar -->
-        <div class="notif-push-bar" id="notif-push-bar"></div>
-
         <!-- Slim Segmented Control (All / Unread) -->
         <div class="notif-segmented-wrap">
           <div class="notif-segmented" role="tablist">
