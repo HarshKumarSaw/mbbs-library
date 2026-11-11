@@ -1351,3 +1351,33 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 0
 - **Total In-Sync Files**: 50
+
+### Professional In-App Notification Center & Read/Unread Feed Engine: 2026-11-11 07:15:00 UTC
+- **User Request**:
+  - Clicking the bell icon must NOT show a disruptive browser confirm prompt asking to unsubscribe.
+  - Instead, clicking the bell opens a sleek, professional Notification Center like a modern web platform (e.g., GitHub / YouTube / Twitter).
+  - Must display recent notifications and uploads, track which notifications the user has seen vs unseen, and display unread counts and status accordingly.
+- **Architectural Implementation**:
+  1. **Notification Center Modal & Feed Engine (`js/push.js`)**:
+     - Built a responsive modal component (`#mbbs-notif-center`): Desktop floating popover anchored right beneath the top bell icon, and a modern mobile bottom-sheet with drag pill indicator.
+     - Dynamically generates notification items from `MBBS_RESOURCES` (sorted newest to oldest) plus a pinned welcome library announcement.
+     - Each card displays department icon avatar (🦴 Anatomy, 🫀 Physiology, 🧪 Biochemistry, 📢 Announcement), subject/category tag, title, file size, pages, date, and unread dot indicator.
+     - Direct in-page document viewing: clicking any card immediately marks it as read, updates badge counts, closes the drawer, and launches the document directly inside the PDF reader modal via `window.openPdfModal(id)` (or initiates download for >25MB books).
+  2. **Read vs Unread State Engine**:
+     - Tracks read notification IDs in `localStorage` (`mbbs_read_notif_ids`) and global read threshold timestamp (`mbbs_notif_mark_all_ts`).
+     - Real-time unread badge counter (`.bell-unread-badge`) positioned on the top-right of `.push-top-bell-btn` showing the exact unread count (e.g. `3` or `9+`). When all notifications are read, the badge smoothly disappears and the emerald subscriber status dot shines.
+     - Integrated **"All"** and **"Unread"** filter tabs and a 1-click **"Mark all read"** action that marks all current notifications as seen, clearing badges immediately.
+     - Initial visitor state seeds the latest 3 updates as unread to demonstrate the live notification center immediately.
+     - Future phone uploads via `sync_from_phone.sh` automatically appear as fresh unread notifications because their timestamp is newer than `mark_all_ts`.
+  3. **Seamless Push Notification Settings Banner**:
+     - Eliminated annoying unsubscribe confirm dialogs completely on bell clicks.
+     - In-panel Push Settings banner gives users clear, 1-click controls:
+       - Subscribed: "✓ Push Alerts Active (You receive notifications on this device)" with a dedicated `Turn Off` toggle.
+       - Unsubscribed: "🔔 Get Study Alerts (Never miss new notes or books)" with a 1-click `Turn On` CTA.
+       - Paused: "🔕 Push Alerts Paused" with a `Resume` button.
+  4. **Deep Linking & Global Modal Viewer**:
+     - Exposed `window.openPdfModal` globally in `js/app.js` and added `?view=<id>` / `?id=<id>` URL query parameter auto-launch support.
+  5. **Asset Minification & Cache Busting**:
+     - Minified CSS via `scripts/minify.py` (`style.min.css`) and JS (`app.min.js`).
+     - Bumped Service Worker cache to `harsh-library-v1.2.0` in `sw.js`.
+     - Bumped cache-busting version timestamps (`v=1794380178`) across all HTML files.

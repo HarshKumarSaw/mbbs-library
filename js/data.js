@@ -1027,3 +1027,8 @@ const CATEGORY_INFO = {
   others: { label: "Other Resources", badgeClass: "badge-other", icon: "other", desc: "Question banks, flashcards & cheat sheets" },
   histology: { label: "Histology", badgeClass: "badge-other", icon: "other", desc: "Histology slides & practical workbooks" }
 };
+
+if (typeof window !== "undefined") {
+  window.MBBS_RESOURCES = MBBS_RESOURCES;
+  window.CATEGORY_INFO = CATEGORY_INFO;
+}

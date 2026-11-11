@@ -388,6 +388,13 @@
       if (DOM.searchInput) DOM.searchInput.value = searchParam;
       if (DOM.searchClear) DOM.searchClear.style.display = "flex";
     }
+
+    const viewParam = params.get("view") || params.get("id");
+    if (viewParam) {
+      setTimeout(() => {
+        openPdfModal(viewParam);
+      }, 150);
+    }
   }
 
   // Render Subject Filter Buttons (Dynamically discovered from resources; no empty subjects!)
@@ -2477,6 +2484,9 @@
   function escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
+
+  // Expose PDF Modal Viewer globally for notifications & deep-links
+  window.openPdfModal = openPdfModal;
 
   // Auto-boot on DOM ready
   if (document.readyState === "loading") {
