@@ -1390,3 +1390,21 @@
   - Cleaned up obsolete `.push-nav-btn` styles from `css/style.css` and re-minified `css/style.min.css`.
   - Updated `js/push.js` to eliminate dead DOM lookups for `.push-nav-btn`.
   - The sticky header quick bell icon (`#push-top-bell-btn`) now acts as the single primary entry point for notifications and alerts.
+
+### Notification Drawer Redesign - Information-Dense Academic Feed: 2026-11-11 07:55:00 UTC
+- **User Request**:
+  - Redesign the notification drawer into a refined, information-dense academic feed rather than generic SaaS UI.
+  - Reduce wasted vertical space in mobile bottom sheet so significantly more notifications are visible without scrolling.
+  - Simplify header alignment: Notifications title, unread pill badge, Mark all read, close button. Visually mute/disable Mark all read when unread count is 0.
+  - Push subscription banner redesigned as a low-profile secondary row with expandable info.
+  - Slim segmented control for All / Unread with cleaner count indicators.
+  - Notification cards: primary visual title, quiet combined department/category label (`Anatomy · Notes`), lightweight inline metadata (`41 p. · 220 KB`), subtle date placement, no separate "Open ↗" text, full-card click interaction feedback.
+  - Reduced icon containers (26x26px) with restrained subject-specific accents (Anatomy, Physiology, Biochemistry).
+  - Subtle unread indicator (slim 3px emerald left bar + 6.5px unread dot) with clean white card background (no full-card green wash).
+  - Sticky chronological date grouping: Pinned Notice, Today, Yesterday, Earlier.
+  - Improved long-title word wrapping and alignment for narrow Android viewports.
+- **Implementation**:
+  - Completely re-engineered `js/push.js` and `css/style.css`.
+  - Tested headless unit assertions and interactive card click-to-modal opening.
+  - Minified CSS (`style.min.css`) and bumped Service Worker cache to `harsh-library-v1.3.0`.
+  - Refreshed cache-busting timestamps across all HTML pages (`v=1794383450`).

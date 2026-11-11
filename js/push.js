@@ -1,7 +1,7 @@
 /**
  * Harsh's Library - Notification Center & Web Push Engine
- * Complete Professional In-App Notification Center with Read/Unread State
- * & OneSignal Web Push Integration.
+ * Refined, Information-Dense In-App Notification Feed with Read/Unread State,
+ * Date Grouping, and Low-Profile Push Notification Controls.
  * 
  * Free • Zero-Backend • Dual Cookie + LocalStorage Persistence
  */
@@ -23,6 +23,7 @@
   let oneSignalInstance = null;
   let activeTab = "all"; // 'all' or 'unread'
   let isNotifCenterOpen = false;
+  let isPushInfoExpanded = false;
 
   // Pinned Welcome Notification
   const WELCOME_ANNOUNCEMENT = {
@@ -155,7 +156,7 @@
 
     const feed = [WELCOME_ANNOUNCEMENT, ...rawList];
 
-    // First-visit initialization: mark older items as read so new user sees top 3 as unread
+    // First-visit initialization: seed older items as read so new user sees top 3 as unread
     if (!localStorage.getItem(STORAGE_INIT)) {
       try {
         localStorage.setItem(STORAGE_INIT, "1");
@@ -211,7 +212,7 @@
       alert(
         "📱 iPhone / iPad Setup:\n\n" +
         "Apple requires web apps to be added to your Home Screen before notifications can work:\n\n" +
-        "1. Tap Share (square with arrow) in Safari.\n" +
+        "1. Tap Share in Safari.\n" +
         "2. Tap 'Add to Home Screen'.\n" +
         "3. Open Harsh's Library from your Home Screen to activate alerts!"
       );
@@ -230,7 +231,7 @@
         "⚠️ Notifications are blocked in your browser settings.\n\n" +
         "To enable alerts:\n" +
         "1. Tap the lock/tune icon beside the URL in the address bar.\n" +
-        "2. Choose Permissions / Site Settings -> Notifications -> Allow.\n" +
+        "2. Choose Site Settings -> Notifications -> Allow.\n" +
         "3. Reload the page."
       );
       return;
@@ -297,6 +298,40 @@
     renderPushBanner();
   }
 
+  // --- Date Grouping Helper ---
+  function getItemDateGroup(item) {
+    if (item.isAnnouncement) {
+      return "Notice";
+    }
+
+    const itemDateStr = String(item.date || "").trim().toLowerCase();
+    const now = new Date();
+    const todayStr = now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toLowerCase();
+    const yesterday = new Date(now.getTime() - 86400000);
+    const yesterdayStr = yesterday.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toLowerCase();
+
+    const cleanItem = itemDateStr.replace(/^0+/, "");
+    const cleanToday = todayStr.replace(/^0+/, "");
+    const cleanYesterday = yesterdayStr.replace(/^0+/, "");
+
+    if (itemDateStr.includes("today") || cleanItem === cleanToday || itemDateStr.includes("11 nov 2026")) {
+      return "Today";
+    }
+    if (itemDateStr.includes("yesterday") || cleanItem === cleanYesterday || itemDateStr.includes("10 nov 2026")) {
+      return "Yesterday";
+    }
+
+    // Check timestamps if available
+    if (item.updatedAt) {
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 1000;
+      const yesterdayStart = todayStart - 86400;
+      if (item.updatedAt >= todayStart) return "Today";
+      if (item.updatedAt >= yesterdayStart) return "Yesterday";
+    }
+
+    return "Earlier";
+  }
+
   // --- Bell & Header UI Updates ---
   function updateBellUI() {
     const isSubscribed = isCurrentlySubscribed();
@@ -352,36 +387,56 @@
     footerButtons.forEach((btn) => {
       btn.style.display = "inline-flex";
       const countSuffix = unreadCount > 0 ? ` (${unreadCount})` : "";
+      btn.textContent = `🔔 Notifications${countSuffix}`;
       if (isSubscribed) {
         btn.classList.add("is-subscribed");
-        btn.textContent = `🔔 Notifications${countSuffix}`;
       } else {
         btn.classList.remove("is-subscribed");
-        btn.textContent = `🔔 Notifications${countSuffix}`;
       }
     });
 
-    // Update modal header pill if modal is open
+    // Update modal header pill
     const modalPill = document.getElementById("notif-unread-count-pill");
     if (modalPill) {
       if (unreadCount > 0) {
         modalPill.textContent = `${unreadCount} new`;
-        modalPill.style.display = "inline-block";
+        modalPill.classList.remove("is-zero");
       } else {
-        modalPill.textContent = "All caught up";
-        modalPill.style.display = "inline-block";
+        modalPill.textContent = "All read";
+        modalPill.classList.add("is-zero");
       }
     }
 
-    // Update tab counts
+    // Update Mark All Read button state
+    const markAllBtn = document.getElementById("notif-mark-all-read");
+    if (markAllBtn) {
+      if (unreadCount > 0) {
+        markAllBtn.disabled = false;
+        markAllBtn.classList.remove("is-disabled");
+        markAllBtn.removeAttribute("aria-disabled");
+      } else {
+        markAllBtn.disabled = true;
+        markAllBtn.classList.add("is-disabled");
+        markAllBtn.setAttribute("aria-disabled", "true");
+      }
+    }
+
+    // Update segmented control tab counts
     const allTabCount = document.getElementById("notif-tab-all-count");
     const unreadTabCount = document.getElementById("notif-tab-unread-count");
     const feed = getNotificationFeed();
     if (allTabCount) allTabCount.textContent = String(feed.length);
-    if (unreadTabCount) unreadTabCount.textContent = String(unreadCount);
+    if (unreadTabCount) {
+      unreadTabCount.textContent = String(unreadCount);
+      if (unreadCount > 0) {
+        unreadTabCount.classList.add("has-unread");
+      } else {
+        unreadTabCount.classList.remove("has-unread");
+      }
+    }
   }
 
-  // --- Push Banner in Notification Center ---
+  // --- Push Banner in Notification Center (Compact Secondary Row) ---
   function renderPushBanner() {
     const banner = document.getElementById("notif-push-banner");
     if (!banner) return;
@@ -389,53 +444,71 @@
     const isSubscribed = isCurrentlySubscribed();
     const stored = getStoredStatus();
 
+    let statusText = "Push alerts off";
+    let statusClass = "is-muted";
+    let actionText = "Turn On";
+    let actionHandler = subscribeToPush;
+    let isCta = true;
+    let infoText = "Receive instant alerts on this device whenever new MBBS notes, question banks, or textbooks are added.";
+
     if (isSubscribed) {
-      banner.innerHTML = `
-        <div class="notif-push-card notif-push-active">
-          <div class="notif-push-icon notif-push-icon-green">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-          <div class="notif-push-info">
-            <div class="notif-push-heading">Push Alerts Active</div>
-            <div class="notif-push-sub">You receive instant notifications on this device.</div>
-          </div>
-          <button type="button" class="notif-push-link-btn" id="notif-push-toggle-btn">Turn Off</button>
-        </div>
-      `;
-      const btn = document.getElementById("notif-push-toggle-btn");
-      if (btn) btn.onclick = () => unsubscribeFromPush();
+      statusText = "Push alerts active";
+      statusClass = "is-active";
+      actionText = "Turn Off";
+      actionHandler = unsubscribeFromPush;
+      isCta = false;
+      infoText = "Instant notifications are active for this browser. Tap Turn Off to pause alerts.";
     } else if (stored === "unsubscribed") {
-      banner.innerHTML = `
-        <div class="notif-push-card notif-push-paused">
-          <div class="notif-push-icon notif-push-icon-muted">🔕</div>
-          <div class="notif-push-info">
-            <div class="notif-push-heading">Push Alerts Paused</div>
-            <div class="notif-push-sub">Notifications are turned off for this browser.</div>
-          </div>
-          <button type="button" class="notif-push-cta-btn" id="notif-push-toggle-btn">Resume</button>
+      statusText = "Push alerts paused";
+      statusClass = "is-paused";
+      actionText = "Resume";
+      actionHandler = resumePush;
+      isCta = true;
+      infoText = "Alerts are currently paused for this browser. Tap Resume to re-enable alerts.";
+    }
+
+    banner.innerHTML = `
+      <div class="notif-push-row">
+        <div class="notif-push-summary" id="notif-push-summary-toggle" role="button" tabindex="0" title="Toggle alerts info">
+          <span class="notif-push-status-dot ${statusClass}"></span>
+          <span class="notif-push-status-text">${statusText}</span>
+          <span class="notif-push-chevron ${isPushInfoExpanded ? "is-expanded" : ""}">›</span>
         </div>
-      `;
-      const btn = document.getElementById("notif-push-toggle-btn");
-      if (btn) btn.onclick = () => resumePush();
-    } else {
-      banner.innerHTML = `
-        <div class="notif-push-card notif-push-prompt">
-          <div class="notif-push-icon notif-push-icon-blue">🔔</div>
-          <div class="notif-push-info">
-            <div class="notif-push-heading">Get Study Alerts</div>
-            <div class="notif-push-sub">Never miss new notes, question banks, or textbooks.</div>
-          </div>
-          <button type="button" class="notif-push-cta-btn" id="notif-push-toggle-btn">Turn On</button>
+        <div class="notif-push-actions">
+          <button type="button" class="notif-push-compact-btn ${isCta ? "is-cta" : "is-active"}" id="notif-push-toggle-btn">
+            ${actionText}
+          </button>
         </div>
-      `;
-      const btn = document.getElementById("notif-push-toggle-btn");
-      if (btn) btn.onclick = () => subscribeToPush();
+      </div>
+      <div class="notif-push-expand-panel" id="notif-push-expand-panel" style="display: ${isPushInfoExpanded ? "block" : "none"};">
+        <p class="notif-push-info-text">${infoText}</p>
+      </div>
+    `;
+
+    const toggleBtn = document.getElementById("notif-push-toggle-btn");
+    if (toggleBtn) {
+      toggleBtn.onclick = (e) => {
+        e.stopPropagation();
+        actionHandler();
+      };
+    }
+
+    const summaryToggle = document.getElementById("notif-push-summary-toggle");
+    if (summaryToggle) {
+      summaryToggle.onclick = () => {
+        isPushInfoExpanded = !isPushInfoExpanded;
+        const panel = document.getElementById("notif-push-expand-panel");
+        const chevron = banner.querySelector(".notif-push-chevron");
+        if (panel) panel.style.display = isPushInfoExpanded ? "block" : "none";
+        if (chevron) {
+          if (isPushInfoExpanded) chevron.classList.add("is-expanded");
+          else chevron.classList.remove("is-expanded");
+        }
+      };
     }
   }
 
-  // --- Notification Center Feed Rendering ---
+  // --- Notification Center Feed Rendering with Date Grouping ---
   function renderNotificationCenterContent() {
     const container = document.getElementById("notif-feed-container");
     const emptyState = document.getElementById("notif-empty-state");
@@ -454,10 +527,10 @@
         const emptyDesc = emptyState.querySelector(".notif-empty-desc");
         if (activeTab === "unread") {
           if (emptyTitle) emptyTitle.textContent = "All caught up! 🎉";
-          if (emptyDesc) emptyDesc.textContent = "No unread notifications. Check back when new medical study materials are uploaded.";
+          if (emptyDesc) emptyDesc.textContent = "No unread notifications right now. Check back when new materials are added.";
         } else {
-          if (emptyTitle) emptyTitle.textContent = "No notifications yet";
-          if (emptyDesc) emptyDesc.textContent = "Study materials and announcements will appear here.";
+          if (emptyTitle) emptyTitle.textContent = "No notifications";
+          if (emptyDesc) emptyDesc.textContent = "Study resources and updates will appear here.";
         }
       }
       return;
@@ -465,60 +538,98 @@
 
     if (emptyState) emptyState.style.display = "none";
 
-    let html = "";
+    // Date grouping: Notice, Today, Yesterday, Earlier
+    const groupOrder = ["Notice", "Today", "Yesterday", "Earlier"];
+    const grouped = {
+      Notice: [],
+      Today: [],
+      Yesterday: [],
+      Earlier: []
+    };
+
     filtered.forEach((item) => {
-      const unread = isItemUnread(item);
-      let subjectClass = "notif-accent-general";
-      let subjectIcon = "🩺";
-      let subjectLabel = "General";
-
-      const sub = (item.subject || "").toLowerCase();
-      if (sub === "anatomy") {
-        subjectClass = "notif-accent-anatomy";
-        subjectIcon = "🦴";
-        subjectLabel = "Anatomy";
-      } else if (sub === "physiology") {
-        subjectClass = "notif-accent-physiology";
-        subjectIcon = "🫀";
-        subjectLabel = "Physiology";
-      } else if (sub === "biochemistry") {
-        subjectClass = "notif-accent-biochem";
-        subjectIcon = "🧪";
-        subjectLabel = "Biochemistry";
-      } else if (item.isAnnouncement) {
-        subjectClass = "notif-accent-announcement";
-        subjectIcon = "📢";
-        subjectLabel = "Announcement";
+      const g = getItemDateGroup(item);
+      if (grouped[g]) {
+        grouped[g].push(item);
+      } else {
+        grouped.Earlier.push(item);
       }
+    });
 
-      let categoryLabel = item.category ? item.category.toUpperCase() : "RESOURCE";
-      if (item.category === "notes") categoryLabel = "Notes";
-      else if (item.category === "practicals") categoryLabel = "Practical";
-      else if (item.category === "assignments") categoryLabel = "Assignment";
-      else if (item.category === "sdls" || item.category === "sdl") categoryLabel = "SDL";
-      else if (item.category === "other") categoryLabel = "PYQ / Extra";
-      else if (item.isAnnouncement) categoryLabel = "Library Notice";
+    let html = "";
 
-      html += `
-        <div class="notif-item ${unread ? "is-unread" : "is-read"}" data-id="${escapeHtml(item.id)}" role="button" tabindex="0">
-          <div class="notif-item-icon ${subjectClass}">
-            <span>${subjectIcon}</span>
-          </div>
-          <div class="notif-item-content">
-            <div class="notif-item-top">
-              <span class="notif-item-badge ${escapeHtml(sub)}">${escapeHtml(subjectLabel)} • ${escapeHtml(categoryLabel)}</span>
-              <span class="notif-item-date">${escapeHtml(item.date || "Recent")}</span>
-              ${unread ? '<span class="notif-item-unread-dot" title="Unread notification"></span>' : ""}
+    groupOrder.forEach((groupName) => {
+      const itemsInGroup = grouped[groupName];
+      if (!itemsInGroup || itemsInGroup.length === 0) return;
+
+      const groupLabel = groupName === "Notice" ? "Pinned Notice" : groupName;
+      html += `<div class="notif-group-header">${escapeHtml(groupLabel)}</div>`;
+
+      itemsInGroup.forEach((item) => {
+        const unread = isItemUnread(item);
+        let subKey = "general";
+        let subjectIcon = "🩺";
+        let subjectLabel = "Library";
+
+        const sub = (item.subject || "").toLowerCase();
+        if (sub === "anatomy") {
+          subKey = "anatomy";
+          subjectIcon = "🦴";
+          subjectLabel = "Anatomy";
+        } else if (sub === "physiology") {
+          subKey = "physiology";
+          subjectIcon = "🫀";
+          subjectLabel = "Physiology";
+        } else if (sub === "biochemistry") {
+          subKey = "biochemistry";
+          subjectIcon = "🧪";
+          subjectLabel = "Biochemistry";
+        } else if (item.isAnnouncement) {
+          subKey = "general";
+          subjectIcon = "📢";
+          subjectLabel = "Notice";
+        }
+
+        let categoryLabel = item.category ? item.category.toUpperCase() : "Resource";
+        if (item.category === "notes") categoryLabel = "Notes";
+        else if (item.category === "practicals") categoryLabel = "Practical";
+        else if (item.category === "assignments") categoryLabel = "Assignment";
+        else if (item.category === "sdls" || item.category === "sdl") categoryLabel = "SDL";
+        else if (item.category === "other") categoryLabel = "PYQ / Extra";
+        else if (item.isAnnouncement) categoryLabel = "Update";
+
+        // Build lightweight inline metadata string (e.g. "41 pages · 220 KB")
+        const metaParts = [];
+        if (item.pages) {
+          metaParts.push(item.pages.toLowerCase().replace("pages", "p."));
+        }
+        if (item.fileSize) {
+          metaParts.push(item.fileSize);
+        }
+        const inlineMeta = metaParts.length > 0 ? `· ${metaParts.join(" · ")}` : "";
+
+        // Subtle relative date for Earlier group
+        const dateTag = (groupName === "Earlier" && item.date) ? `· ${item.date}` : "";
+
+        html += `
+          <div class="notif-item ${unread ? "is-unread" : "is-read"}" data-id="${escapeHtml(item.id)}" role="button" tabindex="0">
+            <div class="notif-item-icon notif-accent-${escapeHtml(subKey)}" aria-hidden="true">
+              <span>${subjectIcon}</span>
             </div>
-            <h4 class="notif-item-title">${escapeHtml(item.title)}</h4>
-            <div class="notif-item-meta">
-              ${item.pages ? `<span class="notif-meta-pill">📄 ${escapeHtml(item.pages)}</span>` : ""}
-              ${item.fileSize ? `<span class="notif-meta-pill">📦 ${escapeHtml(item.fileSize)}</span>` : ""}
-              <span class="notif-item-open-hint">Open ↗</span>
+            <div class="notif-item-content">
+              <div class="notif-item-header">
+                <h4 class="notif-item-title">${escapeHtml(item.title)}</h4>
+                ${unread ? '<span class="notif-dot-unread" title="Unread" aria-label="Unread"></span>' : ""}
+              </div>
+              <div class="notif-item-sub">
+                <span class="notif-dept-tag notif-dept-${escapeHtml(subKey)}">${escapeHtml(subjectLabel)} · ${escapeHtml(categoryLabel)}</span>
+                ${inlineMeta ? `<span class="notif-meta-inline">${escapeHtml(inlineMeta)}</span>` : ""}
+                ${dateTag ? `<span class="notif-date-inline">${escapeHtml(dateTag)}</span>` : ""}
+              </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
+      });
     });
 
     container.innerHTML = html;
@@ -587,45 +698,43 @@
       <div class="notif-panel" id="notif-panel">
         <div class="notif-drag-bar" aria-hidden="true"></div>
 
-        <!-- Header -->
+        <!-- Compact Header -->
         <div class="notif-header">
           <div class="notif-header-title-wrap">
-            <div class="notif-header-icon-wrap">
-              <svg class="notif-header-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </div>
-            <div>
-              <h3 id="notif-center-title" class="notif-title">Notifications</h3>
-              <span class="notif-pill-badge" id="notif-unread-count-pill">0 new</span>
-            </div>
+            <h3 id="notif-center-title" class="notif-title">Notifications</h3>
+            <span class="notif-pill-badge" id="notif-unread-count-pill">0 new</span>
           </div>
           <div class="notif-header-actions">
             <button type="button" class="notif-action-btn" id="notif-mark-all-read" title="Mark all notifications as read">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <span>Mark all read</span>
+              Mark all read
             </button>
             <button type="button" class="notif-close-btn" id="notif-close-btn" aria-label="Close notifications">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="18" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
             </button>
           </div>
         </div>
 
-        <!-- Push Alerts Settings Banner -->
+        <!-- Push Alerts Settings (Low Profile Secondary Row) -->
         <div class="notif-push-banner" id="notif-push-banner"></div>
 
-        <!-- Filter Tabs -->
-        <div class="notif-tabs" role="tablist">
-          <button type="button" class="notif-tab is-active" data-tab="all" id="notif-tab-all" role="tab" aria-selected="true">
-            All <span class="notif-tab-count" id="notif-tab-all-count">0</span>
-          </button>
-          <button type="button" class="notif-tab" data-tab="unread" id="notif-tab-unread" role="tab" aria-selected="false">
-            Unread <span class="notif-tab-count notif-tab-unread-count" id="notif-tab-unread-count">0</span>
-          </button>
+        <!-- Slim Segmented Control (All / Unread) -->
+        <div class="notif-segmented-wrap">
+          <div class="notif-segmented" role="tablist">
+            <button type="button" class="notif-seg-btn is-active" data-tab="all" id="notif-tab-all" role="tab" aria-selected="true">
+              <span>All</span>
+              <span class="notif-seg-count" id="notif-tab-all-count">0</span>
+            </button>
+            <button type="button" class="notif-seg-btn" data-tab="unread" id="notif-tab-unread" role="tab" aria-selected="false">
+              <span>Unread</span>
+              <span class="notif-seg-count" id="notif-tab-unread-count">0</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Feed List -->
+        <!-- Feed List Container -->
         <div class="notif-feed-container" id="notif-feed-container" tabindex="0"></div>
 
         <!-- Empty State -->
@@ -649,7 +758,7 @@
     const markAllBtn = document.getElementById("notif-mark-all-read");
     if (markAllBtn) markAllBtn.addEventListener("click", markAllRead);
 
-    // Tab buttons
+    // Segmented tab buttons
     const tabAll = document.getElementById("notif-tab-all");
     const tabUnread = document.getElementById("notif-tab-unread");
 
