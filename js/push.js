@@ -85,18 +85,8 @@
       return false;
     }
 
-    const stored = getStoredStatus();
-    if (stored === "unsubscribed") {
+    if (localStorage.getItem("mbbs_push_opted_out") === "true") {
       return false;
-    }
-
-    // OneSignal state
-    if (
-      oneSignalInstance &&
-      oneSignalInstance.User &&
-      oneSignalInstance.User.PushSubscription
-    ) {
-      return Boolean(oneSignalInstance.User.PushSubscription.optedIn);
     }
 
     return true;
@@ -253,6 +243,7 @@
     }
 
     // 5. Save subscribed state
+    try { localStorage.removeItem("mbbs_push_opted_out"); } catch (_) {}
     setStoredStatus("subscribed");
     updateBellUI();
     renderPushBar();
@@ -276,6 +267,7 @@
   }
 
   async function unsubscribeFromPush() {
+    try { localStorage.setItem("mbbs_push_opted_out", "true"); } catch (_) {}
     setStoredStatus("unsubscribed");
     try {
       if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
@@ -289,6 +281,7 @@
   }
 
   async function resumePush() {
+    try { localStorage.removeItem("mbbs_push_opted_out"); } catch (_) {}
     setStoredStatus("subscribed");
     try {
       if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
@@ -1254,10 +1247,7 @@
         OneSignal.User.PushSubscription.addEventListener("change", (state) => {
           if (state && state.current && state.current.optedIn) {
             setStoredStatus("subscribed");
-          } else if (state && state.current && !state.current.optedIn) {
-            if (getStoredStatus() === "subscribed") {
-              setStoredStatus("unsubscribed");
-            }
+            try { localStorage.removeItem("mbbs_push_opted_out"); } catch (_) {}
           }
           updateBellUI();
           renderPushBar();
