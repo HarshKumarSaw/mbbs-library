@@ -30,6 +30,7 @@ fi
 TITLE="${1:-Harsh Library: New Study Materials}"
 MESSAGE="${2:-New medical study resources have been added to the library! Tap to view.}"
 TARGET_URL="${3:-$DEFAULT_URL}"
+ICON_URL="${4:-https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png}"
 
 # Colors
 GREEN="\033[0;32m"
@@ -46,6 +47,7 @@ echo -e "${BLUE}${BOLD}╚══════════════════
 echo -e "${CYAN}📢 Title:${RESET}   $TITLE"
 echo -e "${CYAN}📝 Message:${RESET} $MESSAGE"
 echo -e "${CYAN}🌐 URL:${RESET}     $TARGET_URL"
+echo -e "${CYAN}🖼️  Icon:${RESET}    $ICON_URL"
 echo ""
 
 PAYLOAD=$(cat <<JSON_EOF
@@ -55,7 +57,9 @@ PAYLOAD=$(cat <<JSON_EOF
   "included_segments": ["Total Subscriptions", "Subscribed Users"],
   "headings": {"en": "$TITLE"},
   "contents": {"en": "$MESSAGE"},
-  "url": "$TARGET_URL"
+  "url": "$TARGET_URL",
+  "chrome_web_icon": "$ICON_URL",
+  "firefox_icon": "$ICON_URL"
 }
 JSON_EOF
 )
