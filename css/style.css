@@ -4391,8 +4391,11 @@ body.modal-open {
    - Information-dense cards with primary titles & inline metadata
    ========================================================================== */
 
+/* Document Locking & Anti-Scroll Bleed */
+html.notif-center-open,
 body.notif-center-open {
-  overflow: hidden;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
 }
 
 .notif-center-modal {
@@ -4402,6 +4405,8 @@ body.notif-center-open {
   visibility: hidden;
   pointer-events: none;
   transition: visibility 0.2s ease;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .notif-center-modal.is-open {
@@ -4417,6 +4422,8 @@ body.notif-center-open {
   -webkit-backdrop-filter: blur(4px);
   opacity: 0;
   transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .notif-center-modal.is-open .notif-backdrop {
@@ -4441,6 +4448,8 @@ body.notif-center-open {
   transform: translateY(100%);
   transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1160;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
 }
 
 .notif-center-modal.is-open .notif-panel {
@@ -4454,6 +4463,7 @@ body.notif-center-open {
   background: #CBD5E1;
   margin: 6px auto 2px auto;
   flex-shrink: 0;
+  touch-action: none;
 }
 
 /* Desktop Floating Popover (Anchored under top bell) */
@@ -4475,6 +4485,8 @@ body.notif-center-open {
     transform: translateY(-6px) scale(0.98);
     opacity: 0;
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
+    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
   }
 
   .notif-center-modal.is-open .notif-panel {
@@ -4493,6 +4505,8 @@ body.notif-center-open {
   background: var(--canvas-pure, #FFFFFF);
   flex-shrink: 0;
   gap: 8px;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .notif-header-title-wrap {
@@ -4552,6 +4566,7 @@ body.notif-center-open {
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .notif-action-btn:hover {
@@ -4582,6 +4597,7 @@ body.notif-center-open {
   cursor: pointer;
   transition: all 0.15s ease;
   padding: 0;
+  touch-action: manipulation;
 }
 
 .notif-close-btn:hover {
@@ -4595,6 +4611,8 @@ body.notif-center-open {
   background: #FFFFFF;
   border-bottom: 1px solid var(--border-subtle, #E8E0D5);
   flex-shrink: 0;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .notif-segmented {
@@ -4621,6 +4639,7 @@ body.notif-center-open {
   justify-content: center;
   gap: 5px;
   transition: all 0.15s ease;
+  touch-action: manipulation;
 }
 
 .notif-seg-btn:hover {
@@ -4679,6 +4698,9 @@ body.notif-center-open {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   background: var(--canvas-pure, #FFFFFF);
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .notif-feed-container:focus-visible {
@@ -4849,6 +4871,8 @@ body.notif-center-open {
   justify-content: center;
   padding: 36px 20px;
   text-align: center;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .notif-empty-icon {

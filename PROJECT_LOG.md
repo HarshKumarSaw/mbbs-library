@@ -1415,3 +1415,28 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 50
+
+### Notification Drawer Scroll Bleed & Anti-Chaining Engine Fix: 2026-11-11 10:30:00 UTC
+- **User Issue**:
+  - Background website scrolled when scrolling beyond the top or bottom of the notification drawer list (scroll bleed / scroll chaining).
+  - Background website needed to remain completely stationary whenever the drawer is open.
+  - Required reliable scroll locking on body/document with full position restoration, layout shift prevention, and anti-pull-to-refresh on Android Chrome.
+- **Root Cause**:
+  - Previously only `body.notif-center-open` had `overflow: hidden`, missing `html.notif-center-open`, leaving the viewport unlocked on mobile browsers.
+  - The notification feed (`.notif-feed-container`) and panel lacked `overscroll-behavior: contain` and `overscroll-behavior-y: contain`, causing scroll events to chain to the parent document and trigger pull-to-refresh.
+  - No touch boundary guard existed on non-scrollable areas (backdrop, drag bar, header, empty state) or scroll boundaries.
+- **Resolution**:
+  1. **CSS Overscroll & Touch Action System (`css/style.css`, `css/style.min.css`)**:
+     - Added `html.notif-center-open, body.notif-center-open { overflow: hidden !important; overscroll-behavior: none !important; }`.
+     - Added `overscroll-behavior: none; touch-action: none;` to `.notif-center-modal`, `.notif-backdrop`, `.notif-header`, `.notif-drag-bar`, `.notif-segmented-wrap`, and `.notif-empty-state`.
+     - Added `overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y;` to `.notif-feed-container` and `.notif-panel`, eliminating scroll chaining and pull-to-refresh.
+     - Added `touch-action: manipulation;` to buttons (`.notif-action-btn`, `.notif-close-btn`, `.notif-seg-btn`) for responsive tap interactions.
+  2. **Kinematic Scroll Locking & Restoration Engine (`js/push.js`)**:
+     - Captured `savedScrollY` and `savedScrollX` on open; restored exact coordinates upon closing without jitter (`scrollBehavior = 'auto'`).
+     - Added scrollbar width compensation (`body.style.paddingRight`) to prevent layout shifts on desktop.
+     - Implemented non-passive boundary guard for touch and wheel gestures: blocks overscroll pulls at `scrollTop <= 0` (preventing pull-to-refresh) and pushes at the bottom, while leaving in-feed scrolling 100% native and fluid.
+  3. **Asset Minification & Cache Updates**:
+     - Minified CSS via `scripts/minify.py` (`style.min.css`).
+     - Bumped Service Worker cache to `harsh-library-v1.3.3` in `sw.js`.
+     - Bumped asset cache-busting timestamps across all 4 HTML files (`v=1794392935`).
+     - Verified with headless unit test suite covering backdrop touch, header touch, top/bottom boundaries, wheel containment, and scroll restoration.

@@ -720,16 +720,174 @@
     });
   }
 
+  // --- Robust Page Scroll Locking Engine ---
+  let savedScrollY = 0;
+  let savedScrollX = 0;
+  let isScrollLocked = false;
+  let touchStartY = 0;
+  let lastTouchY = 0;
+  let touchStartX = 0;
+
+  function handleModalTouchStart(e) {
+    if (e.touches && e.touches.length === 1) {
+      touchStartY = e.touches[0].clientY;
+      lastTouchY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+    }
+  }
+
+  function handleModalTouchMove(e) {
+    if (!isNotifCenterOpen) return;
+    const feedContainer = document.getElementById("notif-feed-container");
+    const target = e.target;
+
+    // 1. If touch is on non-scrollable areas (backdrop, header, drag bar, tabs, empty state)
+    if (!feedContainer || !feedContainer.contains(target)) {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      return;
+    }
+
+    // 2. If touch is inside the feed container, contain scroll & prevent background bleed
+    if (e.touches && e.touches.length === 1) {
+      const currentY = e.touches[0].clientY;
+      const currentX = e.touches[0].clientX;
+      const stepDeltaY = currentY - lastTouchY; // Positive = pulling downward, Negative = dragging upward
+      const deltaX = currentX - touchStartX;
+      lastTouchY = currentY;
+
+      // Disallow horizontal gestures from chaining outward
+      if (Math.abs(deltaX) > Math.abs(currentY - touchStartY) && Math.abs(deltaX) > 12) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        return;
+      }
+
+      const scrollTop = feedContainer.scrollTop;
+      const maxScroll = feedContainer.scrollHeight - feedContainer.clientHeight;
+
+      // If feed list does not have overflow/scrollable height
+      if (maxScroll <= 0) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        return;
+      }
+
+      // At top boundary: pulling downward would trigger pull-to-refresh or background bleed
+      if (scrollTop <= 0 && stepDeltaY > 0) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        return;
+      }
+
+      // At bottom boundary: dragging upward would bleed into background page scroll
+      if (scrollTop >= maxScroll - 1 && stepDeltaY < 0) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        return;
+      }
+    }
+  }
+
+  function handleModalWheel(e) {
+    if (!isNotifCenterOpen) return;
+    const feedContainer = document.getElementById("notif-feed-container");
+    const target = e.target;
+
+    // Non-feed areas: completely block wheel scroll chaining
+    if (!feedContainer || !feedContainer.contains(target)) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+
+    const deltaY = e.deltaY;
+    const scrollTop = feedContainer.scrollTop;
+    const maxScroll = feedContainer.scrollHeight - feedContainer.clientHeight;
+
+    if (maxScroll <= 0) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+
+    // Top boundary scrolling up
+    if (scrollTop <= 0 && deltaY < 0) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+
+    // Bottom boundary scrolling down
+    if (scrollTop >= maxScroll - 1 && deltaY > 0) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+  }
+
+  function lockPageScroll() {
+    if (isScrollLocked) return;
+
+    // Capture exact scroll position before any DOM or style adjustments
+    savedScrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    savedScrollX = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+
+    // Measure scrollbar width to prevent horizontal layout shift on desktop
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    isScrollLocked = true;
+    document.documentElement.classList.add("notif-center-open");
+    document.body.classList.add("notif-center-open");
+
+    const modal = document.getElementById("mbbs-notif-center");
+    if (modal) {
+      modal.addEventListener("touchstart", handleModalTouchStart, { passive: true });
+      modal.addEventListener("touchmove", handleModalTouchMove, { passive: false });
+      modal.addEventListener("wheel", handleModalWheel, { passive: false });
+    }
+  }
+
+  function unlockPageScroll() {
+    if (!isScrollLocked) return;
+
+    const modal = document.getElementById("mbbs-notif-center");
+    if (modal) {
+      modal.removeEventListener("touchstart", handleModalTouchStart);
+      modal.removeEventListener("touchmove", handleModalTouchMove);
+      modal.removeEventListener("wheel", handleModalWheel);
+    }
+
+    document.documentElement.classList.remove("notif-center-open");
+    document.body.classList.remove("notif-center-open");
+    document.body.style.paddingRight = "";
+
+    isScrollLocked = false;
+
+    // Restore original scroll position cleanly without jitter
+    const html = document.documentElement;
+    const prevScrollBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    window.scrollTo(savedScrollX, savedScrollY);
+    html.style.scrollBehavior = prevScrollBehavior;
+  }
+
   // --- Open / Close / Toggle Notification Center ---
   function openNotificationCenter() {
     ensureNotificationCenterDOM();
     const modal = document.getElementById("mbbs-notif-center");
     if (!modal) return;
+    if (isNotifCenterOpen) return;
 
     isNotifCenterOpen = true;
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("notif-center-open");
+
+    lockPageScroll();
 
     updateBellUI();
     renderNotificationCenterContent();
@@ -738,11 +896,13 @@
   function closeNotificationCenter() {
     const modal = document.getElementById("mbbs-notif-center");
     if (!modal) return;
+    if (!isNotifCenterOpen) return;
 
     isNotifCenterOpen = false;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("notif-center-open");
+
+    unlockPageScroll();
 
     updateBellUI();
   }
