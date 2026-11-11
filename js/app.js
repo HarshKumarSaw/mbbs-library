@@ -235,6 +235,12 @@
     }
   }
 
+  // Slugify helper
+  function toSlug(str) {
+    if (!str) return "";
+    return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  }
+
   // Capitalize & clean name helper
   function formatName(str) {
     if (!str) return "";
@@ -242,8 +248,11 @@
     if (lower === "sdl" || lower === "sdls") return "SDL";
     if (lower === "aetcom") return "AETCOM";
     if (lower === "ece") return "ECE";
+    if (lower === "pyq" || lower === "pyqs") return "PYQs";
     if (lower === "assignments" || lower === "assignment") return "Assignments";
     if (lower === "practicals" || lower === "practical") return "Practicals";
+    if (lower === "diagrams" || lower === "diagram") return "Diagrams";
+    if (lower === "books" || lower === "book") return "Books";
     if (lower === "notes" || lower === "note") return "Notes";
     if (lower === "homework") return "Homework";
     if (lower === "project" || lower === "projects") return "Project";
@@ -423,8 +432,11 @@
     ["anatomy", "physiology", "biochemistry"].forEach(s => {
       if (activeSubjects.includes(s)) ordered.push(s);
     });
-    // Dynamically append any other subject that has resources (e.g. 'community_medicine', etc.)
-    activeSubjects.forEach(s => {
+    // Dynamically append any other subject that has resources (e.g. 'community_medicine', 'pathology', etc.)
+    const otherSubjects = activeSubjects
+      .filter(s => !["anatomy", "physiology", "biochemistry"].includes(s))
+      .sort((a, b) => (SUBJECT_INFO[a]?.name || formatName(a)).localeCompare(SUBJECT_INFO[b]?.name || formatName(b)));
+    otherSubjects.forEach(s => {
       if (!ordered.includes(s)) ordered.push(s);
     });
 
@@ -464,7 +476,38 @@
     });
   }
 
-  // Render Content Format Filter Buttons (Dynamically discovered from resources; no empty formats!)
+  // Metadata/system tags to ignore when generating folder/tag filter pills
+  const SYSTEM_FILTER_TAGS_LOWER = new Set(["mobile upload", "large book", "1st year mbbs", "textbook", "document"]);
+
+  // Check if a resource matches a category, subfolder, or tag slug
+  function resourceMatchesFilter(item, filterSlug) {
+    if (!item) return false;
+    const target = (filterSlug || "").toLowerCase().trim();
+    if (target === "all") return true;
+
+    // 1. Primary category
+    if (item.category && item.category.toLowerCase().trim() === target) {
+      return true;
+    }
+    // 2. Subcategories array (all folder levels)
+    if (item.subcategories && Array.isArray(item.subcategories)) {
+      if (item.subcategories.some(s => s.toLowerCase().trim() === target)) {
+        return true;
+      }
+    }
+    // 3. Tags array
+    if (item.tags && Array.isArray(item.tags)) {
+      if (item.tags.some(t => {
+        const cleanSlug = toSlug(t);
+        return cleanSlug === target || t.toLowerCase().trim() === target;
+      })) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Render Content Format & Subfolder Filter Buttons (Dynamically discovered from resources; no empty formats!)
   function renderCategoryPills() {
     const containers = [DOM.categoryFilters, DOM.modalCategoryFilters].filter(Boolean);
     if (!containers.length) return;
@@ -474,26 +517,85 @@
       ? MBBS_RESOURCES
       : MBBS_RESOURCES.filter(r => r.subject === state.selectedSubject);
 
-    // Discover all categories that actually have resources in the current scope
-    const categoryCounts = {};
+    // Discover all category and subfolder keys present in current scope
+    const filterKeyCounts = {};
+    const filterKeyLabels = {};
+    const candidateKeys = new Set();
+
     scopeResources.forEach(r => {
+      // 1. Primary category
       if (r.category) {
-        const cat = r.category.toLowerCase().trim();
-        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        const catSlug = toSlug(r.category);
+        if (catSlug) {
+          candidateKeys.add(catSlug);
+          if (!filterKeyLabels[catSlug]) {
+            filterKeyLabels[catSlug] = (typeof CATEGORY_INFO !== "undefined" && CATEGORY_INFO[catSlug]?.label) || formatName(r.category);
+          }
+        }
+      }
+      // 2. Subcategories (nested folders)
+      if (r.subcategories && Array.isArray(r.subcategories)) {
+        r.subcategories.forEach(sub => {
+          const subSlug = toSlug(sub);
+          if (subSlug) {
+            candidateKeys.add(subSlug);
+            if (!filterKeyLabels[subSlug]) {
+              filterKeyLabels[subSlug] = (typeof CATEGORY_INFO !== "undefined" && CATEGORY_INFO[subSlug]?.label) || formatName(sub);
+            }
+          }
+        });
+      }
+      // 3. Resource tags (creator, subfolder, and topic tags)
+      if (r.tags && Array.isArray(r.tags)) {
+        r.tags.forEach(t => {
+          const tTrim = (t || "").trim();
+          const tLow = tTrim.toLowerCase();
+          if (!tTrim || SYSTEM_FILTER_TAGS_LOWER.has(tLow)) return;
+          // Avoid showing subject itself as a category tag pill
+          if (r.subject && (tLow === r.subject.toLowerCase() || (typeof SUBJECT_INFO !== "undefined" && tLow === (SUBJECT_INFO[r.subject]?.name || "").toLowerCase()))) {
+            return;
+          }
+          const tSlug = toSlug(tTrim);
+          if (tSlug) {
+            candidateKeys.add(tSlug);
+            if (!filterKeyLabels[tSlug]) {
+              filterKeyLabels[tSlug] = (typeof CATEGORY_INFO !== "undefined" && CATEGORY_INFO[tSlug]?.label) || tTrim;
+            }
+          }
+        });
       }
     });
 
-    // Found categories with at least 1 resource (never show empty formats!)
-    const activeCategories = Object.keys(categoryCounts).filter(cat => categoryCounts[cat] > 0);
+    // Count matching resources for each discovered key
+    candidateKeys.forEach(k => {
+      let count = 0;
+      scopeResources.forEach(r => {
+        if (resourceMatchesFilter(r, k)) count++;
+      });
+      if (count > 0) {
+        filterKeyCounts[k] = count;
+      }
+    });
 
-    // Preferred sort order for standard formats, then alphabetical for dynamic folders
-    const preferredOrder = ["notes", "assignments", "homework", "sdl", "sdls", "practicals", "histology", "project", "other"];
-    activeCategories.sort((a, b) => {
+    const activeKeys = Object.keys(filterKeyCounts);
+
+    // Preferred sort order for standard formats, then subfolder tags, then other
+    const preferredOrder = [
+      "notes", "books", "assignments", "homework", "sdl", "sdls",
+      "practicals", "diagrams", "histology", "embryology",
+      "neuroanatomy", "general_anatomy", "project", "projects", "pyq", "pyqs"
+    ];
+
+    activeKeys.sort((a, b) => {
       const idxA = preferredOrder.indexOf(a);
       const idxB = preferredOrder.indexOf(b);
       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
       if (idxA !== -1) return -1;
       if (idxB !== -1) return 1;
+      if (a === "other") return 1;
+      if (b === "other") return -1;
+      const countDiff = filterKeyCounts[b] - filterKeyCounts[a];
+      if (countDiff !== 0) return countDiff;
       return a.localeCompare(b);
     });
 
@@ -501,10 +603,10 @@
     if (scopeResources.length > 0) {
       ordered.push("all");
     }
-    activeCategories.forEach(cat => ordered.push(cat));
+    activeKeys.forEach(k => ordered.push(k));
 
     // If current selected category doesn't exist in current scope, revert to 'all'
-    if (state.selectedCategory !== "all" && !activeCategories.includes(state.selectedCategory)) {
+    if (state.selectedCategory !== "all" && !activeKeys.includes(state.selectedCategory)) {
       state.selectedCategory = "all";
     }
 
@@ -515,13 +617,10 @@
       }
 
       container.innerHTML = ordered.map(catId => {
-        const meta = CATEGORY_INFO[catId] || {
-          label: formatName(catId)
-        };
-        const label = catId === "all" ? "All Formats" : (meta.label || formatName(catId));
+        const label = catId === "all" ? "All Resources" : (filterKeyLabels[catId] || formatName(catId));
         const count = catId === "all"
           ? scopeResources.length
-          : (categoryCounts[catId] || 0);
+          : (filterKeyCounts[catId] || 0);
         const isActive = state.selectedCategory === catId ? "active" : "";
 
         return `
@@ -570,8 +669,8 @@
         return false;
       }
 
-      // Category match
-      if (state.selectedCategory !== "all" && item.category !== state.selectedCategory) {
+      // Category / Subfolder / Tag match
+      if (state.selectedCategory !== "all" && !resourceMatchesFilter(item, state.selectedCategory)) {
         return false;
       }
 
@@ -657,7 +756,13 @@
       physiology: "🫀",
       biochemistry: "🧪",
       community_medicine: "🏥",
-      aetcom: "🩺"
+      aetcom: "🩺",
+      ece: "🩺",
+      foundation: "🏛️",
+      pathology: "🔬",
+      pharmacology: "💊",
+      microbiology: "🧫",
+      forensic_medicine: "⚖️"
     };
     const emoji = subjectEmojis[item.subject] || "📚";
     const sizeMB = parseFileSizeMB(item.fileSize);
@@ -680,6 +785,18 @@
 
     const dateInfo = formatResourceDateInfo(item);
 
+    // Format badge label with subfolder hierarchy if present (e.g. Notes • Johari)
+    let formatBadgeLabel = catMeta.label;
+    if (item.subcategories && item.subcategories.length > 1) {
+      const subNames = item.subcategories.map(s => (CATEGORY_INFO[s]?.label || formatName(s)));
+      formatBadgeLabel = subNames.join(" • ");
+    } else if (item.code && item.code.includes(" / ")) {
+      const parts = item.code.split(" / ").slice(1);
+      if (parts.length > 1) {
+        formatBadgeLabel = parts.join(" • ");
+      }
+    }
+
     return `
       <article class="resource-card subject-${item.subject}" data-id="${item.id}" data-subject="${item.subject}">
         <div class="card-header">
@@ -687,8 +804,8 @@
             <span class="subject-badge-icon" aria-hidden="true">${emoji}</span>
             <span class="subject-badge-name">${subMeta.name}</span>
           </span>
-          <span class="category-badge ${catMeta.badgeClass}">
-            ${catMeta.label}
+          <span class="category-badge ${catMeta.badgeClass}" data-category="${toSlug(item.category)}" title="Organized in ${escapeHtml(formatBadgeLabel)}">
+            ${formatBadgeLabel}
           </span>
         </div>
 
@@ -1137,10 +1254,10 @@
 
     state.activeModalResource = item;
 
-    // Actual folder hierarchy breadcrumb (e.g. Physiology / Homework)
+    // Actual folder hierarchy breadcrumb (e.g. Anatomy / Notes / Johari)
     const subName = SUBJECT_INFO[item.subject]?.name || formatName(item.subject);
     const catLabel = CATEGORY_INFO[item.category]?.label || formatName(item.category);
-    const breadcrumb = (subName && catLabel) ? `${subName} / ${catLabel}` : (item.code || subName || "Library");
+    const breadcrumb = item.code || ((subName && catLabel) ? `${subName} / ${catLabel}` : (subName || "Library"));
 
     const breadcrumbEl = DOM.modalBreadcrumb || DOM.modalSubject;
     if (breadcrumbEl) {

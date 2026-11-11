@@ -50,6 +50,21 @@ def sanitize_github_asset_name(name):
     clean = re.sub(r'\.{2,}', '.', clean)
     return clean
 
+def format_folder_display(s):
+    low = s.strip().lower()
+    if low in ('sdl', 'sdls'):
+        return 'SDL'
+    elif low in ('aetcom',):
+        return 'AETCOM'
+    elif low in ('ece',):
+        return 'ECE'
+    elif low in ('pyq', 'pyqs'):
+        return 'PYQs'
+    elif low == 'other':
+        return 'Other'
+    clean = re.sub(r'[_\-]+', ' ', s.strip())
+    return clean.title()
+
 def detect_subject(path_or_name):
     low = path_or_name.lower()
     if 'anat' in low:
@@ -66,7 +81,17 @@ def detect_subject(path_or_name):
         return 'ece', 'ECE'
     elif 'foundation' in low:
         return 'foundation', 'Foundation'
-    return 'other', 'Library'
+    elif 'path' in low:
+        return 'pathology', 'Pathology'
+    elif 'pharm' in low:
+        return 'pharmacology', 'Pharmacology'
+    elif 'micro' in low:
+        return 'microbiology', 'Microbiology'
+    elif 'forensic' in low or 'fmt' in low:
+        return 'forensic_medicine', 'Forensic Medicine'
+    base = os.path.basename(path_or_name).replace('.pdf', '')
+    slug = re.sub(r'[^a-z0-9]+', '_', base.lower()).strip('_') or 'other'
+    return slug, format_folder_display(base) or 'Library'
 
 def detect_category(path_or_name):
     low = path_or_name.lower()
@@ -86,7 +111,103 @@ def detect_category(path_or_name):
         return 'practicals', 'Practicals'
     elif 'book' in low:
         return 'books', 'Books'
+    elif 'pyq' in low:
+        return 'pyq', 'PYQs'
     return 'other', 'Other'
+
+def extract_hierarchy_from_path(fpath, phone_dir=PHONE_DIR):
+    """
+    Extracts dynamic subject, category, nested subcategories, tags, and hierarchy code
+    from the folder path on the phone.
+    - Every folder in root becomes a subject.
+    - Every subfolder inside a subject becomes a tag/category.
+    - Subfolders inside subfolders become nested tags/subcategories.
+    """
+    rel_path = os.path.relpath(fpath, phone_dir)
+    parts = rel_path.split(os.sep)
+    if parts[0] == '..' or len(parts) < 2:
+        subj_id, subj_disp = detect_subject(fpath)
+        cat_id, cat_disp = detect_category(fpath)
+        return {
+            "subject": subj_id,
+            "subject_name": subj_disp,
+            "category": cat_id,
+            "category_name": cat_disp,
+            "subcategories": [cat_id],
+            "tags": [subj_disp, cat_disp, "Mobile Upload"],
+            "code": f"{subj_disp} / {cat_disp}"
+        }
+
+    # parts[0] is the root folder -> Subject
+    subject_raw = parts[0].strip()
+    subj_id = re.sub(r'[^a-z0-9]+', '_', subject_raw.lower()).strip('_')
+    known_subjects = {
+        'anatomy': 'Anatomy',
+        'physiology': 'Physiology',
+        'biochemistry': 'Biochemistry',
+        'community_medicine': 'Community Medicine',
+        'aetcom': 'AETCOM',
+        'ece': 'ECE',
+        'foundation': 'Foundation Course',
+        'pathology': 'Pathology',
+        'pharmacology': 'Pharmacology',
+        'microbiology': 'Microbiology',
+        'forensic_medicine': 'Forensic Medicine'
+    }
+    subj_disp = known_subjects.get(subj_id) or format_folder_display(subject_raw)
+
+    # Intermediate subfolders between subject root and filename
+    subfolders_raw = parts[1:-1]
+    if not subfolders_raw:
+        cat_id, cat_disp = detect_category(parts[-1])
+        subcategories = [cat_id]
+        subfolder_names = [cat_disp]
+    else:
+        subcategories = []
+        subfolder_names = []
+        for sf in subfolders_raw:
+            sf_clean = sf.strip()
+            sf_slug = re.sub(r'[^a-z0-9]+', '_', sf_clean.lower()).strip('_')
+            if sf_slug:
+                subcategories.append(sf_slug)
+                subfolder_names.append(format_folder_display(sf_clean))
+        cat_id = subcategories[0]
+        cat_disp = subfolder_names[0]
+        if cat_id == "other" and len(subcategories) == 1:
+            det_cat, det_disp = detect_category(parts[-1])
+            if det_cat != "other":
+                cat_id = det_cat
+                cat_disp = det_disp
+
+    # Build tags: Subject name + every subfolder display name (deduplicated)
+    tags = [subj_disp]
+    for s_name in subfolder_names:
+        if s_name not in tags and s_name.lower() != 'other':
+            tags.append(s_name)
+
+    # Detect high-yield creator/study tags from filename
+    fname_low = parts[-1].lower()
+    if 'johari' in fname_low and 'Johari' not in tags:
+        tags.append('Johari')
+    if 'bajrang' in fname_low and 'Bajrang' not in tags:
+        tags.append('Bajrang')
+    if 'jambhulkar' in fname_low and 'Jambhulkar' not in tags:
+        tags.append('Jambhulkar')
+    if 'pyq' in fname_low and 'PYQ' not in tags:
+        tags.append('PYQ')
+
+    tags.append('Mobile Upload')
+    code = f'{subj_disp} / {" / ".join(subfolder_names)}'
+
+    return {
+        "subject": subj_id,
+        "subject_name": subj_disp,
+        "category": cat_id,
+        "category_name": cat_disp,
+        "subcategories": subcategories,
+        "tags": tags,
+        "code": code
+    }
 
 def get_pdf_page_count(filepath):
     if not filepath or not os.path.exists(filepath):
@@ -511,8 +632,15 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
             continue
 
         cdn_url = meta["url"]
-        subj_id, subj_disp = detect_subject(fpath)
-        cat_id, cat_disp = detect_category(fpath)
+        h = extract_hierarchy_from_path(fpath, PHONE_DIR)
+        subj_id = h["subject"]
+        subj_disp = h["subject_name"]
+        cat_id = h["category"]
+        cat_disp = h["category_name"]
+        subcategories = h["subcategories"]
+        tags = list(h["tags"])
+        code = h["code"]
+
         title = format_title(fname)
         f_size = os.path.getsize(fpath) if os.path.exists(fpath) else 0
         size_disp = format_file_size(f_size)
@@ -528,10 +656,16 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         is_large = (f_size >= 25 * 1024 * 1024) or (meta.get("storage") == "github-release")
         if is_large:
             cdn_url = dl_url
+            if "Large Book" not in tags:
+                tags.append("Large Book")
 
-        # Match existing entry in data.js by uploaded filename or title strictly within single object braces
-        doc_pattern = rf'(\{{\s*id:\s*"[^"]+"[^{{}}]*?Uploaded document:\s*{re.escape(fname)}[^{{}}]*?\n\s*\}})'
-        m = re.search(doc_pattern, new_content, re.IGNORECASE)
+        # Match existing entry in data.js by uploaded filename, safe filename, or title strictly within single object braces
+        m = None
+        for pattern_name in (fname, safe_fname, fname.replace("'", "."), fname.replace("’", ".")):
+            doc_pattern = rf'(\{{\s*id:\s*"[^"]+"[^{{}}]*?Uploaded document:\s*{re.escape(pattern_name)}[^{{}}]*?\n\s*\}})'
+            m = re.search(doc_pattern, new_content, re.IGNORECASE)
+            if m:
+                break
         if not m:
             doc_pattern = rf'(\{{\s*id:\s*"[^"]+"[^{{}}]*?title:\s*"{re.escape(title)}"[^{{}}]*?\n\s*\}})'
             m = re.search(doc_pattern, new_content)
@@ -539,6 +673,14 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
         if m:
             old_block = m.group(1)
             updated_block = old_block
+            updated_block = re.sub(r'subject:\s*"[^"]+"', f'subject: "{subj_id}"', updated_block, count=1)
+            updated_block = re.sub(r'category:\s*"[^"]+"', f'category: "{cat_id}"', updated_block, count=1)
+            if "subcategories:" in updated_block:
+                updated_block = re.sub(r'subcategories:\s*\[[^\]]*\]', f'subcategories: {json.dumps(subcategories)}', updated_block, count=1)
+            else:
+                updated_block = re.sub(r'(category:\s*"[^"]+",)', rf'\1\n    subcategories: {json.dumps(subcategories)},', updated_block, count=1)
+            updated_block = re.sub(r'code:\s*"[^"]+"', f'code: "{code}"', updated_block, count=1)
+            updated_block = re.sub(r'tags:\s*\[[^\]]*\]', f'tags: {json.dumps(tags)}', updated_block, count=1)
             updated_block = re.sub(r'fileUrl:\s*"[^"]+"', f'fileUrl: "{cdn_url}"', updated_block, count=1)
             updated_block = re.sub(r'downloadUrl:\s*"[^"]+"', f'downloadUrl: "{dl_url}"', updated_block, count=1)
             updated_block = re.sub(r'fileSize:\s*"[^"]+"', f'fileSize: "{size_disp}"', updated_block, count=1)
@@ -554,7 +696,6 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
             else:
                 updated_block = re.sub(r'(date:\s*"[^"]+")', rf'\1,\n    updatedAt: {f_updated_ts}', updated_block, count=1)
 
-            is_large = (f_size >= 25 * 1024 * 1024) or (meta.get("storage") == "github-release")
             if is_large:
                 if "isLargeFile" not in updated_block:
                     updated_block = re.sub(r'(\n\s*year:\s*"[^"]+")', r'\1,\n    isLargeFile: true,\n    storage: "github-release"', updated_block)
@@ -564,16 +705,12 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
 
             if updated_block != old_block:
                 new_content = new_content.replace(old_block, updated_block, 1)
-                print(f"✔ Updated entry in js/data.js: {title} ({size_disp})")
+                print(f"✔ Updated entry in js/data.js: {title} ({size_disp}) [code: {code}]")
         else:
             safe_slug = re.sub(r'[^a-z0-9]', '_', fname.lower()).strip('_')
             uid = f"user-{subj_id[:4]}-{safe_slug[:20]}-{int(time.time()) % 10000:04d}"
 
-            # Check if large document (>25MB) or hosted on GitHub Releases
-            is_large = (f_size >= 25 * 1024 * 1024) or (meta.get("storage") == "github-release")
-            tags = [subj_disp, cat_disp, "Mobile Upload"]
             if is_large:
-                tags.append("Large Book")
                 desc = f"Uploaded document: {fname}. Comprehensive reference book ({size_disp}) hosted on GitHub Releases for high-speed direct download."
                 pages_disp = pages_count if pages_count else "Textbook"
                 large_meta = """,
@@ -581,7 +718,7 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
     storage: "github-release"
 """
             else:
-                desc = f"Uploaded document: {fname}. Organized under {subj_disp} ({cat_disp})."
+                desc = f"Uploaded document: {fname}. Organized under {code}."
                 pages_disp = pages_count if pages_count else "Document"
                 large_meta = ""
 
@@ -590,7 +727,8 @@ def sync_data_js(manifest, phone_pdfs, quiet=False):
     title: "{title}",
     subject: "{subj_id}",
     category: "{cat_id}",
-    code: "{subj_disp} / {cat_disp}",
+    subcategories: {json.dumps(subcategories)},
+    code: "{code}",
     description: "{desc}",
     tags: {json.dumps(tags)},
     fileUrl: "{cdn_url}",

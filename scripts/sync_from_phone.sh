@@ -266,22 +266,26 @@ phone_to_repo_url() {
     local rel_path="$1"
     IFS='/' read -r -a parts <<< "$rel_path"
     local num=${#parts[@]}
+    if [ "$num" -eq 0 ]; then
+        echo "assets/docs/other/unknown.pdf"
+        return
+    fi
     local subj
     subj=$(get_repo_subject_id "${parts[0]}")
+    local fname
+    fname=$(format_safe_filename "${parts[$((num - 1))]}")
 
-    if [ "$num" -ge 3 ]; then
-        local sub
-        sub=$(to_safe_id "${parts[1]}")
-        local fname
-        fname=$(format_safe_filename "${parts[2]}")
-        echo "assets/docs/$subj/$sub/$fname"
+    if [ "$num" -gt 2 ]; then
+        local sub_parts=()
+        for ((i=1; i<num-1; i++)); do
+            sub_parts+=("$(to_safe_id "${parts[i]}")")
+        done
+        local sub_path
+        sub_path=$(IFS='/'; echo "${sub_parts[*]}")
+        echo "assets/docs/$subj/$sub_path/$fname"
     elif [ "$num" -eq 2 ]; then
-        local fname
-        fname=$(format_safe_filename "${parts[1]}")
         echo "assets/docs/$subj/$fname"
     else
-        local fname
-        fname=$(format_safe_filename "${parts[0]}")
         echo "assets/docs/other/$fname"
     fi
 }
@@ -291,19 +295,29 @@ repo_to_phone_path() {
     local doc_path="${repo_url#assets/docs/}"
     IFS='/' read -r -a parts <<< "$doc_path"
     local num=${#parts[@]}
-    local top="${parts[0]}"
+    if [ "$num" -eq 0 ]; then
+        echo "Other/unknown.pdf"
+        return
+    fi
     local phone_subj
-    phone_subj=$(get_phone_subject_name "$top")
-    local raw_base="${repo_url##*/}"
+    phone_subj=$(get_phone_subject_name "${parts[0]}")
+    local raw_base="${parts[$((num - 1))]}"
     local phone_fname
-    phone_fname="$(format_display "$raw_base").pdf"
-    if [ "$num" -ge 3 ]; then
-        local sub="${parts[1]}"
-        local phone_sub
-        phone_sub=$(format_display "$sub")
-        echo "$phone_subj/$phone_sub/$phone_fname"
-    else
+    phone_fname="$(format_display "$raw_base")"
+    [[ "$phone_fname" != *.pdf ]] && phone_fname="${phone_fname}.pdf"
+
+    if [ "$num" -gt 2 ]; then
+        local sub_parts=()
+        for ((i=1; i<num-1; i++)); do
+            sub_parts+=("$(format_display "${parts[i]}")")
+        done
+        local sub_path
+        sub_path=$(IFS='/'; echo "${sub_parts[*]}")
+        echo "$phone_subj/$sub_path/$phone_fname"
+    elif [ "$num" -eq 2 ]; then
         echo "$phone_subj/$phone_fname"
+    else
+        echo "Other/$phone_fname"
     fi
 }
 
@@ -782,7 +796,8 @@ for file in "${ALL_PHONE_FILES[@]}"; do
         rel_single="${single_file#$PHONE_DIR/}"
         IFS='/' read -r -a p_single <<< "$rel_single"
 
-        if [ "${#p_single[@]}" -ge 3 ]; then
+        # If file is already inside a subject folder or deeper (>= 2 parts), preserve user's structure!
+        if [ "${#p_single[@]}" -ge 2 ]; then
             continue
         fi
 
