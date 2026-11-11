@@ -4303,7 +4303,7 @@ body.modal-open {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Top Navbar Quick Bell Icon (Next to Menu Toggle) */
+/* Top Navbar Quick Bell Icon (Harmonized with Mobile Hamburger Toggle) */
 .push-top-bell-btn {
   display: inline-flex !important;
   align-items: center;
@@ -4311,10 +4311,11 @@ body.modal-open {
   width: 42px;
   height: 42px;
   padding: 0;
+  margin: 0;
   border-radius: 11px;
   background: var(--canvas-pure, #FFFFFF);
   border: 1.5px solid var(--border-subtle, #E8E0D5);
-  color: var(--text-headline, #151B2B);
+  color: var(--primary-navy, #151B2B);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   position: relative;
   cursor: pointer;
@@ -4322,107 +4323,62 @@ body.modal-open {
   touch-action: manipulation;
   pointer-events: auto;
   flex-shrink: 0;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.14s ease, box-shadow 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .push-top-bell-btn .bell-svg-icon {
   width: 20px;
   height: 20px;
   pointer-events: none;
-  stroke: var(--text-headline, #151B2B);
+  stroke: var(--primary-navy, #151B2B);
   fill: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: stroke 0.16s ease, transform 0.16s ease;
 }
 
+/* Small Emerald Unread Dot at Top-Right Corner */
 .push-top-bell-btn .bell-status-dot {
   display: none;
-}
-
-@media (min-width: 860px) {
-  .push-top-bell-btn {
-    border-radius: 9999px;
-  }
-}
-
-.push-top-bell-btn:hover {
-  background: var(--canvas-subtle, #FAF8F4);
-  border-color: var(--primary-navy, #151B2B);
-  transform: translateY(-1px);
-}
-
-.push-top-bell-btn:active {
-  transform: scale(0.92);
-}
-
-/* Subscribed State: Vibrant High-Contrast Emerald Green */
-.push-top-bell-btn.is-subscribed {
-  background: #059669 !important;
-  color: #FFFFFF !important;
-  border-color: #047857 !important;
-  box-shadow: 0 2px 10px rgba(5, 150, 105, 0.38) !important;
-}
-
-.push-top-bell-btn.is-subscribed:hover {
-  background: #047857 !important;
-  border-color: #065F46 !important;
-}
-
-.push-top-bell-btn.is-subscribed .bell-svg-icon {
-  stroke: #FFFFFF !important;
-  fill: rgba(255, 255, 255, 0.3) !important;
-  transform: scale(1.05);
-}
-
-.push-top-bell-btn.is-subscribed .bell-status-dot {
-  display: block;
   position: absolute;
   top: 7px;
   right: 7px;
-  width: 8px;
-  height: 8px;
+  width: 7.5px;
+  height: 7.5px;
   border-radius: 50%;
-  background: #F9E88A;
-  border: 1.5px solid #047857;
-  box-shadow: 0 0 6px #F9E88A;
-  animation: bell-dot-glow 2s infinite ease-in-out;
-}
-
-@keyframes bell-dot-glow {
-  0% { transform: scale(0.9); opacity: 0.85; }
-  50% { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.85; }
-}
-
-/* Bell Unread Badge (Pill with Count) */
-.bell-unread-badge {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 4.5px;
-  border-radius: 9999px;
-  background: #DC2626;
-  color: #FFFFFF;
-  font-family: var(--font-display, 'Outfit', sans-serif);
-  font-size: 10.5px;
-  font-weight: 800;
-  line-height: 1;
-  border: 2px solid #FFFFFF;
-  box-shadow: 0 2px 7px rgba(220, 38, 38, 0.45);
-  z-index: 10;
+  background: #059669;
+  border: 1.5px solid var(--canvas-pure, #FFFFFF);
+  box-shadow: 0 0 4px rgba(5, 150, 105, 0.45);
   pointer-events: none;
-  box-sizing: border-box;
-  animation: notif-badge-pop 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes notif-badge-pop {
-  0% { transform: scale(0.4); opacity: 0; }
-  70% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+/* Subtle Emerald Hover State */
+@media (hover: hover) {
+  .push-top-bell-btn:hover {
+    background: var(--canvas-subtle, #FAF8F4);
+    border-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.12);
+  }
+
+  .push-top-bell-btn:hover .bell-svg-icon {
+    stroke: #059669;
+  }
+}
+
+/* Subtle Emerald Pressed / Active State */
+.push-top-bell-btn:active {
+  transform: scale(0.92);
+  background: #ECFDF5;
+  border-color: #059669;
+}
+
+.push-top-bell-btn:active .bell-svg-icon {
+  stroke: #059669;
+}
+
+/* Visually muted/hidden badge element so emerald unread dot remains clean & minimal */
+.push-top-bell-btn .bell-unread-badge {
+  display: none !important;
 }
 
 /* ==========================================================================
@@ -4631,125 +4587,6 @@ body.notif-center-open {
 .notif-close-btn:hover {
   background: #F1F5F9;
   color: var(--primary-navy, #151B2B);
-}
-
-/* Push Alerts Settings: Low-Profile Secondary Row */
-.notif-push-banner {
-  background: var(--canvas-bg, #FAF8F4);
-  border-bottom: 1px solid var(--border-subtle, #E8E0D5);
-  flex-shrink: 0;
-}
-
-.notif-push-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 14px;
-  min-height: 30px;
-  font-size: 0.74rem;
-  gap: 8px;
-}
-
-.notif-push-summary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  color: var(--text-body, #2D3748);
-  font-weight: 500;
-  min-width: 0;
-  user-select: none;
-}
-
-.notif-push-status-dot {
-  width: 6.5px;
-  height: 6.5px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.notif-push-status-dot.is-active {
-  background: #059669;
-  box-shadow: 0 0 5px rgba(5, 150, 105, 0.55);
-}
-
-.notif-push-status-dot.is-paused {
-  background: #F59E0B;
-}
-
-.notif-push-status-dot.is-muted {
-  background: #94A3B8;
-}
-
-.notif-push-status-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #475569;
-}
-
-.notif-push-chevron {
-  font-size: 0.80rem;
-  color: #94A3B8;
-  transition: transform 0.18s ease;
-  display: inline-block;
-  line-height: 1;
-}
-
-.notif-push-chevron.is-expanded {
-  transform: rotate(90deg);
-}
-
-.notif-push-actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.notif-push-compact-btn {
-  padding: 2.5px 9px;
-  font-size: 0.71rem;
-  font-weight: 600;
-  font-family: var(--font-display, 'Outfit', sans-serif);
-  border-radius: 9999px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-}
-
-.notif-push-compact-btn.is-cta {
-  background: var(--primary-navy, #151B2B);
-  color: #FFFFFF;
-  border: none;
-}
-
-.notif-push-compact-btn.is-cta:hover {
-  background: #059669;
-}
-
-.notif-push-compact-btn.is-active {
-  background: transparent;
-  color: #64748B;
-  border: 1px solid #CBD5E1;
-}
-
-.notif-push-compact-btn.is-active:hover {
-  color: #DC2626;
-  border-color: #F87171;
-  background: #FEF2F2;
-}
-
-.notif-push-expand-panel {
-  padding: 6px 14px 8px 14px;
-  background: #F8FAFC;
-  border-top: 1px dashed #E2E8F0;
-  font-size: 0.72rem;
-  color: #64748B;
-  line-height: 1.35;
-}
-
-.notif-push-info-text {
-  margin: 0;
 }
 
 /* Slim Segmented Control (All / Unread) */

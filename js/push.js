@@ -23,7 +23,6 @@
   let oneSignalInstance = null;
   let activeTab = "all"; // 'all' or 'unread'
   let isNotifCenterOpen = false;
-  let isPushInfoExpanded = false;
 
   // Pinned Welcome Notification
   const WELCOME_ANNOUNCEMENT = {
@@ -252,7 +251,6 @@
     // 5. Save subscribed state
     setStoredStatus("subscribed");
     updateBellUI();
-    renderPushBanner();
 
     // 6. Sync with OneSignal
     try {
@@ -282,7 +280,6 @@
       console.warn("[Push] OneSignal optOut notice:", e);
     }
     updateBellUI();
-    renderPushBanner();
   }
 
   async function resumePush() {
@@ -295,7 +292,6 @@
       console.warn("[Push] OneSignal resume notice:", e);
     }
     updateBellUI();
-    renderPushBanner();
   }
 
   // --- Date Grouping Helper ---
@@ -342,26 +338,26 @@
     bellBtns.forEach((btn) => {
       btn.style.display = "inline-flex";
 
-      // Ensure unread badge element exists
-      let badge = btn.querySelector(".bell-unread-badge");
-      if (!badge) {
-        badge = document.createElement("span");
-        badge.className = "bell-unread-badge";
-        badge.setAttribute("aria-hidden", "true");
-        btn.appendChild(badge);
+      // Small emerald unread dot positioned at top-right corner
+      let statusDot = btn.querySelector(".bell-status-dot");
+      if (!statusDot) {
+        statusDot = document.createElement("span");
+        statusDot.className = "bell-status-dot";
+        statusDot.setAttribute("aria-hidden", "true");
+        btn.appendChild(statusDot);
       }
 
-      const statusDot = btn.querySelector(".bell-status-dot");
-
-      if (unreadCount > 0) {
-        badge.style.display = "flex";
-        badge.textContent = unreadCount > 9 ? "9+" : String(unreadCount);
-        if (statusDot) statusDot.style.display = "none";
-      } else {
+      // Hide legacy/unused badge pill if present so dot remains clean
+      const badge = btn.querySelector(".bell-unread-badge");
+      if (badge) {
         badge.style.display = "none";
-        if (statusDot) {
-          statusDot.style.display = isSubscribed ? "block" : "none";
-        }
+      }
+
+      // Display emerald unread dot whenever there are unread notifications
+      if (unreadCount > 0) {
+        statusDot.style.display = "block";
+      } else {
+        statusDot.style.display = "none";
       }
 
       if (isSubscribed) {
@@ -378,7 +374,12 @@
           ? "Notifications (Alerts Active)"
           : "Notifications"
       );
-      btn.setAttribute("aria-label", "Notifications");
+      btn.setAttribute(
+        "aria-label",
+        unreadCount > 0
+          ? `Notifications (${unreadCount} unread)`
+          : "Notifications"
+      );
       btn.setAttribute("aria-expanded", String(isNotifCenterOpen));
     });
 
@@ -436,85 +437,11 @@
     }
   }
 
-  // --- Push Banner in Notification Center (Compact Secondary Row) ---
-  function renderPushBanner() {
-    const banner = document.getElementById("notif-push-banner");
-    if (!banner) return;
-
-    const isSubscribed = isCurrentlySubscribed();
-    const stored = getStoredStatus();
-
-    let statusText = "Push alerts off";
-    let statusClass = "is-muted";
-    let actionText = "Turn On";
-    let actionHandler = subscribeToPush;
-    let isCta = true;
-    let infoText = "Receive instant alerts on this device whenever new MBBS notes, question banks, or textbooks are added.";
-
-    if (isSubscribed) {
-      statusText = "Push alerts active";
-      statusClass = "is-active";
-      actionText = "Turn Off";
-      actionHandler = unsubscribeFromPush;
-      isCta = false;
-      infoText = "Instant notifications are active for this browser. Tap Turn Off to pause alerts.";
-    } else if (stored === "unsubscribed") {
-      statusText = "Push alerts paused";
-      statusClass = "is-paused";
-      actionText = "Resume";
-      actionHandler = resumePush;
-      isCta = true;
-      infoText = "Alerts are currently paused for this browser. Tap Resume to re-enable alerts.";
-    }
-
-    banner.innerHTML = `
-      <div class="notif-push-row">
-        <div class="notif-push-summary" id="notif-push-summary-toggle" role="button" tabindex="0" title="Toggle alerts info">
-          <span class="notif-push-status-dot ${statusClass}"></span>
-          <span class="notif-push-status-text">${statusText}</span>
-          <span class="notif-push-chevron ${isPushInfoExpanded ? "is-expanded" : ""}">›</span>
-        </div>
-        <div class="notif-push-actions">
-          <button type="button" class="notif-push-compact-btn ${isCta ? "is-cta" : "is-active"}" id="notif-push-toggle-btn">
-            ${actionText}
-          </button>
-        </div>
-      </div>
-      <div class="notif-push-expand-panel" id="notif-push-expand-panel" style="display: ${isPushInfoExpanded ? "block" : "none"};">
-        <p class="notif-push-info-text">${infoText}</p>
-      </div>
-    `;
-
-    const toggleBtn = document.getElementById("notif-push-toggle-btn");
-    if (toggleBtn) {
-      toggleBtn.onclick = (e) => {
-        e.stopPropagation();
-        actionHandler();
-      };
-    }
-
-    const summaryToggle = document.getElementById("notif-push-summary-toggle");
-    if (summaryToggle) {
-      summaryToggle.onclick = () => {
-        isPushInfoExpanded = !isPushInfoExpanded;
-        const panel = document.getElementById("notif-push-expand-panel");
-        const chevron = banner.querySelector(".notif-push-chevron");
-        if (panel) panel.style.display = isPushInfoExpanded ? "block" : "none";
-        if (chevron) {
-          if (isPushInfoExpanded) chevron.classList.add("is-expanded");
-          else chevron.classList.remove("is-expanded");
-        }
-      };
-    }
-  }
-
   // --- Notification Center Feed Rendering with Date Grouping ---
   function renderNotificationCenterContent() {
     const container = document.getElementById("notif-feed-container");
     const emptyState = document.getElementById("notif-empty-state");
     if (!container) return;
-
-    renderPushBanner();
 
     const feed = getNotificationFeed();
     const filtered = activeTab === "unread" ? feed.filter(isItemUnread) : feed;
@@ -717,9 +644,6 @@
           </div>
         </div>
 
-        <!-- Push Alerts Settings (Low Profile Secondary Row) -->
-        <div class="notif-push-banner" id="notif-push-banner"></div>
-
         <!-- Slim Segmented Control (All / Unread) -->
         <div class="notif-segmented-wrap">
           <div class="notif-segmented" role="tablist">
@@ -898,12 +822,10 @@
       }
 
       updateBellUI();
-      if (isNotifCenterOpen) renderPushBanner();
 
       if (OneSignal.User && OneSignal.User.PushSubscription) {
         OneSignal.User.PushSubscription.addEventListener("change", () => {
           updateBellUI();
-          if (isNotifCenterOpen) renderPushBanner();
         });
       }
     } catch (err) {
