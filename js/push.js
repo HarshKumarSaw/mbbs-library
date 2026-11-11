@@ -1233,6 +1233,9 @@
       // If browser permission is already granted, ensure OneSignal registers/refreshes them with backend
       if ("Notification" in window && Notification.permission === "granted") {
         setStoredStatus("subscribed");
+        if (OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === "function") {
+          OneSignal.Notifications.requestPermission().catch(() => {});
+        }
         if (OneSignal.User && OneSignal.User.PushSubscription) {
           OneSignal.User.PushSubscription.optIn().catch((err) => {
             console.warn("[Push] OneSignal auto-optIn notice:", err);
