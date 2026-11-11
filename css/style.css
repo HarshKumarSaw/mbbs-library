@@ -4456,18 +4456,47 @@ body.notif-center-open {
   transform: translateY(0);
 }
 
+.notif-drag-zone {
+  width: 100%;
+  padding: 10px 0 6px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.notif-drag-zone:active,
+.notif-drag-zone.is-dragging {
+  cursor: grabbing;
+}
+
 .notif-drag-bar {
-  width: 32px;
-  height: 3px;
+  width: 38px;
+  height: 4px;
   border-radius: 9999px;
   background: #CBD5E1;
-  margin: 6px auto 2px auto;
-  flex-shrink: 0;
+  pointer-events: none;
   touch-action: none;
+  transition: background-color 0.15s ease, transform 0.15s ease, width 0.15s ease;
+}
+
+.notif-drag-zone:hover .notif-drag-bar,
+.notif-drag-zone:active .notif-drag-bar,
+.notif-drag-zone.is-dragging .notif-drag-bar {
+  background: #94A3B8;
+  width: 46px;
+  transform: scaleY(1.2);
 }
 
 /* Desktop Floating Popover (Anchored under top bell) */
 @media (min-width: 768px) {
+  .notif-drag-zone,
   .notif-drag-bar {
     display: none;
   }

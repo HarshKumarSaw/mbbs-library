@@ -727,10 +727,12 @@
     modal.innerHTML = `
       <div class="notif-backdrop" id="notif-backdrop"></div>
       <div class="notif-panel" id="notif-panel">
-        <div class="notif-drag-bar" aria-hidden="true"></div>
+        <div class="notif-drag-zone" id="notif-drag-zone" role="button" tabindex="0" aria-label="Slide down to close">
+          <div class="notif-drag-bar" id="notif-drag-bar" aria-hidden="true"></div>
+        </div>
 
         <!-- Compact Header -->
-        <div class="notif-header">
+        <div class="notif-header" id="notif-header">
           <div class="notif-header-title-wrap">
             <h3 id="notif-center-title" class="notif-title">Notifications</h3>
             <span class="notif-pill-badge" id="notif-unread-count-pill">0 new</span>
@@ -798,9 +800,172 @@
       tabUnread.addEventListener("click", () => switchTab("unread"));
     }
 
+    // Initialize swipe-down to close drawer gesture on the drag bar / handle
+    initDrawerSwipeGesture();
+
     // Keyboard navigation: Escape key closes modal
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && isNotifCenterOpen) {
+        closeNotificationCenter();
+      }
+    });
+  }
+
+  // --- Notification Drawer Swipe-Down Gesture Controller ---
+  function initDrawerSwipeGesture() {
+    const dragZone = document.getElementById("notif-drag-zone");
+    const header = document.getElementById("notif-header");
+    const panel = document.getElementById("notif-panel");
+    const backdrop = document.getElementById("notif-backdrop");
+    if (!dragZone || !panel) return;
+
+    let isDragging = false;
+    let startY = 0;
+    let currentY = 0;
+    let startTime = 0;
+    let dragRaf = null;
+
+    function handleStart(clientY) {
+      if (window.innerWidth >= 768) return;
+      if (dragRaf) {
+        cancelAnimationFrame(dragRaf);
+        dragRaf = null;
+      }
+      isDragging = true;
+      startY = clientY;
+      currentY = clientY;
+      startTime = Date.now();
+      panel.style.transition = "none";
+      if (backdrop) backdrop.style.transition = "none";
+      dragZone.classList.add("is-dragging");
+    }
+
+    function handleMove(clientY) {
+      if (!isDragging) return;
+      currentY = clientY;
+      if (!dragRaf) {
+        dragRaf = requestAnimationFrame(() => {
+          dragRaf = null;
+          if (!isDragging) return;
+          const deltaY = currentY - startY;
+          if (deltaY > 0) {
+            // Dragging downward: track finger with panel
+            panel.style.transform = `translateY(${deltaY}px)`;
+            if (backdrop) {
+              const opacity = Math.max(0.08, 1 - (deltaY / 380));
+              backdrop.style.opacity = String(opacity);
+            }
+          } else {
+            // Dragging upward: apply heavy rubber-band resistance
+            panel.style.transform = `translateY(${deltaY * 0.16}px)`;
+          }
+        });
+      }
+    }
+
+    function handleEnd() {
+      if (dragRaf) {
+        cancelAnimationFrame(dragRaf);
+        dragRaf = null;
+      }
+      if (!isDragging) return;
+      isDragging = false;
+      dragZone.classList.remove("is-dragging");
+
+      const deltaY = currentY - startY;
+      const elapsed = Math.max(1, Date.now() - startTime);
+      const velocityY = deltaY / elapsed;
+
+      // Restore transitions
+      panel.style.transition = "transform 0.24s cubic-bezier(0.16, 1, 0.3, 1)";
+      if (backdrop) backdrop.style.transition = "opacity 0.22s ease";
+
+      // Dismiss if dragged down > 65px or quick downward flick (> 0.35 px/ms with > 20px drag)
+      if (deltaY > 65 || (velocityY > 0.35 && deltaY > 20)) {
+        panel.style.transform = "translateY(100%)";
+        if (backdrop) backdrop.style.opacity = "0";
+        setTimeout(() => {
+          closeNotificationCenter();
+          panel.style.transform = "";
+          panel.style.transition = "";
+          if (backdrop) {
+            backdrop.style.opacity = "";
+            backdrop.style.transition = "";
+          }
+        }, 220);
+      } else {
+        // Snap back
+        panel.style.transform = "translateY(0)";
+        if (backdrop) backdrop.style.opacity = "";
+        setTimeout(() => {
+          panel.style.transform = "";
+          panel.style.transition = "";
+          if (backdrop) {
+            backdrop.style.opacity = "";
+            backdrop.style.transition = "";
+          }
+        }, 240);
+      }
+    }
+
+    // Bind to drag handle bar and header
+    const touchZones = [dragZone, header].filter(Boolean);
+    touchZones.forEach((zone) => {
+      if (window.PointerEvent) {
+        zone.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          if (e.target && e.target.closest("button, a, input, select, [role='button']")) {
+            if (e.target !== dragZone && !dragZone.contains(e.target)) return;
+          }
+          handleStart(e.clientY);
+          try {
+            zone.setPointerCapture(e.pointerId);
+          } catch (_) {}
+        }, { passive: true });
+
+        zone.addEventListener("pointermove", (e) => {
+          handleMove(e.clientY);
+        }, { passive: true });
+
+        zone.addEventListener("pointerup", (e) => {
+          try {
+            zone.releasePointerCapture(e.pointerId);
+          } catch (_) {}
+          handleEnd();
+        }, { passive: true });
+
+        zone.addEventListener("pointercancel", (e) => {
+          try {
+            zone.releasePointerCapture(e.pointerId);
+          } catch (_) {}
+          handleEnd();
+        }, { passive: true });
+      } else {
+        zone.addEventListener("touchstart", (e) => {
+          if (e.target && e.target.closest("button, a, input, select, [role='button']")) {
+            if (e.target !== dragZone && !dragZone.contains(e.target)) return;
+          }
+          if (e.touches && e.touches.length === 1) handleStart(e.touches[0].clientY);
+        }, { passive: true });
+
+        zone.addEventListener("touchmove", (e) => {
+          if (e.touches && e.touches.length === 1) handleMove(e.touches[0].clientY);
+        }, { passive: true });
+
+        zone.addEventListener("touchend", () => {
+          handleEnd();
+        }, { passive: true });
+
+        zone.addEventListener("touchcancel", () => {
+          handleEnd();
+        }, { passive: true });
+      }
+    });
+
+    // Keyboard support on drag zone
+    dragZone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
         closeNotificationCenter();
       }
     });
@@ -988,6 +1153,17 @@
     isNotifCenterOpen = false;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
+
+    const panel = document.getElementById("notif-panel");
+    const backdrop = document.getElementById("notif-backdrop");
+    if (panel) {
+      panel.style.transform = "";
+      panel.style.transition = "";
+    }
+    if (backdrop) {
+      backdrop.style.opacity = "";
+      backdrop.style.transition = "";
+    }
 
     unlockPageScroll();
 
