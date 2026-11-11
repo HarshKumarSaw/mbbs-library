@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-bioc-biochemistry_aetcom_-0068",
+    title: "Biochemistry Aetcom Johari Mbbs",
+    subject: "biochemistry",
+    category: "other",
+    subcategories: ["other"],
+    code: "Biochemistry / Other",
+    description: "Uploaded document: BIOCHEMISTRY AETCOM - JOHARI MBBS.pdf. Organized under Biochemistry / Other.",
+    tags: ["Biochemistry", "Johari", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/5b1db42b-2e31-4824-a27a-2e3d282801d2",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/BIOCHEMISTRY_AETCOM_-_JOHARI_MBBS.pdf",
+    fileSize: "531 KB",
+    pages: "14 Pages",
+    author: "HarshKumarSaw",
+    date: "11 Nov 2026",
+    updatedAt: 1794420037,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_assignment-0203",
     title: "Physiology Assignment",
     subject: "physiology",
