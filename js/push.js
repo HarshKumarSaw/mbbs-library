@@ -17,7 +17,8 @@
 
   const path = window.location.pathname;
   const isRepo = path.startsWith("/mbbs-library");
-  const swPath = isRepo ? "/mbbs-library/OneSignalSDKWorker.js" : "/OneSignalSDKWorker.js";
+  // OneSignal Web SDK v16 expects path relative to site root without leading slash for subfolder deployments
+  const swPath = isRepo ? "mbbs-library/OneSignalSDKWorker.js" : "OneSignalSDKWorker.js";
   const swScope = isRepo ? "/mbbs-library/" : "/";
 
   let oneSignalInstance = null;
