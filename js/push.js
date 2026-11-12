@@ -234,13 +234,7 @@
 
     // 3. Check blocked permissions
     if (Notification.permission === "denied") {
-      alert(
-        "⚠️ Notifications are blocked in your browser settings.\n\n" +
-        "To enable alerts:\n" +
-        "1. Tap the lock/tune/settings icon beside the URL in the address bar.\n" +
-        "2. Choose Site Settings -> Notifications -> Allow.\n" +
-        "3. Reload the page."
-      );
+      showPushRecoveryModal("denied");
       return;
     }
 
@@ -260,6 +254,9 @@
     }
 
     if (perm !== "granted") {
+      if (perm === "denied") {
+        showPushRecoveryModal("denied");
+      }
       updateBellUI();
       renderPushBar();
       return;
@@ -333,14 +330,23 @@
 
     const isSubscribed = isCurrentlySubscribed();
     const isDenied = "Notification" in window && Notification.permission === "denied";
+    const permGranted = "Notification" in window && Notification.permission === "granted";
+    const siteThinksSubscribed = getStoredStatus() === "subscribed";
+    const oneSignalOptedIn = Boolean(
+      oneSignalInstance &&
+      oneSignalInstance.User &&
+      oneSignalInstance.User.PushSubscription &&
+      oneSignalInstance.User.PushSubscription.optedIn
+    );
+    const isDesync = (permGranted || siteThinksSubscribed) && !oneSignalOptedIn && !isSubscribed;
 
     if (isDenied) {
       bar.innerHTML = `
         <div class="notif-push-left">
-          <span class="notif-push-icon">⚠️</span>
+          <span class="notif-push-icon" style="color: #DC2626;">⚠️</span>
           <div class="notif-push-text-wrap">
-            <span class="notif-push-label">Alerts Blocked</span>
-            <span class="notif-push-desc">Enable in browser site settings</span>
+            <span class="notif-push-label" style="color: #991B1B;">Alerts Blocked</span>
+            <span class="notif-push-desc">Blocked in browser site settings</span>
           </div>
         </div>
         <button type="button" class="notif-push-action-btn btn-blocked" id="notif-push-toggle-btn">
@@ -348,17 +354,25 @@
         </button>
       `;
       const btn = document.getElementById("notif-push-toggle-btn");
-      if (btn) {
-        btn.onclick = () => {
-          alert(
-            "⚠️ Notifications are blocked in your browser settings.\n\n" +
-            "To enable alerts:\n" +
-            "1. Tap the lock/tune/settings icon beside the URL in your browser address bar.\n" +
-            "2. Select 'Site settings' -> 'Notifications' -> 'Allow'.\n" +
-            "3. Refresh the page to activate instant study notifications!"
-          );
-        };
-      }
+      if (btn) btn.onclick = () => showPushRecoveryModal("denied");
+      return;
+    }
+
+    if (isDesync) {
+      bar.innerHTML = `
+        <div class="notif-push-left">
+          <span class="notif-push-icon" style="color: #D97706;">⚡</span>
+          <div class="notif-push-text-wrap">
+            <span class="notif-push-label" style="color: #B45309;">Connection Inactive</span>
+            <span class="notif-push-desc">Device not linked to push server</span>
+          </div>
+        </div>
+        <button type="button" class="notif-push-action-btn btn-reconnect" id="notif-push-toggle-btn">
+          Reconnect
+        </button>
+      `;
+      const btn = document.getElementById("notif-push-toggle-btn");
+      if (btn) btn.onclick = () => showPushRecoveryModal("desync");
       return;
     }
 
@@ -834,6 +848,278 @@
         closeNotificationCenter();
       }
     });
+
+    ensurePushRecoveryDOM();
+  }
+
+  // --- Push Recovery & Re-subscribe Modal ---
+  let isPushRecoveryOpen = false;
+
+  function ensurePushRecoveryDOM() {
+    if (document.getElementById("mbbs-push-recovery-modal")) return;
+
+    const modal = document.createElement("div");
+    modal.id = "mbbs-push-recovery-modal";
+    modal.className = "push-recovery-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "push-recovery-title");
+    modal.setAttribute("aria-hidden", "true");
+
+    modal.innerHTML = `
+      <div class="push-recovery-backdrop" id="push-recovery-backdrop"></div>
+      <div class="push-recovery-card" id="push-recovery-card">
+        <button type="button" class="push-recovery-close" id="push-recovery-close-btn" aria-label="Close dialog">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div class="push-recovery-icon-wrap" id="push-recovery-icon-wrap"></div>
+        <div class="push-recovery-pill" id="push-recovery-pill"></div>
+        <h3 class="push-recovery-title" id="push-recovery-title"></h3>
+        <p class="push-recovery-desc" id="push-recovery-desc"></p>
+        <div class="push-recovery-body" id="push-recovery-body"></div>
+        <div class="push-recovery-status-msg" id="push-recovery-status-msg" style="display: none;"></div>
+
+        <div class="push-recovery-actions">
+          <button type="button" class="push-recovery-primary-btn" id="push-recovery-primary-btn"></button>
+          <button type="button" class="push-recovery-secondary-btn" id="push-recovery-secondary-btn">Not Now</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const backdrop = document.getElementById("push-recovery-backdrop");
+    if (backdrop) backdrop.addEventListener("click", closePushRecoveryModal);
+
+    const closeBtn = document.getElementById("push-recovery-close-btn");
+    if (closeBtn) closeBtn.addEventListener("click", closePushRecoveryModal);
+
+    const secBtn = document.getElementById("push-recovery-secondary-btn");
+    if (secBtn) secBtn.addEventListener("click", closePushRecoveryModal);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && isPushRecoveryOpen) {
+        closePushRecoveryModal();
+      }
+    });
+  }
+
+  function closePushRecoveryModal() {
+    const modal = document.getElementById("mbbs-push-recovery-modal");
+    if (!modal || !isPushRecoveryOpen) return;
+    isPushRecoveryOpen = false;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function showToastNotification(msg) {
+    let toast = document.getElementById("mbbs-push-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "mbbs-push-toast";
+      toast.className = "mbbs-push-toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add("is-visible");
+    setTimeout(() => {
+      toast.classList.remove("is-visible");
+    }, 4500);
+  }
+
+  function showPushRecoveryModal(mode) {
+    // If already fully subscribed on OneSignal, NO NEED TO SHOW!
+    if (isCurrentlySubscribed()) {
+      return;
+    }
+
+    ensurePushRecoveryDOM();
+    const modal = document.getElementById("mbbs-push-recovery-modal");
+    if (!modal) return;
+
+    const iconWrap = document.getElementById("push-recovery-icon-wrap");
+    const pill = document.getElementById("push-recovery-pill");
+    const title = document.getElementById("push-recovery-title");
+    const desc = document.getElementById("push-recovery-desc");
+    const body = document.getElementById("push-recovery-body");
+    const statusMsg = document.getElementById("push-recovery-status-msg");
+    const primaryBtn = document.getElementById("push-recovery-primary-btn");
+    const card = document.getElementById("push-recovery-card");
+
+    if (statusMsg) {
+      statusMsg.style.display = "none";
+      statusMsg.className = "push-recovery-status-msg";
+      statusMsg.textContent = "";
+    }
+    if (card) card.classList.remove("is-shaking");
+    if (primaryBtn) primaryBtn.disabled = false;
+
+    if (mode === "denied") {
+      if (iconWrap) {
+        iconWrap.innerHTML = `
+          <div class="push-recovery-icon is-denied">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              <line x1="2" y1="2" x2="22" y2="22"></line>
+            </svg>
+          </div>
+        `;
+      }
+      if (pill) {
+        pill.className = "push-recovery-pill is-denied";
+        pill.textContent = "⚠️ Alerts Blocked in Browser";
+      }
+      if (title) title.textContent = "Enable Notifications in Browser";
+      if (desc) {
+        desc.textContent = "Your browser has notifications blocked. To receive instant push alerts when new MBBS notes or books are uploaded, follow these quick steps:";
+      }
+      if (body) {
+        body.innerHTML = `
+          <div class="push-step-list">
+            <div class="push-step-item">
+              <span class="push-step-num">1</span>
+              <div class="push-step-text">
+                <strong>Tap the lock or tune icon 🔒</strong> in your address bar (beside the website URL).
+              </div>
+            </div>
+            <div class="push-step-item">
+              <span class="push-step-num">2</span>
+              <div class="push-step-text">
+                Tap <strong>Permissions</strong> or <strong>Site settings</strong> ➔ <strong>Notifications</strong>.
+              </div>
+            </div>
+            <div class="push-step-item">
+              <span class="push-step-num">3</span>
+              <div class="push-step-text">
+                Change to <strong>Allow</strong>, then tap the button below.
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      if (primaryBtn) {
+        primaryBtn.textContent = "🔄 Check Settings & Subscribe";
+        primaryBtn.onclick = async () => {
+          const currentPerm = Notification.permission;
+          if (currentPerm === "granted") {
+            primaryBtn.disabled = true;
+            primaryBtn.textContent = "Connecting to OneSignal...";
+            try {
+              localStorage.removeItem("mbbs_push_opted_out");
+              if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
+                await oneSignalInstance.User.PushSubscription.optIn();
+              }
+              setStoredStatus("subscribed");
+              updateBellUI();
+              renderPushBar();
+              closePushRecoveryModal();
+              showToastNotification("✅ Notifications Enabled! Device alerts are now active.");
+            } catch (e) {
+              console.warn("[Push] Error completing subscription:", e);
+              primaryBtn.disabled = false;
+              primaryBtn.textContent = "🔄 Try Again";
+            }
+          } else {
+            if (card) {
+              card.classList.remove("is-shaking");
+              void card.offsetWidth;
+              card.classList.add("is-shaking");
+            }
+            if (statusMsg) {
+              statusMsg.className = "push-recovery-status-msg is-error";
+              statusMsg.textContent = "⚠️ Still blocked in browser settings. Please switch Notifications to Allow above and try again.";
+              statusMsg.style.display = "block";
+            }
+          }
+        };
+      }
+    } else {
+      // mode === "desync" or generic connection error
+      if (iconWrap) {
+        iconWrap.innerHTML = `
+          <div class="push-recovery-icon is-desync">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              <circle cx="12" cy="3" r="1.5" fill="#D97706"></circle>
+            </svg>
+          </div>
+        `;
+      }
+      if (pill) {
+        pill.className = "push-recovery-pill is-desync";
+        pill.textContent = "🔔 Device Not Connected";
+      }
+      if (title) title.textContent = "Connect to Push Notification Server";
+      if (desc) {
+        desc.textContent = "Your browser permission is allowed, but your device is not registered with our live OneSignal notification server. Tap below to connect:";
+      }
+      if (body) {
+        body.innerHTML = `
+          <div class="push-desync-box">
+            <div class="push-desync-item">
+              <span class="push-desync-bullet">✔</span>
+              <span>Instant alerts for newly uploaded notes & books</span>
+            </div>
+            <div class="push-desync-item">
+              <span class="push-desync-bullet">✔</span>
+              <span>Direct 1-tap download links straight to phone</span>
+            </div>
+            <div class="push-desync-item">
+              <span class="push-desync-bullet">✔</span>
+              <span>100% Free • Mute or turn off anytime</span>
+            </div>
+          </div>
+        `;
+      }
+      if (primaryBtn) {
+        primaryBtn.textContent = "🔔 Connect & Subscribe Now";
+        primaryBtn.onclick = async () => {
+          primaryBtn.disabled = true;
+          primaryBtn.textContent = "Connecting to OneSignal...";
+          try {
+            localStorage.removeItem("mbbs_push_opted_out");
+            if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
+              await oneSignalInstance.User.PushSubscription.optIn();
+            } else if (window.OneSignalDeferred) {
+              await new Promise((resolve) => {
+                window.OneSignalDeferred.push(async function (OneSignal) {
+                  try {
+                    if (OneSignal.User && OneSignal.User.PushSubscription) {
+                      await OneSignal.User.PushSubscription.optIn();
+                    }
+                  } catch (_) {}
+                  resolve();
+                });
+              });
+            }
+            setStoredStatus("subscribed");
+            updateBellUI();
+            renderPushBar();
+            closePushRecoveryModal();
+            showToastNotification("✅ Reconnected! Device push alerts are now active.");
+          } catch (e) {
+            console.warn("[Push] Error during desync optIn:", e);
+            if (statusMsg) {
+              statusMsg.className = "push-recovery-status-msg is-error";
+              statusMsg.textContent = "⚠️ Could not connect to OneSignal. Please try again or check your network.";
+              statusMsg.style.display = "block";
+            }
+            primaryBtn.disabled = false;
+            primaryBtn.textContent = "🔔 Try Again";
+          }
+        };
+      }
+    }
+
+    isPushRecoveryOpen = true;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
   }
 
   // --- Notification Drawer Swipe-Down Gesture Controller ---
@@ -1152,41 +1438,71 @@
     html.style.scrollBehavior = prevScrollBehavior;
   }
 
-  // --- First-Time Bell Notification Prompt ---
+  // --- Bell Notification Prompt & State Recovery Controller ---
   function triggerBellNotificationPrompt() {
-    // 1. Only prompt if browser supports notifications and user has not yet decided
-    if (!("Notification" in window) || Notification.permission !== "default") {
+    // 1. If user is already fully subscribed on OneSignal, NO NEED TO SHOW!
+    if (isCurrentlySubscribed()) {
       return;
     }
-    // 2. Do not prompt if user explicitly opted out previously
+
+    // 2. If browser doesn't support notifications, do not prompt
+    if (!("Notification" in window)) {
+      return;
+    }
+
+    // 3. If user manually opted out via toggle, do not force popup
     if (localStorage.getItem("mbbs_push_opted_out") === "true") {
       return;
     }
-    // 3. Only show on the very first time the bell icon is pressed
-    if (localStorage.getItem("mbbs_bell_prompt_shown") === "true") {
+
+    // 4. Case: Blocked / Denied -> Show Denied Recovery Popup
+    if (Notification.permission === "denied") {
+      showPushRecoveryModal("denied");
       return;
     }
 
-    try {
-      localStorage.setItem("mbbs_bell_prompt_shown", "true");
-    } catch (_) {}
+    // 5. Case: Desync / OneSignal Error -> Show Desync Recovery Popup
+    const permGranted = Notification.permission === "granted";
+    const siteThinksSubscribed = getStoredStatus() === "subscribed";
+    const oneSignalOptedIn = Boolean(
+      oneSignalInstance &&
+      oneSignalInstance.User &&
+      oneSignalInstance.User.PushSubscription &&
+      oneSignalInstance.User.PushSubscription.optedIn
+    );
 
-    const showPrompt = (OneSignal) => {
+    if ((permGranted || siteThinksSubscribed) && !oneSignalOptedIn) {
+      showPushRecoveryModal("desync");
+      return;
+    }
+
+    // 6. Case: Default permission (first time visitor) -> Slidedown prompt
+    if (Notification.permission === "default") {
+      if (localStorage.getItem("mbbs_bell_prompt_shown") === "true") {
+        return;
+      }
+
       try {
-        if (OneSignal && OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
-          OneSignal.Slidedown.promptPush({ force: true }).catch(() => {});
-        } else if (OneSignal && OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === "function") {
-          OneSignal.Notifications.requestPermission().catch(() => {});
-        }
+        localStorage.setItem("mbbs_bell_prompt_shown", "true");
       } catch (_) {}
-    };
 
-    if (oneSignalInstance) {
-      setTimeout(() => showPrompt(oneSignalInstance), 350);
-    } else if (window.OneSignalDeferred) {
-      window.OneSignalDeferred.push(async function (OneSignal) {
-        setTimeout(() => showPrompt(OneSignal), 350);
-      });
+      const showPrompt = (OneSignal) => {
+        try {
+          if (OneSignal && OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
+            OneSignal.Slidedown.promptPush({ force: true }).catch(() => {});
+          } else if (OneSignal && OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === "function") {
+            OneSignal.Notifications.requestPermission().catch(() => {});
+          }
+        } catch (_) {}
+      };
+
+      if (oneSignalInstance) {
+        setTimeout(() => showPrompt(oneSignalInstance), 350);
+      } else if (window.OneSignalDeferred) {
+        window.OneSignalDeferred.push(async function (OneSignal) {
+          setTimeout(() => showPrompt(OneSignal), 350);
+        });
+      }
     }
   }
 
@@ -1377,6 +1693,7 @@
     markItemRead,
     subscribeToPush,
     unsubscribeFromPush,
-    getUnreadCount
+    getUnreadCount,
+    showRecovery: showPushRecoveryModal
   };
 })();

@@ -1551,3 +1551,17 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 51
+
+### Push Subscription Recovery & Desync Modal: 2026-11-12 06:22:00 UTC
+- **Requirement**:
+  - If a user has denied permission, or if a state desynchronization occurs where the browser / website thinks the device is subscribed but OneSignal backend has not registered or opted in the user, display a dedicated recovery popup to complete the push subscription.
+  - If the user is already subscribed on OneSignal (`isCurrentlySubscribed() === true`), do not show any popup.
+- **Resolution**:
+  1. Built `ensurePushRecoveryDOM()` and `showPushRecoveryModal(mode)` in `js/push.js` supporting dynamic states:
+     - **Mode `denied`**: Displays 3-step visual guide (Lock icon ➔ Site Settings ➔ Allow) with a 1-tap `[ 🔄 Check Settings & Subscribe ]` button that automatically verifies permission status and completes registration with OneSignal.
+     - **Mode `desync`**: Displays server reconnection alert with a 1-tap `[ 🔔 Connect & Subscribe Now ]` button that clears stale cache and calls `OneSignal.User.PushSubscription.optIn()`.
+     - **Mode `subscribed`**: Strictly bypassed (`if (isCurrentlySubscribed()) return;`).
+  2. Integrated trigger into `triggerBellNotificationPrompt()` so clicking the bell icon seamlessly activates recovery if blocked or desynced, while keeping the experience completely silent if already subscribed.
+  3. Upgraded Notification Center drawer Push Bar (`renderPushBar()`) to display `⚠️ Connection Inactive [Reconnect]` when desynced and `⚠️ Alerts Blocked [How to Fix]` when denied, opening the recovery modal on tap.
+  4. Styled responsive modal card (`.push-recovery-modal`), animations, and feedback toast (`.mbbs-push-toast`) in `css/style.css`.
+  5. Minified assets and updated HTML cache-busters (`v=1794462000`).
