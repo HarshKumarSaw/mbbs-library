@@ -15,12 +15,22 @@
   const STORAGE_MARK_ALL = "mbbs_notif_mark_all_ts";
   const STORAGE_INIT = "mbbs_notif_init_v2";
 
-  const PUSH_RESET_KEY = "mbbs_push_clean_v3_20261112";
+  const PUSH_RESET_KEY = "mbbs_push_clean_v4_20261112";
   const path = (typeof window !== "undefined" && window.location && window.location.pathname) || "/";
   const isRepo = path.startsWith("/mbbs-library");
   const repoBase = isRepo ? "/mbbs-library/" : "/";
   const swPath = "OneSignalSDKWorker.js";
   const swScope = repoBase;
+
+  // Immediate clean-slate purge of legacy subscription cache
+  try {
+    if (localStorage.getItem(PUSH_RESET_KEY) !== "true") {
+      localStorage.removeItem(COOKIE_NAME);
+      localStorage.removeItem("mbbs_push_opted_out");
+      setCookie(COOKIE_NAME, "", -1);
+      localStorage.setItem(PUSH_RESET_KEY, "true");
+    }
+  } catch (_) {}
 
   let oneSignalInstance = null;
   let activeTab = "unread"; // 'unread' or 'all' (defaults to 'unread')
@@ -77,29 +87,6 @@
     } catch (_) {}
   }
 
-  // --- Clean-Slate Reset Engine: Purge legacy subscriptions & enforce fresh opt-in ---
-  function enforceCleanSubscriptionReset() {
-    try {
-      if (localStorage.getItem(PUSH_RESET_KEY) !== "true") {
-        console.info("[Push] Executing clean-slate push subscription reset...");
-        localStorage.removeItem(COOKIE_NAME);
-        localStorage.removeItem("mbbs_push_opted_out");
-        setCookie(COOKIE_NAME, "", -1);
-        if (
-          oneSignalInstance &&
-          oneSignalInstance.User &&
-          oneSignalInstance.User.PushSubscription
-        ) {
-          oneSignalInstance.User.PushSubscription.optOut().catch(() => {});
-        }
-        localStorage.setItem(PUSH_RESET_KEY, "true");
-        console.info("[Push] Stale cache purged. Ready for fresh subscription registration.");
-      }
-    } catch (e) {
-      console.warn("[Push] Reset check notice:", e);
-    }
-  }
-
   /**
    * Determine push subscription state reliably across all devices & browsers.
    */
@@ -113,6 +100,7 @@
       return false;
     }
 
+    // Rely strictly on OneSignal SDK state when available
     if (
       oneSignalInstance &&
       oneSignalInstance.User &&
@@ -122,7 +110,8 @@
       return oneSignalInstance.User.PushSubscription.optedIn;
     }
 
-    return getStoredStatus() === "subscribed";
+    // Do NOT return true prior to OneSignal confirmation
+    return false;
   }
 
   // --- Read / Unread Storage & Logic ---
@@ -275,28 +264,37 @@
       return;
     }
 
-    // 5. Save subscribed state
+    // 5. Provide active feedback & clear opt-out flag
+    const toggleBtn = document.getElementById("notif-push-toggle-btn");
+    if (toggleBtn) {
+      toggleBtn.disabled = true;
+      toggleBtn.textContent = "Connecting...";
+    }
     try { localStorage.removeItem("mbbs_push_opted_out"); } catch (_) {}
-    setStoredStatus("subscribed");
-    updateBellUI();
-    renderPushBar();
 
-    // 6. Sync with OneSignal
+    // 6. Complete registration via OneSignal SDK
     try {
       if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
         await oneSignalInstance.User.PushSubscription.optIn();
       } else if (window.OneSignalDeferred) {
-        window.OneSignalDeferred.push(async function (OneSignal) {
-          try {
-            if (OneSignal.User && OneSignal.User.PushSubscription) {
-              await OneSignal.User.PushSubscription.optIn();
-            }
-          } catch (_) {}
+        await new Promise((resolve) => {
+          window.OneSignalDeferred.push(async function (OneSignal) {
+            try {
+              if (OneSignal.User && OneSignal.User.PushSubscription) {
+                await OneSignal.User.PushSubscription.optIn();
+              }
+            } catch (_) {}
+            resolve();
+          });
         });
       }
+      setStoredStatus("subscribed");
     } catch (e) {
       console.warn("[Push] OneSignal optIn notice:", e);
     }
+
+    updateBellUI();
+    renderPushBar();
   }
 
   async function unsubscribeFromPush() {
@@ -1264,9 +1262,6 @@
           enable: false
         }
       });
-
-      // Enforce clean-slate reset for existing users
-      enforceCleanSubscriptionReset();
 
       // If browser permission is already granted, cleanly opt-in and register device
       if ("Notification" in window && Notification.permission === "granted") {
