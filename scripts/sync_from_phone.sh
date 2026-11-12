@@ -915,7 +915,7 @@ POST_DATA_HASH=$(md5sum "$DATA_FILE" 2>/dev/null | awk '{print $1}' || echo "")
 NEW_RES_COUNT=$((POST_DATA_COUNT - PRE_DATA_COUNT))
 [ "$NEW_RES_COUNT" -lt 0 ] && NEW_RES_COUNT=0
 DATA_CHANGED=0
-if [ "$PRE_DATA_HASH" != "$POST_DATA_HASH" ] || [ "$OPT_COUNT" -gt 0 ] || [ "$NEW_RES_COUNT" -gt 0 ]; then
+if [ "$PRE_DATA_HASH" != "$POST_DATA_HASH" ] || [ "$OPT_COUNT" -gt 0 ] || [ "$NEW_RES_COUNT" -gt 0 ] || [ "$ORGANIZED_COUNT" -gt 0 ]; then
     DATA_CHANGED=1
 fi
 
@@ -1106,16 +1106,19 @@ if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
         echo -e "   🌐 Live site: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
         rm -f "$PUSH_LOG"
 
-        if [ "$DATA_CHANGED" -eq 1 ]; then
-            if [ "$NEW_RES_COUNT" -eq 1 ]; then
-                LATEST_TITLE=$(grep -A 10 "__AUTO_RESOURCES_START__" "$DATA_FILE" | grep 'title:' | head -n 1 | sed 's/.*title:[[:space:]]*"\([^"]*\)".*/\1/')
-                if [ -n "$LATEST_TITLE" ]; then
-                    send_onesignal_notification "Harsh's Library 🩺" "New resource uploaded: $LATEST_TITLE! Tap to view & download."
-                else
-                    send_onesignal_notification "Harsh's Library 🩺" "1 new study resource uploaded! Tap to view & download."
-                fi
+        DATA_WAS_PUSHED=0
+        if [ "$DATA_CHANGED" -eq 1 ] || git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | grep -q -E '(js/data\.js|steadylink_manifest\.json)'; then
+            DATA_WAS_PUSHED=1
+        fi
+
+        if [ "$DATA_WAS_PUSHED" -eq 1 ]; then
+            LATEST_TITLE=$(grep -A 10 "__AUTO_RESOURCES_START__" "$DATA_FILE" | grep 'title:' | head -n 1 | sed 's/.*title:[[:space:]]*"\([^"]*\)".*/\1/')
+            if [ "$NEW_RES_COUNT" -eq 1 ] && [ -n "$LATEST_TITLE" ]; then
+                send_onesignal_notification "Harsh's Library 🩺" "New resource uploaded: $LATEST_TITLE! Tap to view & download."
             elif [ "$NEW_RES_COUNT" -gt 1 ]; then
                 send_onesignal_notification "Harsh's Library 🩺" "$NEW_RES_COUNT new study resources uploaded! Tap to view & download."
+            elif [ -n "$LATEST_TITLE" ]; then
+                send_onesignal_notification "Harsh's Library 🩺" "New resource uploaded: $LATEST_TITLE! Tap to view & download."
             elif [ "$OPT_COUNT" -gt 0 ]; then
                 send_onesignal_notification "Harsh's Library 🩺" "$OPT_COUNT study document(s) uploaded & optimized! Tap to view."
             else
