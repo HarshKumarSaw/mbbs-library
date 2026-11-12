@@ -83,6 +83,7 @@ def main():
 
     payload = {
         "app_id": APP_ID,
+        "priority": 10,
         "headings": {"en": args.title},
         "contents": {"en": args.message},
         "url": args.url,
@@ -91,8 +92,17 @@ def main():
     }
 
     if args.name:
-        payload["filters"] = [{"field": "tag", "key": "name", "relation": "=", "value": args.name}]
-        send_push(payload, f"user labeled '{args.name}'")
+        players = get_players()
+        matched = [
+            p.get("id") for p in players
+            if (p.get("tags") or {}).get("name", "").strip().lower() == args.name.strip().lower()
+        ]
+        if matched:
+            payload["include_player_ids"] = matched
+            send_push(payload, f"user labeled '{args.name}' ({len(matched)} matching device(s))")
+        else:
+            payload["filters"] = [{"field": "tag", "key": "name", "relation": "=", "value": args.name}]
+            send_push(payload, f"user labeled '{args.name}' via filter")
     elif args.device:
         players = get_players()
         if args.device.isdigit():
