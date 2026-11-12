@@ -12,6 +12,42 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-brachial_plexus_anat-5409",
+    title: "Brachial Plexus Anatomy Notes",
+    subject: "anatomy",
+    category: "notes",
+    subcategories: ["notes"],
+    code: "Anatomy / Notes",
+    description: "Uploaded document: Brachial_Plexus_Anatomy_Notes.pdf. Organized under Anatomy / Notes.",
+    tags: ["Anatomy", "Notes", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/e1e72ae2-d23d-4cc8-80e6-32d53ceca813",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Brachial_Plexus_Anatomy_Notes.pdf",
+    fileSize: "4 KB",
+    pages: "1 Page",
+    author: "HarshKumarSaw",
+    date: "12 Nov 2026",
+    updatedAt: 1794465383,
+    year: "1st Year MBBS"
+  },
+  {
+    id: "user-othe-clean_pdf-5408",
+    title: "Clean",
+    subject: "other",
+    category: "other",
+    subcategories: ["other"],
+    code: "Other / Other",
+    description: "Uploaded document: clean.pdf. Organized under Other / Other.",
+    tags: ["Other", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/052d35d0-d618-4d87-976c-9e798c0b40c0",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/clean.pdf",
+    fileSize: "1 KB",
+    pages: "1 Page",
+    author: "HarshKumarSaw",
+    date: "12 Nov 2026",
+    updatedAt: 1794465380,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_assignment-0203",
     title: "Physiology Assignment",
     subject: "physiology",
