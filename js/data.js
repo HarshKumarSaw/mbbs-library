@@ -22,11 +22,11 @@ const MBBS_RESOURCES = [
     tags: ["Physiology", "Assignments", "Mobile Upload"],
     fileUrl: "https://cdn.steadylink.io/a/9ae47c72-150c-4fe3-b959-10b36adcea1b",
     downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment.pdf",
-    fileSize: "9.7 MB",
-    pages: "56 Pages",
+    fileSize: "10.8 MB",
+    pages: "64 Pages",
     author: "HarshKumarSaw",
     date: "12 Nov 2026",
-    updatedAt: 1794460235,
+    updatedAt: 1794463761,
     year: "1st Year MBBS"
   },
   {
