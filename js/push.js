@@ -15,11 +15,12 @@
   const STORAGE_MARK_ALL = "mbbs_notif_mark_all_ts";
   const STORAGE_INIT = "mbbs_notif_init_v2";
 
-  const path = window.location.pathname;
+  const PUSH_RESET_KEY = "mbbs_push_clean_v3_20261112";
+  const path = (typeof window !== "undefined" && window.location && window.location.pathname) || "/";
   const isRepo = path.startsWith("/mbbs-library");
-  // OneSignal Web SDK v16 expects path relative to site root without leading slash for subfolder deployments
-  const swPath = isRepo ? "mbbs-library/OneSignalSDKWorker.js" : "OneSignalSDKWorker.js";
-  const swScope = isRepo ? "/mbbs-library/" : "/";
+  const repoBase = isRepo ? "/mbbs-library/" : "/";
+  const swPath = "OneSignalSDKWorker.js";
+  const swScope = repoBase;
 
   let oneSignalInstance = null;
   let activeTab = "unread"; // 'unread' or 'all' (defaults to 'unread')
@@ -76,6 +77,29 @@
     } catch (_) {}
   }
 
+  // --- Clean-Slate Reset Engine: Purge legacy subscriptions & enforce fresh opt-in ---
+  function enforceCleanSubscriptionReset() {
+    try {
+      if (localStorage.getItem(PUSH_RESET_KEY) !== "true") {
+        console.info("[Push] Executing clean-slate push subscription reset...");
+        localStorage.removeItem(COOKIE_NAME);
+        localStorage.removeItem("mbbs_push_opted_out");
+        setCookie(COOKIE_NAME, "", -1);
+        if (
+          oneSignalInstance &&
+          oneSignalInstance.User &&
+          oneSignalInstance.User.PushSubscription
+        ) {
+          oneSignalInstance.User.PushSubscription.optOut().catch(() => {});
+        }
+        localStorage.setItem(PUSH_RESET_KEY, "true");
+        console.info("[Push] Stale cache purged. Ready for fresh subscription registration.");
+      }
+    } catch (e) {
+      console.warn("[Push] Reset check notice:", e);
+    }
+  }
+
   /**
    * Determine push subscription state reliably across all devices & browsers.
    */
@@ -89,7 +113,16 @@
       return false;
     }
 
-    return true;
+    if (
+      oneSignalInstance &&
+      oneSignalInstance.User &&
+      oneSignalInstance.User.PushSubscription &&
+      typeof oneSignalInstance.User.PushSubscription.optedIn === "boolean"
+    ) {
+      return oneSignalInstance.User.PushSubscription.optedIn;
+    }
+
+    return getStoredStatus() === "subscribed";
   }
 
   // --- Read / Unread Storage & Logic ---
@@ -1222,24 +1255,31 @@
 
       await OneSignal.init({
         appId: ONESIGNAL_APP_ID,
-        serviceWorkerPath: swPath,
-        serviceWorkerParam: { scope: swScope },
+        serviceWorkerOverrideForTypical: true,
+        path: repoBase,
+        serviceWorkerPath: "OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: repoBase },
         allowLocalhostAsSecureOrigin: true,
         notifyButton: {
           enable: false
         }
       });
 
-      // If browser permission is already granted, ensure OneSignal registers/refreshes them with backend
+      // Enforce clean-slate reset for existing users
+      enforceCleanSubscriptionReset();
+
+      // If browser permission is already granted, cleanly opt-in and register device
       if ("Notification" in window && Notification.permission === "granted") {
-        setStoredStatus("subscribed");
-        if (OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === "function") {
-          OneSignal.Notifications.requestPermission().catch(() => {});
-        }
-        if (OneSignal.User && OneSignal.User.PushSubscription) {
-          OneSignal.User.PushSubscription.optIn().catch((err) => {
-            console.warn("[Push] OneSignal auto-optIn notice:", err);
-          });
+        if (localStorage.getItem("mbbs_push_opted_out") !== "true") {
+          if (OneSignal.User && OneSignal.User.PushSubscription) {
+            OneSignal.User.PushSubscription.optIn().then(() => {
+              setStoredStatus("subscribed");
+              updateBellUI();
+              renderPushBar();
+            }).catch((err) => {
+              console.warn("[Push] Auto opt-in notice:", err);
+            });
+          }
         }
       }
 
@@ -1248,20 +1288,23 @@
 
       if (OneSignal.User && OneSignal.User.PushSubscription) {
         OneSignal.User.PushSubscription.addEventListener("change", (state) => {
-          if (state && state.current && state.current.optedIn) {
+          const isOptedIn = Boolean(state && state.current && state.current.optedIn);
+          if (isOptedIn) {
             setStoredStatus("subscribed");
             try { localStorage.removeItem("mbbs_push_opted_out"); } catch (_) {}
+          } else if (localStorage.getItem("mbbs_push_opted_out") === "true") {
+            setStoredStatus("unsubscribed");
           }
           updateBellUI();
           renderPushBar();
         });
       }
 
-      // If first-time visitor with default permission, offer the slidedown prompt after 3s
+      // If first-time or reset visitor with default permission, offer the slidedown prompt after 2.5s
       if (
         "Notification" in window &&
         Notification.permission === "default" &&
-        getStoredStatus() !== "unsubscribed"
+        localStorage.getItem("mbbs_push_opted_out") !== "true"
       ) {
         setTimeout(() => {
           try {
@@ -1269,12 +1312,36 @@
               OneSignal.Slidedown.promptPush().catch(() => {});
             }
           } catch (_) {}
-        }, 3000);
+        }, 2500);
       }
     } catch (err) {
       console.warn("[Push] OneSignal initialization notice:", err);
     }
   });
+
+  // --- Window Focus & Visibility Permission Sync ---
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    const handlePermissionSync = () => {
+      if ("Notification" in window && Notification.permission === "granted") {
+        if (localStorage.getItem("mbbs_push_opted_out") !== "true") {
+          if (oneSignalInstance && oneSignalInstance.User && oneSignalInstance.User.PushSubscription) {
+            if (!oneSignalInstance.User.PushSubscription.optedIn) {
+              oneSignalInstance.User.PushSubscription.optIn().catch(() => {});
+            }
+          }
+        }
+      }
+      updateBellUI();
+      renderPushBar();
+    };
+
+    window.addEventListener("focus", handlePermissionSync);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        handlePermissionSync();
+      }
+    });
+  }
 
   // Global exposure for debugging or programmatic access
   window.MBBS_NOTIFICATIONS = {

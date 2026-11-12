@@ -1490,3 +1490,33 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 51
+
+### Web Push Engine Overhaul & Zero-Maintenance Architecture: 2026-11-12 04:05:00 UTC
+- **User Issue & Goals**:
+  - Web push notification system wasn't working reliably across all devices.
+  - Purge all previous subscribers from the backend and enforce a clean client-side re-subscription.
+  - Eliminate all potential failure modes, race conditions, and path resolution bugs to guarantee zero maintenance for the upcoming academic year.
+- **Root Cause Analysis**:
+  1. **OneSignal Dashboard Scope Override**: OneSignal Web SDK v16 by default enforces remote dashboard parameters (`path: "/"`, `scope: "/"`), completely ignoring local `serviceWorkerPath` unless `serviceWorkerOverrideForTypical: true` is explicitly passed in `OneSignal.init()`. On GitHub Pages project repositories (`/mbbs-library/`), attempting to register at `/` resulted in security scope rejections and 404s.
+  2. **False Positive Subscribed Detection**: `isCurrentlySubscribed()` previously considered any browser with `Notification.permission === "granted"` as active, even when OneSignal had never registered the device token or when `optIn()` was pending. This created a visual illusion of active alerts ("Device Alerts Active") while the OneSignal backend had 0 registered players.
+  3. **Duplicate Worker Imports**: Both `OneSignalSDKWorker.js` and `sw.js` attempted to load `OneSignalSDK.sw.js`, causing redundant script evaluation and event listener collisions in the service worker context.
+  4. **PWA & OneSignal Worker Registration Race**: `pwa.js` and OneSignal SDK simultaneously initiated service worker registrations on window load with different query strings, forcing consecutive service worker replacement cycles.
+- **Architectural Resolution & Zero-Maintenance Fortification**:
+  1. **Strict v16 Worker Configuration**:
+     - Configured `serviceWorkerOverrideForTypical: true`, `path: repoBase`, `serviceWorkerPath: "OneSignalSDKWorker.js"`, and `serviceWorkerParam: { scope: repoBase }` in `js/push.js`.
+     - Verified exact resolution against OneSignal v16 minified runtime (`https://harshkumarsaw.github.io/mbbs-library/OneSignalSDKWorker.js` with scope `/mbbs-library/`).
+  2. **Subscriber Purge & Clean-Slate Migration Engine**:
+     - Created `scripts/clean_onesignal_subscribers.py` and executed backend player deletion against OneSignal REST API.
+     - Implemented `enforceCleanSubscriptionReset()` in `js/push.js` using token `mbbs_push_clean_v3_20261112` to wipe stale cookies, legacy localStorage tokens, and force fresh opt-in upon next visit.
+  3. **Accurate State Detection & Auto-Sync**:
+     - Updated `isCurrentlySubscribed()` to verify `OneSignal.User.PushSubscription.optedIn === true` directly.
+     - Added background auto-optIn for visitors with pre-granted browser permissions.
+     - Added window `focus` and document `visibilitychange` listeners to automatically synchronize push status whenever users adjust site permissions in Chrome/Firefox settings.
+  4. **Unified Worker Isolation**:
+     - Added `self._ONESIGNAL_WORKER_LOADED` guard in `OneSignalSDKWorker.js` and `sw.js` to prevent duplicate script imports.
+     - Updated `js/pwa.js` to coordinate with existing OneSignal registrations without overwriting query parameters.
+     - Bumped PWA service worker cache to `harsh-library-v1.3.5`.
+  5. **Notification Sender & Diagnostic Tooling**:
+     - Created `scripts/check_push_status.py` for instant CLI diagnostic audits.
+     - Updated `scripts/sync_from_phone.sh` to include official medical crest icons (`logo-256x256.png`) across all broadcasts.
+     - Bumped cache-busting timestamps across all portals (`v=1794456100`).

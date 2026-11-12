@@ -20,25 +20,34 @@
       const swUrl = isRepo ? '/mbbs-library/OneSignalSDKWorker.js' : '/OneSignalSDKWorker.js';
       const swScope = isRepo ? '/mbbs-library/' : '/';
 
-      navigator.serviceWorker
-        .register(swUrl, { scope: swScope })
-        .then((reg) => {
-          // Check for worker updates
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New content available; silently activated via skipWaiting()
-                  console.log('[PWA] New version ready & cached.');
-                }
-              });
-            }
-          });
-        })
-        .catch((err) => {
-          console.warn('[PWA] Service Worker registration failed:', err);
+      const attachUpdateListener = (reg) => {
+        if (!reg) return;
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[PWA] New version ready & cached.');
+              }
+            });
+          }
         });
+      };
+
+      navigator.serviceWorker.getRegistration(swScope).then((existingReg) => {
+        if (existingReg) {
+          attachUpdateListener(existingReg);
+        } else {
+          navigator.serviceWorker
+            .register(swUrl, { scope: swScope })
+            .then(attachUpdateListener)
+            .catch((err) => {
+              console.warn('[PWA] Service Worker registration notice:', err);
+            });
+        }
+      }).catch(() => {
+        navigator.serviceWorker.register(swUrl, { scope: swScope }).then(attachUpdateListener).catch(() => {});
+      });
     });
   }
 

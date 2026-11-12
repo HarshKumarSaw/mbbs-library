@@ -1,9 +1,10 @@
-// OneSignal Web Push Worker (load if not already present in global scope)
-if (typeof OneSignalWorker === "undefined") {
+// OneSignal Web Push Worker (load safely if not already imported by outer worker)
+if (!self._ONESIGNAL_WORKER_LOADED) {
   try {
     importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+    self._ONESIGNAL_WORKER_LOADED = true;
   } catch (e) {
-    console.warn("[SW] OneSignal worker import error:", e);
+    // Offline or standalone PWA environment
   }
 }
 
@@ -17,7 +18,7 @@ if (typeof OneSignalWorker === "undefined") {
  *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.3.4';
+const CACHE_NAME = 'harsh-library-v1.3.5';
 
 // Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
 const getBasePath = () => {

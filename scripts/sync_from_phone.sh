@@ -124,7 +124,9 @@ send_onesignal_notification() {
   "included_segments": ["Total Subscriptions", "Subscribed Users"],
   "headings": {"en": "$title"},
   "contents": {"en": "$message"},
-  "url": "$url"
+  "url": "$url",
+  "chrome_web_icon": "https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png",
+  "firefox_icon": "https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png"
 }
 JSON_EOF
 )
