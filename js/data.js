@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-doc_20261112_wa0021_-4372",
+    title: "Doc 20261112 Wa0021",
+    subject: "physiology",
+    category: "project",
+    subcategories: ["project"],
+    code: "Physiology / Project",
+    description: "Uploaded document: DOC-20261112-WA0021.pdf. Organized under Physiology / Project.",
+    tags: ["Physiology", "Project", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/57c2381e-9b0b-4f14-a523-552a30ead6ba",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/DOC-20261112-WA0021.pdf",
+    fileSize: "812 KB",
+    pages: "3 Pages",
+    author: "HarshKumarSaw",
+    date: "12 Nov 2026",
+    updatedAt: 1794504335,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-endocrine_physiology-2344",
     title: "Endocrine Physiology",
     subject: "physiology",
