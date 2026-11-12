@@ -1520,3 +1520,11 @@
      - Created `scripts/check_push_status.py` for instant CLI diagnostic audits.
      - Updated `scripts/sync_from_phone.sh` to include official medical crest icons (`logo-256x256.png`) across all broadcasts.
      - Bumped cache-busting timestamps across all portals (`v=1794456100`).
+
+### Push Notification Live Verification: 2026-11-12 04:46:00 UTC
+- **Live Verification**:
+  - Device successfully re-registered with OneSignal backend: Player ID `0291b39b-6141-419e-8503-edba071de242` (`Invalid: False`).
+  - Dispatched targeted test alert `205850f6-92f1-4292-af55-e8c127cd1c85`: Delivery successful (`successful: 1, failed: 0`).
+  - Dispatched numbered push `f8e8a0ba-3911-48eb-be21-949e5cf9a47c`: Delivery successful (`successful: 1, failed: 0`).
+  - Dispatched segment broadcast `fed527c7-0eeb-4348-befe-af3bc497de0e`: Delivery successful (`successful: 1, failed: 0`).
+  - Full end-to-end push notification pipeline verified operating with 100% delivery rate and zero errors.
