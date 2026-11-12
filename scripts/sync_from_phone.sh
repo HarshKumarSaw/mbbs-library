@@ -170,6 +170,122 @@ except Exception as e:
 " "$ONESIGNAL_API_KEY" "$ONESIGNAL_APP_ID" "$title" "$message" "$url"
 }
 
+dispatch_smart_push_notification() {
+    if [ -z "$ONESIGNAL_API_KEY" ] || [ -z "$ONESIGNAL_APP_ID" ]; then
+        return 0
+    fi
+
+    echo -e "🔔 ${CYAN}Dispatching OneSignal Web Push to subscribers...${RESET}"
+    python3 -c "
+import subprocess, re, urllib.request, json, sys
+
+api_key = sys.argv[1]
+app_id = sys.argv[2]
+repo_dir = sys.argv[3]
+target_url = 'https://harshkumarsaw.github.io/mbbs-library/'
+logo_url = 'https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png'
+
+titles = []
+subjects = []
+
+# 1. Inspect newly added resources in Git commit diff
+try:
+    diff_out = subprocess.check_output(['git', 'diff', 'HEAD~1', 'js/data.js'], cwd=repo_dir).decode('utf-8', errors='ignore')
+    for line in diff_out.splitlines():
+        if line.startswith('+') and not line.startswith('+++'):
+            m_t = re.search(r'title:\s*\"([^\"]+)\"', line)
+            if m_t:
+                t_val = m_t.group(1).strip()
+                if t_val and t_val not in titles:
+                    titles.append(t_val)
+            m_s = re.search(r'subject:\s*\"([^\"]+)\"', line)
+            if m_s:
+                s_val = m_s.group(1).strip().title()
+                if s_val and s_val not in subjects:
+                    subjects.append(s_val)
+except Exception:
+    pass
+
+# 2. Fallback to latest auto-synced resources from js/data.js
+if not titles:
+    try:
+        with open(f'{repo_dir}/js/data.js', 'r', encoding='utf-8') as f:
+            content = f.read()
+        if '__AUTO_RESOURCES_START__' in content:
+            auto_part = content.split('__AUTO_RESOURCES_START__')[1].split('__AUTO_RESOURCES_END__')[0]
+            found = re.findall(r'title:\s*\"([^\"]+)\"', auto_part)
+            subj_found = re.findall(r'subject:\s*\"([^\"]+)\"', auto_part)
+            if found:
+                titles = found[:2]
+            if subj_found:
+                subjects = [s.strip().title() for s in subj_found[:2]]
+    except Exception:
+        pass
+
+# 3. Clean up and format subject and message
+clean_subjects = [s for s in subjects if s.lower() not in ('other', 'general')]
+if len(clean_subjects) == 1:
+    heading = f\"Harsh's Library: {clean_subjects[0]} 🩺\"
+else:
+    heading = \"Harsh's Library 🩺\"
+
+if len(titles) == 1:
+    msg = f'New: \"{titles[0]}\"! Tap to view & download.'
+elif len(titles) == 2:
+    msg = f'New: \"{titles[0]}\" & \"{titles[1]}\"! Tap to view & download.'
+elif len(titles) == 3:
+    msg = f'New: \"{titles[0]}\", \"{titles[1]}\" & \"{titles[2]}\"! Tap to view.'
+elif len(titles) > 3:
+    msg = f'New: \"{titles[0]}\", \"{titles[1]}\" (+{len(titles) - 2} more)! Tap to view.'
+else:
+    msg = 'New study resources uploaded! Tap to view & download.'
+
+# 4. Resolve active subscriber player IDs
+active_ids = []
+try:
+    req_players = urllib.request.Request(
+        f'https://api.onesignal.com/players?app_id={app_id}&limit=300',
+        headers={'Authorization': f'Basic {api_key}'}
+    )
+    with urllib.request.urlopen(req_players, timeout=6) as resp:
+        players = json.loads(resp.read().decode()).get('players', [])
+    active_ids = [p['id'] for p in players if not p.get('invalid_identifier')]
+except Exception:
+    pass
+
+payload = {
+    'app_id': app_id,
+    'priority': 10,
+    'headings': {'en': heading},
+    'contents': {'en': msg},
+    'url': target_url,
+    'chrome_web_icon': logo_url,
+    'firefox_icon': logo_url
+}
+
+if active_ids:
+    payload['include_player_ids'] = active_ids
+else:
+    payload['included_segments'] = ['Total Subscriptions', 'Active Subscriptions']
+
+try:
+    req = urllib.request.Request(
+        'https://api.onesignal.com/notifications',
+        headers={
+            'Authorization': f'Basic {api_key}',
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        data=json.dumps(payload).encode('utf-8')
+    )
+    with urllib.request.urlopen(req, timeout=8) as resp:
+        res = json.loads(resp.read().decode())
+        print(f'   ✅ Push notification delivered to {len(active_ids)} device(s)!')
+        print(f'   📢 [{heading}] {msg}')
+except Exception as e:
+    print(f'   ⚠️ Push notice: {e}')
+" "$ONESIGNAL_API_KEY" "$ONESIGNAL_APP_ID" "$REPO_DIR"
+}
+
 to_safe_id() {
     echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '_' | sed 's/__*/_/g; s/^_//; s/_$//'
 }
@@ -1112,18 +1228,7 @@ if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
         fi
 
         if [ "$DATA_WAS_PUSHED" -eq 1 ]; then
-            LATEST_TITLE=$(grep -A 10 "__AUTO_RESOURCES_START__" "$DATA_FILE" | grep 'title:' | head -n 1 | sed 's/.*title:[[:space:]]*"\([^"]*\)".*/\1/')
-            if [ "$NEW_RES_COUNT" -eq 1 ] && [ -n "$LATEST_TITLE" ]; then
-                send_onesignal_notification "Harsh's Library 🩺" "New resource uploaded: $LATEST_TITLE! Tap to view & download."
-            elif [ "$NEW_RES_COUNT" -gt 1 ]; then
-                send_onesignal_notification "Harsh's Library 🩺" "$NEW_RES_COUNT new study resources uploaded! Tap to view & download."
-            elif [ -n "$LATEST_TITLE" ]; then
-                send_onesignal_notification "Harsh's Library 🩺" "New resource uploaded: $LATEST_TITLE! Tap to view & download."
-            elif [ "$OPT_COUNT" -gt 0 ]; then
-                send_onesignal_notification "Harsh's Library 🩺" "$OPT_COUNT study document(s) uploaded & optimized! Tap to view."
-            else
-                send_onesignal_notification "Harsh's Library 🩺" "Study materials updated with latest revisions! Tap to view."
-            fi
+            dispatch_smart_push_notification
         fi
     else
         echo -e "${RED}${BOLD}❌ Git push failed!${RESET}"

@@ -1572,3 +1572,16 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 2
 - **Total In-Sync Files**: 53
+
+### Push Notification Document-Specific Titles Upgrade: 2026-11-12 06:58:00 UTC
+- **Requirement**: Notifications must explicitly name the uploaded PDF document(s) and academic subject so students immediately know if the resource applies to their study needs.
+- **Resolution**:
+  1. Built `dispatch_smart_push_notification()` in `scripts/sync_from_phone.sh`:
+     - Inspects the newly committed document changes from Git (`git diff HEAD~1 js/data.js`) and auto-synced resources.
+     - Automatically resolves subject category (e.g. `Anatomy`, `Physiology`, `Biochemistry`).
+     - Dynamically formats document-specific titles:
+       - 1 File: `Harsh's Library: Anatomy 🩺` ➔ `New: "Brachial Plexus Anatomy Notes"! Tap to view & download.`
+       - 2 Files: `New: "Title 1" & "Title 2"! Tap to view & download.`
+       - 3+ Files: `New: "Title 1", "Title 2" (+N more)! Tap to view.`
+  2. Integrated directly into `mbbs-sync` deployment pipeline to fire immediately upon successful GitHub Pages sync.
+  3. Pruned temporary test artifacts (`clean.pdf`) from `js/data.js` and manifest.

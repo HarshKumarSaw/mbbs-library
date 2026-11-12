@@ -30,24 +30,6 @@ const MBBS_RESOURCES = [
     year: "1st Year MBBS"
   },
   {
-    id: "user-othe-clean_pdf-5408",
-    title: "Clean",
-    subject: "other",
-    category: "other",
-    subcategories: ["other"],
-    code: "Other / Other",
-    description: "Uploaded document: clean.pdf. Organized under Other / Other.",
-    tags: ["Other", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/052d35d0-d618-4d87-976c-9e798c0b40c0",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/clean.pdf",
-    fileSize: "1 KB",
-    pages: "1 Page",
-    author: "HarshKumarSaw",
-    date: "12 Nov 2026",
-    updatedAt: 1794465380,
-    year: "1st Year MBBS"
-  },
-  {
     id: "user-phys-physiology_assignment-0203",
     title: "Physiology Assignment",
     subject: "physiology",
