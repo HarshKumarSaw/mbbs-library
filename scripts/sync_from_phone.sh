@@ -116,42 +116,58 @@ send_onesignal_notification() {
     fi
 
     echo -e "🔔 ${CYAN}Dispatching OneSignal Web Push to subscribers...${RESET}"
-    local payload
-    payload=$(cat <<JSON_EOF
-{
-  "app_id": "$ONESIGNAL_APP_ID",
-  "target_channel": "push",
-  "included_segments": ["Total Subscriptions", "Subscribed Users"],
-  "headings": {"en": "$title"},
-  "contents": {"en": "$message"},
-  "url": "$url",
-  "chrome_web_icon": "https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png",
-  "firefox_icon": "https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png"
-}
-JSON_EOF
-)
-    local res
-    res=$(curl -s -X POST "https://api.onesignal.com/notifications" \
-        -H "Authorization: Basic $ONESIGNAL_API_KEY" \
-        -H "Content-Type: application/json; charset=utf-8" \
-        -d "$payload" 2>&1 || true)
+    python3 -c "
+import urllib.request, json, sys
 
-    if echo "$res" | grep -q '"id"'; then
-        if echo "$res" | grep -q 'All included players are not subscribed'; then
-            local check_web
-            check_web=$(curl -s "https://api.onesignal.com/sync/$ONESIGNAL_APP_ID/web" 2>/dev/null || true)
-            if echo "$check_web" | grep -q "This app is not configured for web push"; then
-                echo -e "${YELLOW}ℹ️  OneSignal push queued (Web Push setup pending in OneSignal dashboard).${RESET}"
-                echo -e "${DIM}   Visit https://dashboard.onesignal.com/apps/$ONESIGNAL_APP_ID/settings -> Web to activate.${RESET}"
-            else
-                echo -e "${DIM}ℹ️  OneSignal push dispatched (waiting for active subscribers to opt in).${RESET}"
-            fi
-        else
-            echo -e "${GREEN}✅ OneSignal push notification delivered to subscribers!${RESET}"
-        fi
-    else
-        echo -e "${DIM}ℹ️  OneSignal push notice.${RESET}"
-    fi
+api_key = sys.argv[1]
+app_id = sys.argv[2]
+title = sys.argv[3]
+msg = sys.argv[4]
+target_url = sys.argv[5]
+logo_url = 'https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png'
+
+active_ids = []
+try:
+    req_players = urllib.request.Request(
+        f'https://api.onesignal.com/players?app_id={app_id}&limit=300',
+        headers={'Authorization': f'Basic {api_key}'}
+    )
+    with urllib.request.urlopen(req_players, timeout=6) as resp:
+        players = json.loads(resp.read().decode()).get('players', [])
+    active_ids = [p['id'] for p in players if not p.get('invalid_identifier')]
+except Exception:
+    pass
+
+payload = {
+    'app_id': app_id,
+    'priority': 10,
+    'headings': {'en': title},
+    'contents': {'en': msg},
+    'url': target_url,
+    'chrome_web_icon': logo_url,
+    'firefox_icon': logo_url
+}
+
+if active_ids:
+    payload['include_player_ids'] = active_ids
+else:
+    payload['included_segments'] = ['Total Subscriptions', 'Active Subscriptions']
+
+try:
+    req = urllib.request.Request(
+        'https://api.onesignal.com/notifications',
+        headers={
+            'Authorization': f'Basic {api_key}',
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        data=json.dumps(payload).encode('utf-8')
+    )
+    with urllib.request.urlopen(req, timeout=8) as resp:
+        res = json.loads(resp.read().decode())
+        print(f'   ✅ Push notification delivered to {len(active_ids)} device(s)!')
+except Exception as e:
+    print(f'   ⚠️ Push notice: {e}')
+" "$ONESIGNAL_API_KEY" "$ONESIGNAL_APP_ID" "$title" "$message" "$url"
 }
 
 to_safe_id() {
@@ -887,9 +903,21 @@ elif [ "$ON_STARTUP" -eq 0 ]; then
     echo -e "   ${DIM}✔ All phone PDFs verified: optimized & linearized for fast web viewing.${RESET}"
 fi
 
+PRE_DATA_COUNT=$(grep -c "id:" "$DATA_FILE" 2>/dev/null || echo 0)
+PRE_DATA_HASH=$(md5sum "$DATA_FILE" 2>/dev/null | awk '{print $1}' || echo "")
+
 py_args=()
 [ "$ON_STARTUP" -eq 1 ] && py_args+=("-q")
 python3 "$REPO_DIR/scripts/migrate_to_steadylink.py" "${py_args[@]}"
+
+POST_DATA_COUNT=$(grep -c "id:" "$DATA_FILE" 2>/dev/null || echo 0)
+POST_DATA_HASH=$(md5sum "$DATA_FILE" 2>/dev/null | awk '{print $1}' || echo "")
+NEW_RES_COUNT=$((POST_DATA_COUNT - PRE_DATA_COUNT))
+[ "$NEW_RES_COUNT" -lt 0 ] && NEW_RES_COUNT=0
+DATA_CHANGED=0
+if [ "$PRE_DATA_HASH" != "$POST_DATA_HASH" ] || [ "$OPT_COUNT" -gt 0 ] || [ "$NEW_RES_COUNT" -gt 0 ]; then
+    DATA_CHANGED=1
+fi
 
 # Enforce zero local PDF binaries in Git repository
 rm -rf "$REPO_DIR/assets/docs" 2>/dev/null || true
@@ -1078,8 +1106,21 @@ if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
         echo -e "   🌐 Live site: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
         rm -f "$PUSH_LOG"
 
-        if [ "$OPT_COUNT" -gt 0 ]; then
-            send_onesignal_notification "Harsh's Library: New Study Notes" "$OPT_COUNT new medical study resource(s) uploaded! Tap to view & download."
+        if [ "$DATA_CHANGED" -eq 1 ]; then
+            if [ "$NEW_RES_COUNT" -eq 1 ]; then
+                LATEST_TITLE=$(grep -A 10 "__AUTO_RESOURCES_START__" "$DATA_FILE" | grep 'title:' | head -n 1 | sed 's/.*title:[[:space:]]*"\([^"]*\)".*/\1/')
+                if [ -n "$LATEST_TITLE" ]; then
+                    send_onesignal_notification "Harsh's Library 🩺" "New resource uploaded: $LATEST_TITLE! Tap to view & download."
+                else
+                    send_onesignal_notification "Harsh's Library 🩺" "1 new study resource uploaded! Tap to view & download."
+                fi
+            elif [ "$NEW_RES_COUNT" -gt 1 ]; then
+                send_onesignal_notification "Harsh's Library 🩺" "$NEW_RES_COUNT new study resources uploaded! Tap to view & download."
+            elif [ "$OPT_COUNT" -gt 0 ]; then
+                send_onesignal_notification "Harsh's Library 🩺" "$OPT_COUNT study document(s) uploaded & optimized! Tap to view."
+            else
+                send_onesignal_notification "Harsh's Library 🩺" "Study materials updated with latest revisions! Tap to view."
+            fi
         fi
     else
         echo -e "${RED}${BOLD}❌ Git push failed!${RESET}"

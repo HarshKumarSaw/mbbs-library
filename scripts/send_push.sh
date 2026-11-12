@@ -50,47 +50,57 @@ echo -e "${CYAN}🌐 URL:${RESET}     $TARGET_URL"
 echo -e "${CYAN}🖼️  Icon:${RESET}    $ICON_URL"
 echo ""
 
-PAYLOAD=$(cat <<JSON_EOF
-{
-  "app_id": "$ONESIGNAL_APP_ID",
-  "target_channel": "push",
-  "included_segments": ["Total Subscriptions", "Subscribed Users"],
-  "headings": {"en": "$TITLE"},
-  "contents": {"en": "$MESSAGE"},
-  "url": "$TARGET_URL",
-  "chrome_web_icon": "$ICON_URL",
-  "firefox_icon": "$ICON_URL"
-}
-JSON_EOF
-)
-
 echo -e "🚀 Dispatching push notification via OneSignal..."
-RESPONSE=$(curl -s -X POST "https://api.onesignal.com/notifications" \
-  -H "Authorization: Basic $ONESIGNAL_API_KEY" \
-  -H "Content-Type: application/json; charset=utf-8" \
-  -d "$PAYLOAD" 2>&1)
 
-if echo "$RESPONSE" | grep -q '"id"'; then
-  if echo "$RESPONSE" | grep -q 'All included players are not subscribed'; then
-    echo -e "${YELLOW}ℹ️  OneSignal API acknowledged notification (0 active subscribers registered).${RESET}"
-    
-    # Check if Web Push has been activated in OneSignal dashboard
-    CONFIG_CHECK=$(curl -s "https://api.onesignal.com/sync/$ONESIGNAL_APP_ID/web" 2>/dev/null || true)
-    if echo "$CONFIG_CHECK" | grep -q "This app is not configured for web push"; then
-      echo -e "${YELLOW}${BOLD}⚠️  ACTION REQUIRED IN ONESIGNAL DASHBOARD:${RESET}"
-      echo -e "   Web Push platform is not yet configured for App ID: ${CYAN}$ONESIGNAL_APP_ID${RESET}"
-      echo -e "   Please complete the 1-minute Web setup in your OneSignal dashboard:"
-      echo -e "   1. Open: ${CYAN}https://dashboard.onesignal.com/apps/$ONESIGNAL_APP_ID/settings${RESET}"
-      echo -e "   2. Under 'Platforms' (or 'Push & In-App' -> 'Web'), click 'Configure' on Web"
-      echo -e "   3. Select 'Custom Code' and enter Site URL: ${CYAN}https://harshkumarsaw.github.io/mbbs-library/${RESET}"
-      echo -e "   4. Click 'Save' at the bottom."
-      echo -e "   Once saved, any student or phone visiting the site will be automatically registered!\n"
-    else
-      echo -e "   (Web push is active! Once students visit the site and allow alerts, they will receive notifications.)\n"
-    fi
-  else
-    echo -e "${GREEN}${BOLD}✅ Notification sent successfully to all subscribers!${RESET}\n"
-  fi
-else
-  echo -e "${YELLOW}OneSignal Response:${RESET} $RESPONSE\n"
-fi
+python3 -c "
+import urllib.request, json, sys
+
+api_key = sys.argv[1]
+app_id = sys.argv[2]
+title = sys.argv[3]
+msg = sys.argv[4]
+target_url = sys.argv[5]
+icon_url = sys.argv[6]
+
+active_ids = []
+try:
+    req_players = urllib.request.Request(
+        f'https://api.onesignal.com/players?app_id={app_id}&limit=300',
+        headers={'Authorization': f'Basic {api_key}'}
+    )
+    with urllib.request.urlopen(req_players, timeout=6) as resp:
+        players = json.loads(resp.read().decode()).get('players', [])
+    active_ids = [p['id'] for p in players if not p.get('invalid_identifier')]
+except Exception:
+    pass
+
+payload = {
+    'app_id': app_id,
+    'priority': 10,
+    'headings': {'en': title},
+    'contents': {'en': msg},
+    'url': target_url,
+    'chrome_web_icon': icon_url,
+    'firefox_icon': icon_url
+}
+
+if active_ids:
+    payload['include_player_ids'] = active_ids
+else:
+    payload['included_segments'] = ['Total Subscriptions', 'Active Subscriptions']
+
+try:
+    req = urllib.request.Request(
+        'https://api.onesignal.com/notifications',
+        headers={
+            'Authorization': f'Basic {api_key}',
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        data=json.dumps(payload).encode('utf-8')
+    )
+    with urllib.request.urlopen(req, timeout=8) as resp:
+        res = json.loads(resp.read().decode())
+        print(f'\033[0;32m\033[1m✅ Notification sent successfully to {len(active_ids)} active device(s)! (ID: {res.get(\"id\")})\033[0m\n')
+except Exception as e:
+    print(f'\033[1;33mOneSignal Response:\033[0m {e}\n')
+" "$ONESIGNAL_API_KEY" "$ONESIGNAL_APP_ID" "$TITLE" "$MESSAGE" "$TARGET_URL" "$ICON_URL"
