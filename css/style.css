@@ -4414,6 +4414,13 @@ body.notif-center-open {
   pointer-events: auto;
 }
 
+/* Ensure OneSignal Prompt Elevated Above Notification Center & Modals */
+#onesignal-slidedown-container,
+.onesignal-slidedown-container,
+#onesignal-slidedown-dialog {
+  z-index: 2147483647 !important;
+}
+
 .notif-backdrop {
   position: fixed;
   inset: 0;

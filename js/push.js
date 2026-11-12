@@ -15,7 +15,7 @@
   const STORAGE_MARK_ALL = "mbbs_notif_mark_all_ts";
   const STORAGE_INIT = "mbbs_notif_init_v2";
 
-  const PUSH_RESET_KEY = "mbbs_push_clean_v4_20261112";
+  const PUSH_RESET_KEY = "mbbs_push_clean_v5_20261112";
   const path = (typeof window !== "undefined" && window.location && window.location.pathname) || "/";
   const isRepo = path.startsWith("/mbbs-library");
   const repoBase = isRepo ? "/mbbs-library/" : "/";
@@ -27,6 +27,7 @@
     if (localStorage.getItem(PUSH_RESET_KEY) !== "true") {
       localStorage.removeItem(COOKIE_NAME);
       localStorage.removeItem("mbbs_push_opted_out");
+      localStorage.removeItem("mbbs_bell_prompt_shown");
       setCookie(COOKIE_NAME, "", -1);
       localStorage.setItem(PUSH_RESET_KEY, "true");
     }
@@ -1151,6 +1152,44 @@
     html.style.scrollBehavior = prevScrollBehavior;
   }
 
+  // --- First-Time Bell Notification Prompt ---
+  function triggerBellNotificationPrompt() {
+    // 1. Only prompt if browser supports notifications and user has not yet decided
+    if (!("Notification" in window) || Notification.permission !== "default") {
+      return;
+    }
+    // 2. Do not prompt if user explicitly opted out previously
+    if (localStorage.getItem("mbbs_push_opted_out") === "true") {
+      return;
+    }
+    // 3. Only show on the very first time the bell icon is pressed
+    if (localStorage.getItem("mbbs_bell_prompt_shown") === "true") {
+      return;
+    }
+
+    try {
+      localStorage.setItem("mbbs_bell_prompt_shown", "true");
+    } catch (_) {}
+
+    const showPrompt = (OneSignal) => {
+      try {
+        if (OneSignal && OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
+          OneSignal.Slidedown.promptPush({ force: true }).catch(() => {});
+        } else if (OneSignal && OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === "function") {
+          OneSignal.Notifications.requestPermission().catch(() => {});
+        }
+      } catch (_) {}
+    };
+
+    if (oneSignalInstance) {
+      setTimeout(() => showPrompt(oneSignalInstance), 350);
+    } else if (window.OneSignalDeferred) {
+      window.OneSignalDeferred.push(async function (OneSignal) {
+        setTimeout(() => showPrompt(OneSignal), 350);
+      });
+    }
+  }
+
   // --- Open / Close / Toggle Notification Center ---
   function openNotificationCenter() {
     ensureNotificationCenterDOM();
@@ -1167,6 +1206,9 @@
     // Default to Unread tab on open
     updateBellUI();
     switchTab("unread");
+
+    // Trigger notification allow prompt ONLY when pressing the bell icon for the first time
+    triggerBellNotificationPrompt();
   }
 
   function closeNotificationCenter() {
@@ -1295,20 +1337,8 @@
         });
       }
 
-      // If first-time or reset visitor with default permission, offer the slidedown prompt after 2.5s
-      if (
-        "Notification" in window &&
-        Notification.permission === "default" &&
-        localStorage.getItem("mbbs_push_opted_out") !== "true"
-      ) {
-        setTimeout(() => {
-          try {
-            if (OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
-              OneSignal.Slidedown.promptPush().catch(() => {});
-            }
-          } catch (_) {}
-        }, 2500);
-      }
+      // Note: Automatic prompt on page load has been removed.
+      // Notification prompt is now triggered exclusively upon pressing the bell icon.
     } catch (err) {
       console.warn("[Push] OneSignal initialization notice:", err);
     }

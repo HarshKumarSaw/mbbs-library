@@ -1535,3 +1535,12 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 51
+
+### Push Notification UX Refinement: 2026-11-12 05:51:00 UTC
+- **Issue**: Automatic popup prompt appeared on first page visit, causing distraction and triggering Chrome's abusive/spam detection heuristics.
+- **Resolution**:
+  1. Removed automatic `setTimeout` slidedown trigger from `OneSignal.init()` in `js/push.js`. First-time page visits are now completely silent and unobtrusive.
+  2. Implemented `triggerBellNotificationPrompt()` to fire exclusively upon explicit user interaction when pressing the bell icon (`.push-notify-trigger` / `#push-top-bell-btn`) for the first time.
+  3. Added `mbbs_bell_prompt_shown` tracking token to prevent repetitive popup interruption on subsequent bell clicks, leaving manual subscription control to the drawer's "Device Push Alerts" toggle button.
+  4. Elevated `#onesignal-slidedown-container` z-index to `2147483647 !important` to ensure prompt is never obscured by modal backdrops.
+  5. Minified CSS/JS and bumped HTML cache-buster timestamps (`v=1794459900`).
