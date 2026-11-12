@@ -1592,3 +1592,24 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 52
+
+### In-App Document Viewer First-Load Fix & Test Artifacts Removal: 2026-11-12 09:37:00 UTC
+- **Requirement**:
+  - Remove the temporary test files (`clean.pdf` and `Brachial_Plexus_Anatomy_Notes.pdf`) completely from the library.
+  - Fix the bug where opening a PDF for view on the website first loads a blank page and only renders after closing and reopening the modal.
+- **Resolution**:
+  1. **Purged Test Artifacts**:
+     - Pruned all traces of `clean.pdf` and `Brachial_Plexus_Anatomy_Notes.pdf` from `js/data.js`, `.mbbs_sync_manifest`, `.mbbs_opt_cache`, and `steadylink_manifest.json`.
+     - Added strict exclusion rules in `scripts/migrate_to_steadylink.py` to prevent bucket ghost entries from re-entering the manifest.
+  2. **Fixed First-Open Blank PDF Viewer Issue**:
+     - **Pre-rendered Iframe in DOM**: Added static `<iframe id="pdf-embedded-frame">` to `index.html`, `anatomy.html`, `biochemistry.html`, and `physiology.html` to eliminate runtime creation races and `about:blank` navigation contention.
+     - **Embedded Layout Isolation**: Added `.pdf-viewer-container.mode-embedded` in `css/style.css` with `display: none !important` on single-page canvas views and toolbars, 0 container padding, and 100% full-viewport flex sizing.
+     - **Layout Settlement Delay**: Updated `openPdfModal` in `js/app.js` with a 160ms transition settlement window so Google's Viewer script initializes with accurate, non-zero viewport dimensions on the first touch.
+     - **Synthetic Resize Calibration & Watchdog**: Added a synthetic resize event dispatch on frame load and a 1200ms layout watchdog ensuring Google Viewer's internal canvas calibrates and renders on the very first open.
+     - **Smart Cache Retention**: Avoided wiping `frame.src` with `about:blank` on close, enabling instant zero-latency document re-opening.
+  3. **OneSignal User Management**:
+     - Tagged Subhranshu (`199bcc5b-0ef2-4979-b533-8aa7a977ea09`) with `name: 'Subhranshu'`.
+     - Dispatched personalized welcome notification to Subhranshu and system check notification to all subscribers.
+  4. **Production Build**:
+     - Minified CSS and JavaScript via `scripts/minify.py`.
+     - Updated cachebuster query parameters across all site templates.

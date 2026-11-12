@@ -824,8 +824,12 @@ def main():
         client = steadylink.SteadyLink(api_key=API_KEY)
         existing_bucket = get_existing_bucket_objects(client, BUCKET_ID)
         for name, item in existing_bucket.items():
+            if name.lower() in ("clean.pdf", "brachial_plexus_anatomy_notes.pdf"):
+                continue
             if name not in manifest:
                 manifest[name] = item
+        manifest.pop("clean.pdf", None)
+        manifest.pop("Brachial_Plexus_Anatomy_Notes.pdf", None)
         save_manifest(manifest)
         norm_manifest = {
             normalize_key(k): v for k, v in manifest.items()
