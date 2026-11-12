@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-physiology_assignment-0203",
+    title: "Physiology Assignment",
+    subject: "physiology",
+    category: "assignments",
+    subcategories: ["assignments"],
+    code: "Physiology / Assignments",
+    description: "Uploaded document: Physiology Assignment.pdf. Reference study material for Physiology.",
+    tags: ["Physiology", "Assignments", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/9ae47c72-150c-4fe3-b959-10b36adcea1b",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment.pdf",
+    fileSize: "9.7 MB",
+    pages: "56 Pages",
+    author: "HarshKumarSaw",
+    date: "12 Nov 2026",
+    updatedAt: 1794460235,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-bioc-biochemistry_aetcom_-0068",
     title: "Biochemistry Aetcom Johari Mbbs",
     subject: "biochemistry",
@@ -27,24 +45,6 @@ const MBBS_RESOURCES = [
     author: "HarshKumarSaw",
     date: "11 Nov 2026",
     updatedAt: 1794420037,
-    year: "1st Year MBBS"
-  },
-  {
-    id: "user-phys-physiology_assignment-0203",
-    title: "Physiology Assignment",
-    subject: "physiology",
-    category: "assignments",
-    subcategories: ["assignments"],
-    code: "Physiology / Assignments",
-    description: "Uploaded document: Physiology Assignment.pdf. Reference study material for Physiology.",
-    tags: ["Physiology", "Assignments", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/9ae47c72-150c-4fe3-b959-10b36adcea1b",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment.pdf",
-    fileSize: "9.0 MB",
-    pages: "52 Pages",
-    author: "HarshKumarSaw",
-    date: "11 Nov 2026",
-    updatedAt: 1794383788,
     year: "1st Year MBBS"
   },
   {
