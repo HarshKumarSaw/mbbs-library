@@ -12,21 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
-    id: "user-phys-doc_20261112_wa0021_-4372",
-    title: "Doc 20261112 Wa0021",
+    id: "user-phys-physiology_project_f-4470",
+    title: "Physiology Project Front Pages",
     subject: "physiology",
     category: "project",
     subcategories: ["project"],
     code: "Physiology / Project",
-    description: "Uploaded document: DOC-20261112-WA0021.pdf. Organized under Physiology / Project.",
+    description: "Uploaded document: Physiology Project Front Pages.pdf. Organized under Physiology / Project.",
     tags: ["Physiology", "Project", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/57c2381e-9b0b-4f14-a523-552a30ead6ba",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/DOC-20261112-WA0021.pdf",
+    fileUrl: "https://cdn.steadylink.io/a/7c7e4836-b59a-4a22-82fa-39eb1d97e6b8",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Project_Front_Pages.pdf",
     fileSize: "812 KB",
     pages: "3 Pages",
     author: "HarshKumarSaw",
     date: "12 Nov 2026",
-    updatedAt: 1794504335,
+    updatedAt: 1794504417,
     year: "1st Year MBBS"
   },
   {
