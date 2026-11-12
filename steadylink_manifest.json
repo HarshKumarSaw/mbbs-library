@@ -519,18 +519,25 @@
     "filename": "BIOCHEMISTRY AETCOM - JOHARI MBBS.pdf",
     "uploaded_at": "2026-11-11 18:01:00 UTC"
   },
-  "clean.pdf": {
-    "asset_id": "052d35d0-d618-4d87-976c-9e798c0b40c0",
-    "url": "https://cdn.steadylink.io/a/052d35d0-d618-4d87-976c-9e798c0b40c0",
-    "size": 1435,
-    "filename": "clean.pdf",
-    "uploaded_at": "2026-11-12 06:36:43 UTC"
-  },
   "Brachial_Plexus_Anatomy_Notes.pdf": {
     "asset_id": "e1e72ae2-d23d-4cc8-80e6-32d53ceca813",
     "url": "https://cdn.steadylink.io/a/e1e72ae2-d23d-4cc8-80e6-32d53ceca813",
     "size": 4318,
-    "filename": "Brachial_Plexus_Anatomy_Notes.pdf",
-    "uploaded_at": "2026-11-12 06:36:48 UTC"
+    "status": "ready"
+  },
+  "clean.pdf": {
+    "asset_id": "052d35d0-d618-4d87-976c-9e798c0b40c0",
+    "url": "https://cdn.steadylink.io/a/052d35d0-d618-4d87-976c-9e798c0b40c0",
+    "size": 1435,
+    "status": "ready"
+  },
+  "Meded Anatomy.pdf": {
+    "asset_id": "gh-release-Meded_Anatomy.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Meded_Anatomy.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Meded_Anatomy.pdf",
+    "size": 38544342,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }

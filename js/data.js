@@ -12,22 +12,25 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
-    id: "user-anat-brachial_plexus_anat-5409",
-    title: "Brachial Plexus Anatomy Notes",
+    id: "user-anat-meded_anatomy_pdf-5807",
+    title: "Meded Anatomy",
     subject: "anatomy",
     category: "notes",
     subcategories: ["notes"],
     code: "Anatomy / Notes",
-    description: "Uploaded document: Brachial_Plexus_Anatomy_Notes.pdf. Organized under Anatomy / Notes.",
-    tags: ["Anatomy", "Notes", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/e1e72ae2-d23d-4cc8-80e6-32d53ceca813",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Brachial_Plexus_Anatomy_Notes.pdf",
-    fileSize: "4 KB",
-    pages: "1 Page",
+    description: "Uploaded document: Meded Anatomy.pdf. Comprehensive reference book (36.8 MB) hosted on GitHub Releases for high-speed direct download.",
+    tags: ["Anatomy", "Notes", "Mobile Upload", "Large Book"],
+    fileUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Meded_Anatomy.pdf",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Meded_Anatomy.pdf",
+    fileSize: "36.8 MB",
+    pages: "588 Pages",
     author: "HarshKumarSaw",
     date: "12 Nov 2026",
-    updatedAt: 1794465383,
-    year: "1st Year MBBS"
+    updatedAt: 1794475443,
+    year: "1st Year MBBS",
+    isLargeFile: true,
+    storage: "github-release"
+
   },
   {
     id: "user-phys-physiology_assignment-0203",

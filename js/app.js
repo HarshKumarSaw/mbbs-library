@@ -1293,9 +1293,19 @@
     document.documentElement.classList.add("modal-open");
     document.body.style.overflow = "hidden";
 
-    // Reset and load document into PDF.js inline viewer or stream prompt
-    resetPdfViewer();
-    loadPdfDocument(item.fileUrl, item);
+    // Immediate loading progress indicator & enable embedded viewer styling
+    showPdfLoading("Opening document...", 25);
+    if (DOM.pdfViewerContainer) {
+      DOM.pdfViewerContainer.classList.add("mode-embedded");
+    }
+    if (DOM.pdfToolbar) {
+      DOM.pdfToolbar.style.display = "none";
+    }
+
+    // Wait for modal transition and layout dimensions to settle before loading
+    setTimeout(() => {
+      loadPdfDocument(item.fileUrl, item);
+    }, 160);
   }
 
   // Progressive Byte-Range Loading State & Progress Controller
@@ -1343,7 +1353,7 @@
   }
 
   // Load PDF Document via in-app embedded viewer or PDF.js streaming engine
-  function loadPdfDocument(url) {
+  function loadPdfDocument(url, item) {
     startSmoothPdfProgress();
 
     // Embed via secure sandbox iframe for in-app reading without external download loops
@@ -1360,10 +1370,9 @@
       } else if (frame) {
         frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups");
       }
-      if (frame) {
-        frame.src = `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(url)}`;
-        frame.style.display = "block";
-        frame.onload = () => completePdfLoading();
+
+      if (DOM.pdfViewerContainer) {
+        DOM.pdfViewerContainer.classList.add("mode-embedded");
       }
       if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
       if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
@@ -1371,9 +1380,60 @@
       if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
       if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
 
-      setTimeout(() => {
-        completePdfLoading();
-      }, 2500);
+      if (frame) {
+        frame.style.display = "block";
+        const viewerUrl = `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(url)}`;
+
+        // If this URL is already loaded in the frame, complete immediately
+        if (frame.getAttribute("data-loaded-url") === url) {
+          try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+          setTimeout(() => completePdfLoading(), 100);
+          return;
+        }
+
+        let loadCompleted = false;
+        let watchdogTimer = null;
+
+        const markDone = () => {
+          if (loadCompleted) return;
+          loadCompleted = true;
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+          completePdfLoading();
+        };
+
+        frame.onload = () => {
+          // When outer frame loads, trigger layout resize calibration
+          setTimeout(() => {
+            try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+          }, 150);
+
+          setTimeout(() => {
+            markDone();
+          }, 400);
+        };
+
+        frame.setAttribute("data-loaded-url", url);
+        frame.src = viewerUrl;
+
+        // Reliability watchdog:
+        // In mobile browsers, Google Viewer occasionally misses initial DOM layout
+        // during cold-cache touch activation. A synthetic resize & soft reload at 1200ms
+        // ensures the PDF renders immediately on the FIRST open without closing/reopening.
+        watchdogTimer = setTimeout(() => {
+          if (!loadCompleted && frame && frame.getAttribute("data-loaded-url") === url) {
+            try {
+              window.dispatchEvent(new Event("resize"));
+              frame.src = viewerUrl;
+            } catch (e) {}
+          }
+        }, 1200);
+
+        // Safety timeout: ensure loading spinner never hangs permanently (4.5s max)
+        setTimeout(() => {
+          markDone();
+        }, 4500);
+      }
       return;
     }
 
@@ -2033,8 +2093,10 @@
     stopSmoothPdfProgress();
     const frame = document.getElementById("pdf-embedded-frame");
     if (frame) {
-      frame.src = "about:blank";
       frame.style.display = "none";
+    }
+    if (DOM.pdfViewerContainer) {
+      DOM.pdfViewerContainer.classList.remove("mode-embedded");
     }
     if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "";
     if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "";
