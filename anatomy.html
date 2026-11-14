@@ -122,7 +122,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1794673623">
+  <link rel="stylesheet" href="css/style.min.css?v=1794674300">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -170,6 +170,7 @@
           <li><a href="physiology.html" class="nav-link">🫀 Physiology</a></li>
           <li><a href="biochemistry.html" class="nav-link">🧪 Biochemistry</a></li>
           <li><button type="button" class="pwa-install-trigger pwa-nav-btn" aria-label="Install App">📲 Install App</button></li>
+          <li><button type="button" class="request-nav-btn" id="nav-request-btn" aria-label="Request a PDF resource">📥 Request PDF</button></li>
         </ul>
       </nav>
 
@@ -476,6 +477,152 @@
     </section>
   </main>
 
+  <!-- Request PDF Modal (Bottom-Sheet on Mobile • Centered Modal on Desktop) -->
+  <div class="request-modal-overlay" id="request-pdf-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="request-modal-backdrop" id="request-modal-backdrop"></div>
+    <div class="request-modal-container">
+      <div class="request-sheet-handle" aria-hidden="true"></div>
+
+      <div class="request-modal-header">
+        <div class="request-modal-title-wrap">
+          <div class="request-modal-icon-badge" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 class="request-modal-title">Request a Study Resource</h2>
+            <p class="request-modal-subtitle">Can't find a note, book, or question bank? Harsh will find and upload it.</p>
+          </div>
+        </div>
+        <button type="button" class="request-modal-close" id="request-modal-close" aria-label="Close request panel">✕</button>
+      </div>
+
+      <div id="request-modal-body-wrap">
+        <form id="request-pdf-form" class="request-modal-form" novalidate>
+          <div class="request-modal-body">
+            <!-- Resource Title / Topic (Required) -->
+            <div class="request-form-group">
+              <label for="request-topic" class="request-form-label">
+                Topic or Document Title <span class="required-star" aria-hidden="true">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="request-topic" 
+                name="topic" 
+                class="request-form-input" 
+                placeholder="e.g. Brachial Plexus Notes, Cranial Nerves, or Histology Spotters" 
+                required
+                autocomplete="off"
+              >
+              <span class="request-field-error" id="request-topic-error">Please enter the topic or document title.</span>
+            </div>
+
+            <!-- Two-column row: Subject & Resource Type -->
+            <div class="request-form-row">
+              <div class="request-form-group">
+                <label for="request-subject" class="request-form-label">Subject</label>
+                <select id="request-subject" name="subject" class="request-form-select">
+                  <option value="anatomy" selected>🦴 Anatomy</option>
+                  <option value="physiology">🫀 Physiology</option>
+                  <option value="biochemistry">🧪 Biochemistry</option>
+                  <option value="community_medicine">🏥 Community Medicine</option>
+                  <option value="other">📚 Other / General</option>
+                </select>
+              </div>
+
+              <div class="request-form-group">
+                <label for="request-category" class="request-form-label">Resource Type</label>
+                <select id="request-category" name="category" class="request-form-select">
+                  <option value="notes">📝 Notes / Lecture Slides</option>
+                  <option value="book">📖 Textbook / Reference Book</option>
+                  <option value="practicals">🔬 Practical / Dissection Manual</option>
+                  <option value="assignments">📋 Assignment / Case Vignette</option>
+                  <option value="sdl">💡 SDL Module</option>
+                  <option value="questions">❓ Question Bank / PYQ</option>
+                  <option value="other">📦 Other Resource</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Student Name & Contact (Optional) -->
+            <div class="request-form-row">
+              <div class="request-form-group">
+                <label for="request-name" class="request-form-label">
+                  Your Name <span class="optional-tag">(Optional)</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="request-name" 
+                  name="name" 
+                  class="request-form-input" 
+                  placeholder="e.g. Subhranshu"
+                  autocomplete="name"
+                >
+              </div>
+
+              <div class="request-form-group">
+                <label for="request-contact" class="request-form-label">
+                  Contact <span class="optional-tag">(Optional)</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="request-contact" 
+                  name="contact" 
+                  class="request-form-input" 
+                  placeholder="WhatsApp or Email (for ping)"
+                >
+              </div>
+            </div>
+
+            <!-- Additional Details / Instructions -->
+            <div class="request-form-group">
+              <label for="request-notes" class="request-form-label">
+                Additional Details <span class="optional-tag">(Optional)</span>
+              </label>
+              <textarea 
+                id="request-notes" 
+                name="notes" 
+                class="request-form-textarea" 
+                rows="2" 
+                placeholder="e.g. Specific author, edition, or upcoming exam date..."
+              ></textarea>
+            </div>
+
+            <!-- Error Banner -->
+            <div class="request-status-banner error" id="request-status-banner" style="display: none;" role="alert"></div>
+          </div>
+
+          <div class="request-modal-footer">
+            <button type="button" class="btn-request-cancel" id="request-cancel-btn">Cancel</button>
+            <button type="submit" class="btn-request-submit" id="request-submit-btn">
+              <span class="btn-submit-text">Send Request</span>
+              <span class="btn-submit-spinner" id="request-spinner" style="display: none;" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Success Confirmation View -->
+        <div class="request-success-view" id="request-success-view" style="display: none;">
+          <div class="request-success-icon-wrap" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h3 class="request-success-title">Request Received!</h3>
+          <p class="request-success-desc" id="request-success-msg">
+            Your request has been emailed directly to Harsh. We'll search for this resource and notify subscribers once it's uploaded.
+          </p>
+          <button type="button" class="btn-request-done" id="request-done-btn">Back to Library</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Mobile Bottom-Sheet PDF Modal -->
   <div class="modal-overlay" id="pdf-modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-container" id="modal-container">
@@ -612,8 +759,8 @@
     </div>
   </aside>
 
-  <script src="js/data.js?v=1794673623"></script>
-  <script src="js/app.min.js?v=1794673623"></script>
+  <script src="js/data.js?v=1794674300"></script>
+  <script src="js/app.min.js?v=1794674300"></script>
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js?v=1794462000" defer></script>
 </body>

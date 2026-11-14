@@ -135,7 +135,27 @@
     filterClearAllBtn: document.getElementById("filter-clear-all-btn"),
     filterApplyBtn: document.getElementById("filter-apply-btn"),
     modalSubjectFilters: document.getElementById("modal-subject-filters"),
-    modalCategoryFilters: document.getElementById("modal-category-filters")
+    modalCategoryFilters: document.getElementById("modal-category-filters"),
+    // Request PDF Modal Elements
+    requestModal: document.getElementById("request-pdf-modal"),
+    requestModalBackdrop: document.getElementById("request-modal-backdrop"),
+    requestModalClose: document.getElementById("request-modal-close"),
+    requestCancelBtn: document.getElementById("request-cancel-btn"),
+    requestDoneBtn: document.getElementById("request-done-btn"),
+    requestForm: document.getElementById("request-pdf-form"),
+    requestTopic: document.getElementById("request-topic"),
+    requestTopicError: document.getElementById("request-topic-error"),
+    requestSubject: document.getElementById("request-subject"),
+    requestCategory: document.getElementById("request-category"),
+    requestName: document.getElementById("request-name"),
+    requestContact: document.getElementById("request-contact"),
+    requestNotes: document.getElementById("request-notes"),
+    requestStatusBanner: document.getElementById("request-status-banner"),
+    requestSubmitBtn: document.getElementById("request-submit-btn"),
+    requestSpinner: document.getElementById("request-spinner"),
+    requestSuccessView: document.getElementById("request-success-view"),
+    requestSuccessMsg: document.getElementById("request-success-msg"),
+    navRequestBtn: document.getElementById("nav-request-btn")
   };
 
   // SVG Icons helper
@@ -212,6 +232,7 @@
     applyFilterAndRender();
     setupEventListeners();
     setupFilterModal();
+    setupRequestModal();
   }
 
   // Load Saved Favorites from localStorage
@@ -718,15 +739,30 @@
             <line x1="8" y1="11" x2="14" y2="11"></line>
           </svg>
           <h3>No matching resources found</h3>
-          <p>We couldn't find any documents matching your current search or category filter. Try refining your keywords or reset all filters.</p>
-          <button type="button" class="btn-download" id="reset-filters-btn">
-            Reset All Filters
-          </button>
+          <p>We couldn't find any documents matching your current search or category filter. Try refining your keywords or request this document below.</p>
+          <div class="empty-state-actions">
+            <button type="button" class="empty-request-pdf-btn" id="empty-request-pdf-btn">
+              📥 Request this Resource
+            </button>
+            <button type="button" class="btn-download" id="reset-filters-btn">
+              Reset All Filters
+            </button>
+          </div>
         </div>
       `;
 
       updateResultsCountDisplay();
       hideLazyControls();
+
+      const emptyRequestBtn = document.getElementById("empty-request-pdf-btn");
+      if (emptyRequestBtn) {
+        emptyRequestBtn.addEventListener("click", () => {
+          openRequestModal({
+            topic: state.searchQuery || "",
+            subject: state.selectedSubject !== "all" ? state.selectedSubject : null
+          });
+        });
+      }
 
       const resetBtn = document.getElementById("reset-filters-btn");
       if (resetBtn) {
@@ -1236,6 +1272,228 @@
         closeFilterModal();
       }
     });
+  }
+
+  // Request PDF Modal Controls & Form Logic
+  function openRequestModal(options = {}) {
+    if (!DOM.requestModal) return;
+
+    // Reset views and error states
+    if (DOM.requestSuccessView) DOM.requestSuccessView.style.display = "none";
+    if (DOM.requestForm) {
+      DOM.requestForm.style.display = "block";
+      const group = DOM.requestTopic ? DOM.requestTopic.closest(".request-form-group") : null;
+      if (group) group.classList.remove("has-error");
+    }
+    if (DOM.requestStatusBanner) {
+      DOM.requestStatusBanner.style.display = "none";
+      DOM.requestStatusBanner.textContent = "";
+    }
+
+    // Auto-prefill topic if passed
+    if (options.topic && DOM.requestTopic) {
+      DOM.requestTopic.value = options.topic;
+    }
+
+    // Auto-detect subject if passed or from current page
+    let defaultSubj = options.subject;
+    if (!defaultSubj) {
+      const path = window.location.pathname.toLowerCase();
+      if (path.includes("anatomy")) defaultSubj = "anatomy";
+      else if (path.includes("physio")) defaultSubj = "physiology";
+      else if (path.includes("biochem")) defaultSubj = "biochemistry";
+      else if (state.selectedSubject && state.selectedSubject !== "all") {
+        defaultSubj = state.selectedSubject;
+      }
+    }
+    if (defaultSubj && DOM.requestSubject) {
+      DOM.requestSubject.value = defaultSubj;
+    }
+
+    DOM.requestModal.classList.add("open");
+    DOM.requestModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    document.documentElement.classList.add("modal-open");
+    document.body.style.overflow = "hidden";
+
+    // Close mobile nav drawer if open
+    if (DOM.navLinks && DOM.navLinks.classList.contains("show")) {
+      DOM.navLinks.classList.remove("show");
+      if (DOM.mobileToggle) DOM.mobileToggle.setAttribute("aria-expanded", "false");
+    }
+
+    setTimeout(() => {
+      if (DOM.requestTopic && !DOM.requestTopic.value) {
+        DOM.requestTopic.focus();
+      }
+    }, 150);
+  }
+
+  function closeRequestModal() {
+    if (!DOM.requestModal) return;
+    DOM.requestModal.classList.remove("open");
+    DOM.requestModal.setAttribute("aria-hidden", "true");
+
+    const isPdfActive = DOM.pdfModal && DOM.pdfModal.classList.contains("active");
+    const isFilterOpen = DOM.filterModal && DOM.filterModal.classList.contains("open");
+    if (!isPdfActive && !isFilterOpen) {
+      document.body.classList.remove("modal-open");
+      document.documentElement.classList.remove("modal-open");
+      document.body.style.overflow = "";
+    }
+  }
+
+  async function handleRequestFormSubmit(e) {
+    e.preventDefault();
+    if (!DOM.requestTopic) return;
+
+    const topicVal = DOM.requestTopic.value.trim();
+    const group = DOM.requestTopic.closest(".request-form-group");
+
+    if (!topicVal) {
+      if (group) group.classList.add("has-error");
+      DOM.requestTopic.focus();
+      return;
+    } else {
+      if (group) group.classList.remove("has-error");
+    }
+
+    // Set Loading State
+    if (DOM.requestSubmitBtn) {
+      DOM.requestSubmitBtn.disabled = true;
+      const textSpan = DOM.requestSubmitBtn.querySelector(".btn-submit-text");
+      if (textSpan) textSpan.textContent = "Sending...";
+    }
+    if (DOM.requestSpinner) DOM.requestSpinner.style.display = "inline-block";
+    if (DOM.requestStatusBanner) DOM.requestStatusBanner.style.display = "none";
+
+    const nameVal = (DOM.requestName && DOM.requestName.value.trim()) || "Anonymous Student";
+    const contactVal = (DOM.requestContact && DOM.requestContact.value.trim()) || "Not provided";
+    const subjectVal = (DOM.requestSubject && DOM.requestSubject.value) || "General";
+    const categoryVal = (DOM.requestCategory && DOM.requestCategory.value) || "Resource";
+    const notesVal = (DOM.requestNotes && DOM.requestNotes.value.trim()) || "None";
+    const pageName = window.location.pathname.split("/").pop() || "index.html";
+
+    const payload = {
+      "Student Name": nameVal,
+      "Contact Info": contactVal,
+      "Subject": subjectVal.toUpperCase(),
+      "Resource Type": categoryVal,
+      "Requested Topic / Book": topicVal,
+      "Additional Details": notesVal,
+      "Submitted From Page": pageName,
+      "Search Context": state.searchQuery || "(Direct Button)",
+      "_subject": `🩺 [Harsh's Library] PDF Request: ${topicVal} from ${nameVal}`,
+      "_template": "table",
+      "_captcha": "false"
+    };
+
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/harshsaw01@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      // Success View
+      if (DOM.requestForm) DOM.requestForm.style.display = "none";
+      if (DOM.requestSuccessView) {
+        DOM.requestSuccessView.style.display = "flex";
+        if (DOM.requestSuccessMsg) {
+          DOM.requestSuccessMsg.textContent = `Your request for "${topicVal}" was emailed to Harsh! We'll search for this resource and notify subscribers once it's uploaded.`;
+        }
+      }
+
+      // Reset form fields
+      DOM.requestForm.reset();
+
+      // Show toast on page
+      showToast(`✅ Request sent for "${topicVal}"!`);
+
+    } catch (err) {
+      console.error("[MBBS Library] Request submit error:", err);
+      if (DOM.requestStatusBanner) {
+        DOM.requestStatusBanner.style.display = "block";
+        DOM.requestStatusBanner.innerHTML = `⚠️ Unable to send online right now. You can email Harsh directly at <a href="mailto:harshsaw01@gmail.com?subject=PDF Request: ${encodeURIComponent(topicVal)}" style="color:inherit;text-decoration:underline;font-weight:600;">harshsaw01@gmail.com</a>.`;
+      }
+    } finally {
+      if (DOM.requestSubmitBtn) {
+        DOM.requestSubmitBtn.disabled = false;
+        const textSpan = DOM.requestSubmitBtn.querySelector(".btn-submit-text");
+        if (textSpan) textSpan.textContent = "Send Request";
+      }
+      if (DOM.requestSpinner) DOM.requestSpinner.style.display = "none";
+    }
+  }
+
+  function setupRequestModal() {
+    // Triggers
+    if (DOM.navRequestBtn) {
+      DOM.navRequestBtn.addEventListener("click", () => openRequestModal());
+    }
+
+    // Modal Close handlers
+    if (DOM.requestModalClose) {
+      DOM.requestModalClose.addEventListener("click", closeRequestModal);
+    }
+    if (DOM.requestModalBackdrop) {
+      DOM.requestModalBackdrop.addEventListener("click", closeRequestModal);
+    }
+    if (DOM.requestCancelBtn) {
+      DOM.requestCancelBtn.addEventListener("click", closeRequestModal);
+    }
+    if (DOM.requestDoneBtn) {
+      DOM.requestDoneBtn.addEventListener("click", closeRequestModal);
+    }
+
+    // Form submission
+    if (DOM.requestForm) {
+      DOM.requestForm.addEventListener("submit", handleRequestFormSubmit);
+    }
+
+    // Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && DOM.requestModal && DOM.requestModal.classList.contains("open")) {
+        closeRequestModal();
+      }
+    });
+
+    // Touch swipe down on handle zone to dismiss (bottom-sheet gesture)
+    const handle = DOM.requestModal ? DOM.requestModal.querySelector(".request-sheet-handle") : null;
+    if (handle) {
+      let startY = 0;
+      handle.addEventListener("touchstart", (e) => {
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+      handle.addEventListener("touchend", (e) => {
+        const delta = e.changedTouches[0].clientY - startY;
+        if (delta > 40) {
+          closeRequestModal();
+        }
+      }, { passive: true });
+    }
+  }
+
+  function showToast(msg) {
+    let toast = document.getElementById("mbbs-push-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "mbbs-push-toast";
+      toast.className = "mbbs-push-toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add("is-visible");
+    setTimeout(() => {
+      toast.classList.remove("is-visible");
+    }, 4000);
   }
 
   // Open PDF Modal Viewer
@@ -2664,8 +2922,9 @@
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  // Expose PDF Modal Viewer globally for notifications & deep-links
+  // Expose PDF Modal Viewer & Request Modal globally for notifications & deep-links
   window.openPdfModal = openPdfModal;
+  window.openRequestModal = openRequestModal;
 
   // Auto-boot on DOM ready
   if (document.readyState === "loading") {

@@ -1662,3 +1662,20 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 63
+
+### Implementation: Request PDF Feature (2026-11-14 ~16:38 UTC)
+- **Feature**: Direct in-app student PDF & resource request system with email notifications to `harshsaw01@gmail.com`.
+- **Pre-Change Safety Mark**:
+  - Created Git restore tag `restore-point-pre-request-pdf` and branch `restore-pre-request-pdf`.
+- **UI & Modal Architecture**:
+  - Implemented responsive modal bottom-sheet on mobile and centered modal on desktop across `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html`.
+  - Added `📥 Request PDF` button in desktop navbar and mobile slide-out menu drawer.
+  - Linked Search "Zero Results" Empty State: Automatically prompts user to request the missing document with the search query pre-filled into the topic field.
+  - Dynamic subject preselection: Defaults to Anatomy on `anatomy.html`, Physiology on `physiology.html`, and Biochemistry on `biochemistry.html`.
+- **Backend & Delivery Engine**:
+  - Configured FormSubmit AJAX pipeline targeting `https://formsubmit.co/ajax/harshsaw01@gmail.com` with formatted HTML table notifications.
+  - Includes student name, contact (WhatsApp/email), subject, resource type, document title, additional instructions, and originating page.
+  - Animated submission spinner, in-modal success card, and non-blocking toast alert.
+- **Production Optimization**:
+  - Recompiled and minified `css/style.min.css` and `js/app.min.js` via `scripts/minify.py`.
+  - Incremented cachebuster query parameters across all site templates.
