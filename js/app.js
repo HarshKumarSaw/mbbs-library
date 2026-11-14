@@ -155,6 +155,7 @@
     requestSpinner: document.getElementById("request-spinner"),
     requestSuccessView: document.getElementById("request-success-view"),
     requestSuccessMsg: document.getElementById("request-success-msg"),
+    requestDirectMailBtn: document.getElementById("request-direct-mail-btn"),
     navRequestBtn: document.getElementById("nav-request-btn")
   };
 
@@ -744,7 +745,7 @@
             <button type="button" class="empty-request-pdf-btn" id="empty-request-pdf-btn">
               📥 Request this Resource
             </button>
-            <button type="button" class="btn-download" id="reset-filters-btn">
+            <button type="button" class="empty-reset-filters-btn" id="reset-filters-btn">
               Reset All Filters
             </button>
           </div>
@@ -1344,7 +1345,7 @@
   }
 
   async function handleRequestFormSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!DOM.requestTopic) return;
 
     const topicVal = DOM.requestTopic.value.trim();
@@ -1373,6 +1374,11 @@
     const categoryVal = (DOM.requestCategory && DOM.requestCategory.value) || "Resource";
     const notesVal = (DOM.requestNotes && DOM.requestNotes.value.trim()) || "None";
     const pageName = window.location.pathname.split("/").pop() || "index.html";
+    const emailSubject = `🩺 [Harsh's Library] PDF Request: ${topicVal} from ${nameVal}`;
+
+    // Update hidden inputs for native iframe submission
+    const hiddenSubj = document.getElementById("request-hidden-subject");
+    if (hiddenSubj) hiddenSubj.value = emailSubject;
 
     const payload = {
       "Student Name": nameVal,
@@ -1383,54 +1389,86 @@
       "Additional Details": notesVal,
       "Submitted From Page": pageName,
       "Search Context": state.searchQuery || "(Direct Button)",
-      "_subject": `🩺 [Harsh's Library] PDF Request: ${topicVal} from ${nameVal}`,
+      "_subject": emailSubject,
       "_template": "table",
       "_captcha": "false"
     };
 
+    const mailtoUrl = `mailto:harshsaw01@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(
+      `Hi Harsh,\n\nI would like to request the following study resource for the MBBS Library:\n\n• Topic: ${topicVal}\n• Subject: ${subjectVal}\n• Type: ${categoryVal}\n• Name: ${nameVal}\n• Contact: ${contactVal}\n• Notes: ${notesVal}\n\nThank you!`
+    )}`;
+
+    let submittedSuccessfully = false;
+
+    // Dual-Engine Attempt 1: Fetch with 5-second timeout
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch("https://formsubmit.co/ajax/harshsaw01@gmail.com", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
 
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
-      }
+      clearTimeout(timeoutId);
 
-      // Success View
+      if (response.ok) {
+        const data = await response.json().catch(() => ({ success: "true" }));
+        if (data && data.success !== "false") {
+          submittedSuccessfully = true;
+        }
+      }
+    } catch (fetchErr) {
+      console.warn("[MBBS Library] AJAX fetch attempt did not complete, switching to native iframe:", fetchErr);
+    }
+
+    // Dual-Engine Attempt 2: Native form submission to hidden iframe (bypasses CORS, adblockers, Cloudflare challenge)
+    if (!submittedSuccessfully && DOM.requestForm) {
+      try {
+        DOM.requestForm.action = "https://formsubmit.co/harshsaw01@gmail.com";
+        DOM.requestForm.target = "request_hidden_iframe";
+        DOM.requestForm.submit();
+        submittedSuccessfully = true;
+      } catch (submitErr) {
+        console.error("[MBBS Library] Native iframe submission error:", submitErr);
+      }
+    }
+
+    // Handle Result
+    if (submittedSuccessfully) {
       if (DOM.requestForm) DOM.requestForm.style.display = "none";
       if (DOM.requestSuccessView) {
         DOM.requestSuccessView.style.display = "flex";
         if (DOM.requestSuccessMsg) {
-          DOM.requestSuccessMsg.textContent = `Your request for "${topicVal}" was emailed to Harsh! We'll search for this resource and notify subscribers once it's uploaded.`;
+          DOM.requestSuccessMsg.innerHTML = `Your request for <strong>"${escapeHtml(topicVal)}"</strong> was sent directly to Harsh! We'll search for this resource and notify subscribers once it's uploaded.`;
+        }
+        if (DOM.requestDirectMailBtn) {
+          DOM.requestDirectMailBtn.href = mailtoUrl;
+          DOM.requestDirectMailBtn.style.display = "inline-flex";
         }
       }
 
-      // Reset form fields
       DOM.requestForm.reset();
-
-      // Show toast on page
       showToast(`✅ Request sent for "${topicVal}"!`);
-
-    } catch (err) {
-      console.error("[MBBS Library] Request submit error:", err);
+    } else {
       if (DOM.requestStatusBanner) {
         DOM.requestStatusBanner.style.display = "block";
-        DOM.requestStatusBanner.innerHTML = `⚠️ Unable to send online right now. You can email Harsh directly at <a href="mailto:harshsaw01@gmail.com?subject=PDF Request: ${encodeURIComponent(topicVal)}" style="color:inherit;text-decoration:underline;font-weight:600;">harshsaw01@gmail.com</a>.`;
+        DOM.requestStatusBanner.innerHTML = `⚠️ Network connection issue. <a href="${mailtoUrl}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;font-weight:700;">Tap here to email Harsh directly</a>.`;
       }
-    } finally {
-      if (DOM.requestSubmitBtn) {
-        DOM.requestSubmitBtn.disabled = false;
-        const textSpan = DOM.requestSubmitBtn.querySelector(".btn-submit-text");
-        if (textSpan) textSpan.textContent = "Send Request";
-      }
-      if (DOM.requestSpinner) DOM.requestSpinner.style.display = "none";
     }
+
+    // Always reset button state and spinner
+    if (DOM.requestSubmitBtn) {
+      DOM.requestSubmitBtn.disabled = false;
+      const textSpan = DOM.requestSubmitBtn.querySelector(".btn-submit-text");
+      if (textSpan) textSpan.textContent = "Send Request";
+    }
+    if (DOM.requestSpinner) DOM.requestSpinner.style.display = "none";
   }
 
   function setupRequestModal() {

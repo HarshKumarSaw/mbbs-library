@@ -115,7 +115,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1794674300">
+  <link rel="stylesheet" href="css/style.min.css?v=1794677900">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -620,7 +620,11 @@
       </div>
 
       <div id="request-modal-body-wrap">
-        <form id="request-pdf-form" class="request-modal-form" novalidate>
+        <iframe name="request_hidden_iframe" id="request_hidden_iframe" style="display:none;width:0;height:0;border:0;" aria-hidden="true"></iframe>
+        <form id="request-pdf-form" action="https://formsubmit.co/harshsaw01@gmail.com" method="POST" target="request_hidden_iframe" class="request-modal-form" novalidate>
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_subject" id="request-hidden-subject" value="MBBS Library Resource Request">
           <div class="request-modal-body">
             <!-- Resource Title / Topic (Required) -->
             <div class="request-form-group">
@@ -735,7 +739,13 @@
           <p class="request-success-desc" id="request-success-msg">
             Your request has been emailed directly to Harsh. We'll search for this resource and notify subscribers once it's uploaded.
           </p>
-          <button type="button" class="btn-request-done" id="request-done-btn">Back to Library</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:0.25rem;">
+            <button type="button" class="btn-request-done" id="request-done-btn">Back to Library</button>
+            <a id="request-direct-mail-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn-request-cancel" style="border:1px solid #CBD5E1;text-decoration:none;display:none;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              <span>Email App Fallback</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -938,8 +948,8 @@
     </div>
   </aside>
 
-  <script src="js/data.js?v=1794674300"></script>
-  <script src="js/app.min.js?v=1794674300"></script>
+  <script src="js/data.js?v=1794677900"></script>
+  <script src="js/app.min.js?v=1794677900"></script>
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js?v=1794462000" defer></script>
 </body>

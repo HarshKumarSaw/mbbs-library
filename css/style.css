@@ -5984,6 +5984,34 @@ body.notif-center-open {
   box-shadow: 0 6px 16px rgba(26, 44, 76, 0.22);
 }
 
+.empty-reset-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.65rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-navy, #151B2B);
+  background: var(--canvas-pure, #FFFFFF);
+  border: 1.5px solid var(--border-subtle, #E8E0D5);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: auto !important;
+  height: auto !important;
+  white-space: nowrap;
+}
+
+.empty-reset-filters-btn:hover {
+  background: var(--canvas-subtle, #F3EFEA);
+  border-color: var(--primary-navy, #151B2B);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(21, 27, 43, 0.08);
+}
+
 @media (min-width: 768px) {
   .request-modal-overlay {
     align-items: center;

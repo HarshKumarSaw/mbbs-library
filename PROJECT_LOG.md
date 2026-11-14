@@ -1679,3 +1679,17 @@
 - **Production Optimization**:
   - Recompiled and minified `css/style.min.css` and `js/app.min.js` via `scripts/minify.py`.
   - Incremented cachebuster query parameters across all site templates.
+
+### Fix: Reset Button Layout & Bulletproof Dual-Engine Request Delivery (2026-11-14 ~17:37 UTC)
+- **Resolved Reset Filters Button Layout Bug**:
+  - Replaced legacy `.btn-download` (48px square icon class) on `#reset-filters-btn` with dedicated `.empty-reset-filters-btn`.
+  - Styled with dynamic width, 0.65rem 1.25rem padding, rounded corners, clean borders, and eliminated text outflow in empty-state search results.
+- **Fixed Request PDF Infinite 'Sending...' Hanging**:
+  - Added strict 5-second timeout using `AbortController` on AJAX fetch attempts to prevent socket hangs on slow mobile networks / adblockers.
+  - Implemented Dual-Engine fallback: automatically submits form natively into a hidden iframe (`request_hidden_iframe`) if AJAX preflight/fetch is blocked by CORS, Cloudflare challenge, or adblockers.
+  - Added direct `mailto:` fallback trigger link for offline / direct email submission.
+- **FormSubmit Activation Requirement Clarification**:
+  - Clarified one-time email activation link required from `submissions@formsubmit.co` in `harshsaw01@gmail.com`.
+- **Production Build**:
+  - Regenerated minified CSS (`style.min.css`) and JS (`app.min.js`) via `scripts/minify.py`.
+  - Updated cachebuster strings (`1794677900`) across all HTML files.
