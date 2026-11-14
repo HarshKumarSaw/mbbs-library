@@ -5580,21 +5580,21 @@ body.notif-center-open {
    Request PDF Button & Modal (Bottom-Sheet Mobile • Centered Modal Desktop)
    ========================================================================== */
 .request-nav-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  font-family: var(--font-display, 'Outfit', sans-serif);
-  font-size: 0.95rem;
-  font-weight: 700;
+  gap: 6px;
+  width: auto;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--primary-navy, #151B2B);
-  background: rgba(26, 44, 76, 0.05);
-  border: 1.5px solid rgba(26, 44, 76, 0.12);
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-btn, 12px);
+  background: var(--canvas-pure, #FFFFFF);
+  border: 1.5px solid var(--border-subtle, #E8E0D5);
+  padding: 0.45rem 0.9rem;
+  border-radius: 9999px;
   cursor: pointer;
-  transition: all 0.16s ease;
-  text-align: left;
+  transition: all 0.18s ease;
+  white-space: nowrap;
 }
 
 .request-nav-btn:hover {
@@ -5626,21 +5626,22 @@ body.notif-center-open {
 .request-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .request-modal-container {
   position: relative;
   width: 100%;
-  max-width: 540px;
-  max-height: 90vh;
+  max-width: 550px;
+  max-height: 92vh;
   background: #FFFFFF;
-  border-radius: 20px 20px 0 0;
+  border-radius: 28px 28px 0 0;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.22);
   transform: translateY(100%);
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1;
@@ -5652,19 +5653,26 @@ body.notif-center-open {
 }
 
 .request-sheet-handle {
-  width: 40px;
-  height: 4px;
+  width: 44px;
+  height: 5px;
   background: #CBD5E1;
   border-radius: 9999px;
-  margin: 10px auto 2px;
+  margin: 12px auto 4px;
+  flex-shrink: 0;
+  cursor: grab;
+  transition: background-color 0.2s ease;
+}
+
+.request-sheet-handle:active {
+  background: #94A3B8;
 }
 
 .request-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem 0.85rem;
-  border-bottom: 1px solid var(--border-color, #E2E8F0);
+  padding: 0.95rem 1.45rem 0.95rem;
+  border-bottom: 1px solid #EDF2F7;
   gap: 12px;
 }
 
@@ -5675,11 +5683,11 @@ body.notif-center-open {
 }
 
 .request-modal-icon-badge {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
-  background: rgba(30, 58, 138, 0.08);
-  color: var(--primary-navy, #1A2C4C);
+  background: rgba(26, 44, 76, 0.07);
+  color: #1A2C4C;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5687,82 +5695,92 @@ body.notif-center-open {
 }
 
 .request-modal-title {
-  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.12rem;
-  font-weight: 700;
-  color: var(--text-headline, #0F172A);
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 1.22rem;
+  font-weight: 750;
+  color: #090D16;
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.22;
+  letter-spacing: -0.025em;
 }
 
 .request-modal-subtitle {
-  font-size: 0.78rem;
-  color: var(--text-muted, #64748B);
-  margin: 2px 0 0;
-  line-height: 1.35;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #475569;
+  margin: 3px 0 0;
+  line-height: 1.4;
 }
 
 .request-modal-close {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  color: #64748B;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  transition: all 0.15s ease;
-  line-height: 1;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.16s ease;
+  flex-shrink: 0;
 }
 
 .request-modal-close:hover {
   background: #F1F5F9;
   color: #0F172A;
+  border-color: #CBD5E1;
+  transform: scale(1.05);
 }
 
 .request-modal-body {
-  padding: 1.15rem 1.25rem;
+  padding: 1.35rem 1.45rem;
   overflow-y: auto;
-  max-height: calc(90vh - 150px);
+  max-height: calc(92vh - 170px);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
 .request-form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 7px;
 }
 
 .request-form-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
 @media (min-width: 480px) {
   .request-form-row {
     grid-template-columns: 1fr 1fr;
+    gap: 14px;
   }
 }
 
 .request-form-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-headline, #1E293B);
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: #0F172A;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  letter-spacing: -0.01em;
 }
 
 .required-star {
-  color: #EF4444;
+  color: #E11D48;
   font-weight: 700;
 }
 
 .optional-tag {
-  color: #94A3B8;
-  font-size: 0.74rem;
+  color: #64748B;
+  font-size: 0.75rem;
   font-weight: 400;
 }
 
@@ -5770,33 +5788,52 @@ body.notif-center-open {
 .request-form-select,
 .request-form-textarea {
   width: 100%;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.88rem;
+  padding: 0.82rem 1.05rem;
+  font-size: 0.94rem;
   font-family: inherit;
-  color: var(--text-headline, #0F172A);
+  color: #0F172A;
   background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 14px;
   outline: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
   box-sizing: border-box;
+  min-height: 48px;
+}
+
+.request-form-input::placeholder,
+.request-form-textarea::placeholder {
+  color: #94A3B8;
+  font-weight: 400;
 }
 
 .request-form-input:focus,
 .request-form-select:focus,
 .request-form-textarea:focus {
   background: #FFFFFF;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.12);
+}
+
+.request-form-select {
+  cursor: pointer;
+  padding-right: 2.5rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 16px 16px;
 }
 
 .request-form-textarea {
   resize: vertical;
-  min-height: 60px;
+  min-height: 82px;
+  line-height: 1.5;
 }
 
 .request-field-error {
-  color: #EF4444;
+  color: #E11D48;
   font-size: 0.76rem;
   font-weight: 500;
   display: none;
@@ -5804,8 +5841,8 @@ body.notif-center-open {
 }
 
 .request-form-group.has-error .request-form-input {
-  border-color: #EF4444;
-  background: #FEF2F2;
+  border-color: #E11D48;
+  background: #FFF1F2;
 }
 
 .request-form-group.has-error .request-field-error {
@@ -5813,11 +5850,11 @@ body.notif-center-open {
 }
 
 .request-status-banner {
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.84rem;
-  line-height: 1.4;
-  margin-top: 6px;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin-top: 4px;
 }
 
 .request-status-banner.error {
@@ -5830,21 +5867,21 @@ body.notif-center-open {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 0.85rem 1.25rem;
-  border-top: 1px solid var(--border-color, #E2E8F0);
+  gap: 12px;
+  padding: 1rem 1.45rem;
+  border-top: 1px solid #EDF2F7;
   background: #FAFBFD;
 }
 
 .btn-request-cancel {
-  padding: 0.55rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.72rem 1.25rem;
+  font-size: 0.9rem;
   font-weight: 600;
   font-family: inherit;
   background: transparent;
-  color: #64748B;
+  color: #475569;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -5859,23 +5896,24 @@ body.notif-center-open {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0.65rem 1.35rem;
-  font-size: 0.88rem;
+  padding: 0.75rem 1.55rem;
+  font-size: 0.92rem;
   font-weight: 600;
   font-family: inherit;
   background: var(--primary-navy, #1A2C4C);
   color: #FFFFFF;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.18s ease;
-  min-width: 125px;
+  min-width: 135px;
+  min-height: 48px;
 }
 
 .btn-request-submit:hover:not(:disabled) {
   background: var(--primary-navy-hover, #0F1D38);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(26, 44, 76, 0.2);
+  box-shadow: 0 6px 16px rgba(26, 44, 76, 0.22);
 }
 
 .btn-request-submit:disabled {
@@ -5904,6 +5942,7 @@ body.notif-center-open {
   display: flex;
   flex-direction: column;
   align-items: center;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .request-success-icon-wrap {
@@ -5918,11 +5957,12 @@ body.notif-center-open {
 }
 
 .request-success-title {
-  font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 750;
   color: #065F46;
   margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
 }
 
 .request-success-desc {
@@ -5934,16 +5974,17 @@ body.notif-center-open {
 }
 
 .btn-request-done {
-  padding: 0.65rem 1.5rem;
-  font-size: 0.88rem;
+  padding: 0.72rem 1.55rem;
+  font-size: 0.9rem;
   font-weight: 600;
   font-family: inherit;
   background: var(--primary-navy, #1A2C4C);
   color: #FFFFFF;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-height: 46px;
 }
 
 .btn-request-done:hover {
@@ -6019,7 +6060,7 @@ body.notif-center-open {
   }
 
   .request-modal-container {
-    border-radius: 20px;
+    border-radius: 24px;
     max-height: 85vh;
     transform: scale(0.95) translateY(15px);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);

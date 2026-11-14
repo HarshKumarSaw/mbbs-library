@@ -1693,3 +1693,26 @@
 - **Production Build**:
   - Regenerated minified CSS (`style.min.css`) and JS (`app.min.js`) via `scripts/minify.py`.
   - Updated cachebuster strings (`1794677900`) across all HTML files.
+
+### UI/UX Polish: Request a Study Resource Native Mobile Overhaul (2026-11-14 ~18:15 UTC)
+- **Design & Experience Improvements**:
+  1. **Clean Professional Typography & Icons (No Emojis)**:
+     - Stripped emojis from Subject and Resource Type native `<select>` dropdown options, maintaining clean, professional academic typography across `index.html`, `anatomy.html`, `physiology.html`, and `biochemistry.html`.
+     - Replaced emojis in navigation triggers and search empty states (`📥`) with crisp, scalable Lucide/Heroicon SVG line icons.
+     - Replaced standard `✕` close button with a circular, accessible SVG line close button.
+  2. **Modern Typography & Contrast Hierarchy**:
+     - Swapped font stack to modern geometric sans-serif (`Plus Jakarta Sans`, `Inter`, `system-ui`).
+     - Darkened input labels (`#0F172A`) for high-contrast legibility.
+     - Established clear weight and size hierarchy between modal title (`1.22rem`, `750` weight, `-0.025em` tracking) and subtitle (`0.82rem`, `#475569`).
+  3. **Generous Mobile Spacing & Touch Targets**:
+     - Increased form group vertical gap (`18px`) and input padding (`0.82rem 1.05rem`, min-height `48px`) to meet mobile tap standards and prevent cramped viewports.
+     - Styled `<select>` elements with custom embedded SVG chevron arrow and native touch padding.
+  4. **Copywriting Update**:
+     - Updated Contact field placeholder to `"WhatsApp or Email (to notify you)"`.
+  5. **Native iOS/Android Bottom Sheet Aesthetics**:
+     - Refined horizontal top drag-handle pill (`44px` x `5px`, rounded-full, `#CBD5E1`) with touch drag feedback.
+     - Increased container corner radii to `28px 28px 0 0` on mobile and `24px` on desktop.
+     - Softened field borders with `14px` radius and subtle active focus rings.
+- **Production Minification**:
+  - Recompiled minified assets via `scripts/minify.py` (`style.min.css`, `app.min.js`).
+  - Incremented cachebuster query parameters (`1794680000`) across all HTML templates.

@@ -122,7 +122,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1794677900">
+  <link rel="stylesheet" href="css/style.min.css?v=1794680000">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -170,7 +170,15 @@
           <li><a href="physiology.html" class="nav-link">🫀 Physiology</a></li>
           <li><a href="biochemistry.html" class="nav-link">🧪 Biochemistry</a></li>
           <li><button type="button" class="pwa-install-trigger pwa-nav-btn" aria-label="Install App">📲 Install App</button></li>
-          <li><button type="button" class="request-nav-btn" id="nav-request-btn" aria-label="Request a PDF resource">📥 Request PDF</button></li>
+          <li><button type="button" class="request-nav-btn" id="nav-request-btn" aria-label="Request a PDF resource">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 4px; vertical-align: -1px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+            <span>Request PDF</span>
+          </button></li>
         </ul>
       </nav>
 
@@ -498,7 +506,12 @@
             <p class="request-modal-subtitle">Can't find a note, book, or question bank? Harsh will find and upload it.</p>
           </div>
         </div>
-        <button type="button" class="request-modal-close" id="request-modal-close" aria-label="Close request panel">✕</button>
+        <button type="button" class="request-modal-close" id="request-modal-close" aria-label="Close request panel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       <div id="request-modal-body-wrap">
@@ -530,24 +543,24 @@
               <div class="request-form-group">
                 <label for="request-subject" class="request-form-label">Subject</label>
                 <select id="request-subject" name="subject" class="request-form-select">
-                  <option value="anatomy" selected>🦴 Anatomy</option>
-                  <option value="physiology">🫀 Physiology</option>
-                  <option value="biochemistry">🧪 Biochemistry</option>
-                  <option value="community_medicine">🏥 Community Medicine</option>
-                  <option value="other">📚 Other / General</option>
+                  <option value="anatomy" selected>Anatomy</option>
+                  <option value="physiology">Physiology</option>
+                  <option value="biochemistry">Biochemistry</option>
+                  <option value="community_medicine">Community Medicine</option>
+                  <option value="other">Other / General</option>
                 </select>
               </div>
 
               <div class="request-form-group">
                 <label for="request-category" class="request-form-label">Resource Type</label>
                 <select id="request-category" name="category" class="request-form-select">
-                  <option value="notes">📝 Notes / Lecture Slides</option>
-                  <option value="book">📖 Textbook / Reference Book</option>
-                  <option value="practicals">🔬 Practical / Dissection Manual</option>
-                  <option value="assignments">📋 Assignment / Case Vignette</option>
-                  <option value="sdl">💡 SDL Module</option>
-                  <option value="questions">❓ Question Bank / PYQ</option>
-                  <option value="other">📦 Other Resource</option>
+                  <option value="notes">Notes / Lecture Slides</option>
+                  <option value="book">Textbook / Reference Book</option>
+                  <option value="practicals">Practical / Dissection Manual</option>
+                  <option value="assignments">Assignment / Case Vignette</option>
+                  <option value="sdl">SDL Module</option>
+                  <option value="questions">Question Bank / PYQ</option>
+                  <option value="other">Other Resource</option>
                 </select>
               </div>
             </div>
@@ -577,7 +590,7 @@
                   id="request-contact" 
                   name="contact" 
                   class="request-form-input" 
-                  placeholder="WhatsApp or Email (for ping)"
+                  placeholder="WhatsApp or Email (to notify you)"
                 >
               </div>
             </div>
@@ -769,8 +782,8 @@
     </div>
   </aside>
 
-  <script src="js/data.js?v=1794677900"></script>
-  <script src="js/app.min.js?v=1794677900"></script>
+  <script src="js/data.js?v=1794680000"></script>
+  <script src="js/app.min.js?v=1794680000"></script>
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js?v=1794462000" defer></script>
 </body>
