@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-physiology_assignmen-5537",
+    title: "Physiology Assignment (1) (1)",
+    subject: "physiology",
+    category: "assignments",
+    subcategories: ["assignments"],
+    code: "Physiology / Assignments",
+    description: "Uploaded document: Physiology Assignment (1) (1).pdf. Organized under Physiology / Assignments.",
+    tags: ["Physiology", "Assignments", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/505a5ee7-a734-4d97-9859-6cf22b0c7d5f",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment_.1._.1.pdf",
+    fileSize: "13.7 MB",
+    pages: "83 Pages",
+    author: "HarshKumarSaw",
+    date: "14 Nov 2026",
+    updatedAt: 1794645374,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_assignmen-7744",
     title: "Physiology Assignment (1)",
     subject: "physiology",
