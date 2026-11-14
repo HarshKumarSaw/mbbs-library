@@ -12,39 +12,21 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
-    id: "user-phys-physiology_assignmen-5537",
-    title: "Physiology Assignment (1) (1)",
+    id: "user-phys-physiology_assignment-0203",
+    title: "Physiology Assignment",
     subject: "physiology",
     category: "assignments",
     subcategories: ["assignments"],
     code: "Physiology / Assignments",
-    description: "Uploaded document: Physiology Assignment (1) (1).pdf. Organized under Physiology / Assignments.",
+    description: "Uploaded document: Physiology Assignment.pdf. Reference study material for Physiology.",
     tags: ["Physiology", "Assignments", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/505a5ee7-a734-4d97-9859-6cf22b0c7d5f",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment_.1._.1.pdf",
+    fileUrl: "https://cdn.steadylink.io/a/9ae47c72-150c-4fe3-b959-10b36adcea1b",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment.pdf",
     fileSize: "13.7 MB",
     pages: "83 Pages",
     author: "HarshKumarSaw",
     date: "14 Nov 2026",
-    updatedAt: 1794645374,
-    year: "1st Year MBBS"
-  },
-  {
-    id: "user-phys-physiology_assignmen-7744",
-    title: "Physiology Assignment (1)",
-    subject: "physiology",
-    category: "assignments",
-    subcategories: ["assignments"],
-    code: "Physiology / Assignments",
-    description: "Uploaded document: Physiology Assignment (1).pdf. Organized under Physiology / Assignments.",
-    tags: ["Physiology", "Assignments", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/86aa261d-89b5-4d3b-961d-572e96109dbf",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment_.1.pdf",
-    fileSize: "11.9 MB",
-    pages: "70 Pages",
-    author: "HarshKumarSaw",
-    date: "13 Nov 2026",
-    updatedAt: 1794567716,
+    updatedAt: 1794645620,
     year: "1st Year MBBS"
   },
   {
@@ -247,24 +229,6 @@ const MBBS_RESOURCES = [
     isLargeFile: true,
     storage: "github-release"
 
-  },
-  {
-    id: "user-phys-physiology_assignment-0203",
-    title: "Physiology Assignment",
-    subject: "physiology",
-    category: "assignments",
-    subcategories: ["assignments"],
-    code: "Physiology / Assignments",
-    description: "Uploaded document: Physiology Assignment.pdf. Reference study material for Physiology.",
-    tags: ["Physiology", "Assignments", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/9ae47c72-150c-4fe3-b959-10b36adcea1b",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Assignment.pdf",
-    fileSize: "10.8 MB",
-    pages: "64 Pages",
-    author: "HarshKumarSaw",
-    date: "12 Nov 2026",
-    updatedAt: 1794463761,
-    year: "1st Year MBBS"
   },
   {
     id: "user-bioc-biochemistry_aetcom_-0068",
