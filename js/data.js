@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-bioc-vasudevan_practical_-3622",
+    title: "Vasudevan Practical Chemistry",
+    subject: "biochemistry",
+    category: "practicals",
+    subcategories: ["practicals"],
+    code: "Biochemistry / Practicals",
+    description: "Uploaded document: Vasudevan Practical Chemistry.pdf. Organized under Biochemistry / Practicals.",
+    tags: ["Biochemistry", "Practicals", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/3f45d1e5-a549-4be7-96d9-8f04ac26270b",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Vasudevan_Practical_Chemistry.pdf",
+    fileSize: "5.2 MB",
+    pages: "161 Pages",
+    author: "HarshKumarSaw",
+    date: "14 Nov 2026",
+    updatedAt: 1794673573,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_assignment-0203",
     title: "Physiology Assignment",
     subject: "physiology",
