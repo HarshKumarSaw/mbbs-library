@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-anatomy_sdl-0990",
+    title: "Anatomy SDL",
+    subject: "anatomy",
+    category: "sdl",
+    subcategories: ["sdl"],
+    code: "Anatomy / SDL",
+    description: "Uploaded document: Anatomy SDL.pdf. Reference study material for Anatomy.",
+    tags: ["Anatomy", "SDL", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/c01d6f67-476f-479d-8dd2-8d4f89dbda44",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_SDL.pdf",
+    fileSize: "3.5 MB",
+    pages: "22 Pages",
+    author: "HarshKumarSaw",
+    date: "18 Nov 2026",
+    updatedAt: 1795011474,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-bioc-vasudevan_practical_-3622",
     title: "Vasudevan Practical Chemistry",
     subject: "biochemistry",
@@ -1160,24 +1178,6 @@ const MBBS_RESOURCES = [
     year: "1st Year MBBS",
     isLargeFile: true,
     storage: "github-release"
-  },
-  {
-    id: "user-anat-anatomy_sdl-0990",
-    title: "Anatomy SDL",
-    subject: "anatomy",
-    category: "sdl",
-    subcategories: ["sdl"],
-    code: "Anatomy / SDL",
-    description: "Uploaded document: Anatomy SDL.pdf. Reference study material for Anatomy.",
-    tags: ["Anatomy", "SDL", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/c01d6f67-476f-479d-8dd2-8d4f89dbda44",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_SDL.pdf",
-    fileSize: "3.2 MB",
-    pages: "20 Pages",
-    author: "HarshKumarSaw",
-    date: "09 Nov 2026",
-    updatedAt: 1794208425,
-    year: "1st Year MBBS"
   },
   {
     id: "user-anat-histology-1516",
