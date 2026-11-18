@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-anatomy_diagrams-6058",
+    title: "Anatomy Diagrams",
+    subject: "anatomy",
+    category: "diagrams",
+    subcategories: ["diagrams"],
+    code: "Anatomy / Diagrams",
+    description: "Uploaded document: Anatomy Diagrams.pdf. Organized under Anatomy (Diagrams).",
+    tags: ["Anatomy", "Diagrams", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/92fb8c97-2fae-4b6d-aad9-797e7f0acf45",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_Diagrams.pdf",
+    fileSize: "1.4 MB",
+    pages: "14 Pages",
+    author: "HarshKumarSaw",
+    date: "18 Nov 2026",
+    updatedAt: 1795022154,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-anat-anatomy_sdl-0990",
     title: "Anatomy SDL",
     subject: "anatomy",
@@ -991,24 +1009,6 @@ const MBBS_RESOURCES = [
     isLargeFile: true,
     storage: "github-release"
 
-  },
-  {
-    id: "user-anat-anatomy_diagrams-6058",
-    title: "Anatomy Diagrams",
-    subject: "anatomy",
-    category: "diagrams",
-    subcategories: ["diagrams"],
-    code: "Anatomy / Diagrams",
-    description: "Uploaded document: Anatomy Diagrams.pdf. Organized under Anatomy (Diagrams).",
-    tags: ["Anatomy", "Diagrams", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/92fb8c97-2fae-4b6d-aad9-797e7f0acf45",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Anatomy_Diagrams.pdf",
-    fileSize: "1013 KB",
-    pages: "13 Pages",
-    author: "HarshKumarSaw",
-    date: "09 Nov 2026",
-    updatedAt: 1794243987,
-    year: "1st Year MBBS"
   },
   {
     id: "user-bioc-biochemistry_notes_j-4425",
