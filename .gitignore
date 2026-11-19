@@ -11,3 +11,7 @@ __pycache__/
 node_modules/
 .onesignal_key
 *.key
+.college_ical_url
+.env
+.env.*
+*.secret

@@ -1730,3 +1730,33 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 63
+
+---
+
+### Session 6: College Timetable Feature Implementation (Nov 19, 2026 ~11:00 - 11:20 UTC)
+- **Feature**: Complete College Timetable system powered by Google Calendar iCal feed in Asia/Kolkata timezone.
+- **Security & Privacy Shielding**:
+  - Protected private iCal feed URL via secure server-side proxy (`scripts/timetable_proxy.py`).
+  - Read from `COLLEGE_ICAL_URL` environment variable or `.college_ical_url` file (enforced in `.gitignore`).
+  - Zero private tokens, secret URLs, or personal events exposed to frontend code or GitHub.
+- **Smart Filtering Engine**:
+  - Filtered 844+ calendar events down to verified college academic sessions.
+  - Automatically filters out personal routines, sleep schedules, birthdays, chores, and old NEET prep.
+  - Displays exclusively: Anatomy (Lectures, Dissection, DOAP, SGT, Histology), Physiology, Biochemistry, AETCOM, ECE, Practicals, and Tests.
+  - Recurrence engine handles `RRULE:FREQ=WEEKLY`, `FREQ=DAILY`, `EXDATE` cancellations, and `RECURRENCE-ID` topic overrides.
+  - Configurable include/exclude keyword overrides and manual event exclusion via Settings Modal.
+- **UI & Views**:
+  - Built dedicated `timetable.html`, `css/timetable.css`, and `js/timetable.js`.
+  - **Today View**: Highlights current day's classes, live "Happening Now" banner with active session progress bar, and "Next Up" card.
+  - **Weekly View**: Monday to Saturday day switcher pills with automatic highlight for current day and session count indicators.
+  - **Upcoming View**: Next 14 days chronologically grouped by date.
+  - Subject-based color coding matching existing design system (Anatomy Coral, Physiology Lavender, Biochemistry Mint, AETCOM Amber).
+  - Bottom-sheet Session Details modal with full competency codes, faculty names, department location, and 1-click `.ics` calendar export.
+- **Lifecycle & Resilience**:
+  - Auto-refreshes every 15 minutes in background.
+  - Manual Refresh button with rotation animation and last synced indicator.
+  - Triple-tier resilience: (1) `/api/timetable` proxy, (2) `assets/data/timetable_college.json` pre-synced cache, (3) public CORS proxy fallback, (4) offline `localStorage` cache for 0ms launch.
+  - Updated PWA manifest shortcuts and service worker (`sw.js`) cache list.
+- **Production Minification**:
+  - Minified `css/timetable.min.css` and `js/timetable.min.js` via `scripts/minify.py`.
+  - Updated cache-busting query strings across all HTML templates.

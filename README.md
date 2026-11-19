@@ -18,6 +18,11 @@ A modern, lightweight, mobile-friendly academic digital library website built fo
   3. 💡 **SDLs**: Competency-Based Medical Education (CBME) Self-Directed Learning modules
   4. 🔬 **Practicals**: Dissection guides, lab manuals, microscopic spotters
   5. 📦 **Other Resources**: Previous 10-year university question banks, viva flashcards, normal values cheat sheets
+- **Live College Timetable Engine**:
+  - Live synced with official Google Calendar iCal feed in Asia/Kolkata timezone.
+  - Strict smart filtering: displays ONLY college academic sessions (Anatomy, Physiology, Biochemistry, AETCOM, Practicals, Dissection, SGT, SDL), filtering out personal routines, birthdays, and NEET prep.
+  - Three distinct views: **Today** (with live "Happening Now" progress bar & "Next Up"), **Weekly** (Monday–Saturday tabs with today auto-highlighted), and **Upcoming** (chronological next 14 days).
+  - Secure server-side proxy (`scripts/timetable_proxy.py`) protecting private feed URLs from client-side exposure.
 - **Dual PDF Action**:
   - **View PDF**: Responsive in-page document reader modal with fullscreen and external browser tab options.
   - **Download PDF**: Direct, one-click download with standard HTML5 download attributes.
@@ -36,23 +41,27 @@ A modern, lightweight, mobile-friendly academic digital library website built fo
 ```
 mbbs-resource-library/
 ├── index.html                   # Central library portal with search & filters
+├── timetable.html               # Live College Timetable (Today, Weekly, Upcoming)
 ├── anatomy.html                 # Dedicated Anatomy department portal
 ├── physiology.html              # Dedicated Physiology department portal
 ├── biochemistry.html            # Dedicated Biochemistry department portal
 ├── 404.html                     # Fallback not-found page
 ├── .nojekyll                    # Ensures GitHub Pages serves files directly
 ├── css/
-│   └── style.css                # Clean navy & white responsive design system
+│   ├── style.css                # Clean navy & white responsive design system
+│   └── timetable.css            # Notion-style timetable layout & color tokens
 ├── js/
 │   ├── app.js                   # Live search engine, filters, modal viewer
+│   ├── timetable.js             # Live iCal parser, recurrence engine & filters
 │   └── data.js                  # Centralized client-side resource database
 ├── assets/
+│   ├── data/
+│   │   └── timetable_college.json # Pre-synced college-only timetable cache
 │   └── docs/                    # Stored medical PDF documents
-│       ├── anatomy/             # Anatomy notes, SDLs, practical manuals
-│       ├── physiology/          # Physiology notes, ECG cases, lab guides
-│       └── biochemistry/        # Biochemistry metabolic charts & manuals
 └── scripts/
-    └── generate_sample_pdfs.sh  # Generator for valid starter PDFs
+    ├── timetable_proxy.py       # Secure local/server proxy shielding private iCal
+    ├── sync_timetable.py        # College timetable pre-sync & sanitizer
+    └── sync_from_phone.sh       # Two-way sync engine
 ```
 
 ---
@@ -117,6 +126,16 @@ Run the SteadyLink upload utility:
 python3 scripts/migrate_to_steadylink.py
 ```
 This uploads new documents directly to SteadyLink, maps them to `https://cdn.steadylink.io/a/{asset_id}`, and updates `js/data.js`.
+
+### 3. College Timetable & Secure Proxy
+To run the live timetable proxy locally in Termux or on a server:
+```bash
+python3 scripts/timetable_proxy.py --port 8080
+```
+- Reads the private iCal feed URL from `COLLEGE_ICAL_URL` environment variable or `.college_ical_url` (git-ignored).
+- Never exposes private keys or secret calendar tokens to the browser.
+- Automatically handles CORS and in-memory response caching.
+- On GitHub Pages without a proxy server, the frontend automatically uses the pre-synced college JSON cache or falls back to the public calendar feed via a CORS proxy.
 
 ---
 
