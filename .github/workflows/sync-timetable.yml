@@ -1,0 +1,56 @@
+name: Auto-Sync College Timetable from Google Calendar
+
+on:
+  schedule:
+    # Runs every 2 hours throughout the day
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Allows manual 1-click trigger anytime from GitHub UI
+  push:
+    paths:
+      - 'scripts/sync_timetable.py'
+      - 'scripts/timetable_proxy.py'
+      - '.github/workflows/sync-timetable.yml'
+
+concurrency:
+  group: sync-timetable
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-deploy:
+    name: Sync Calendar Feed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch Google Calendar Feed & Generate Timetable Cache
+        env:
+          COLLEGE_ICAL_URL: ${{ secrets.COLLEGE_ICAL_URL }}
+        run: |
+          python3 scripts/sync_timetable.py
+
+      - name: Commit and Push Updated Timetable
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/data/timetable_college.json
+          if git diff --staged --quiet; then
+            echo "✅ Timetable is already up to date. No new calendar changes detected."
+          else
+            echo "📥 New calendar changes detected! Committing and pushing..."
+            git commit -m "chore(timetable): auto-sync with latest Google Calendar [skip ci]"
+            git push
+          fi
