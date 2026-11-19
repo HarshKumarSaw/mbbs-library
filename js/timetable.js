@@ -20,11 +20,16 @@
   // Default filtering keywords
   const DEFAULT_EXCLUDE_KEYWORDS = [
     "birthday", "anniversary", "marriage", "sleep", "routine", "dinner", "reading", "exercise",
-    "water plants", "journaling", "brush", "freshen up", "meditation", "planning", "eat something",
+    "water plants", "journaling", "brush", "freshen up", "meditation", "meditate", "planning", "eat something",
     "study session", "power hour", "revise", "revision", "canva", "times prime", "vehicle registration",
-    "shopping", "demon slayer", "spider", "animal", "stree 2", "crowdsource", "aptitude test",
-    "botany |", "chemistry |", "physics |", "zoology |", "aiats", "cst", "nbts", "pst",
-    "project phoenix", "pre-neet", "test darwin", "test :", "test-", "bus trip"
+    "shopping", "groceries", "haircut", "workout", "gym", "make bed", "listen articles", "drop school",
+    "growth 365", "study psychology", "study time",
+    "demon slayer", "spider", "animal (a)", "animal", "stree 2", "shaitan", "movie", "netflix", "youtube", "cinema",
+    "crowdsource", "aptitude test", "contrarian investing", "harsh और",
+    "coaching", "🧑🏻‍🏫 coaching",
+    "botany |", "chemistry |", "physics |", "zoology |",
+    "aiats", "cst", "nbts", "pst", "fts", "ft-", "project phoenix", "pre-neet", "pre neet", "test darwin", "test :", "test-", "mock", "neet form",
+    "bus trip", "train trip", "flight"
   ];
 
   const DEFAULT_COLLEGE_SUBJECTS = [
@@ -164,7 +169,7 @@
   }
 
   // --- Filtering & Heuristics ---
-  function isCollegeEvent(summary, desc, loc) {
+  function isCollegeEvent(summary, desc, loc, startDt, endDt) {
     if (!summary) return false;
     const sLow = summary.toLowerCase().trim();
     const dLow = (desc || "").toLowerCase();
@@ -182,23 +187,43 @@
     }
 
     if (state.strictCollegeFilter) {
-      // Check default exclusion keywords
+      // 1. Check default exclusion keywords
       for (const exc of DEFAULT_EXCLUDE_KEYWORDS) {
         if (sLow.includes(exc)) return false;
       }
 
-      // Check positive subject indicators
-      for (const subj of DEFAULT_COLLEGE_SUBJECTS) {
-        if (sLow.includes(subj) || lLow.includes(subj) || dLow.includes("department of " + subj)) {
-          return true;
+      // 2. Skip broad 8h umbrella block
+      if (summary === "🏫 College" || summary === "College") {
+        if (startDt && endDt) {
+          const durationHrs = (endDt.getTime() - startDt.getTime()) / (1000 * 60 * 60);
+          if (durationHrs >= 6 || (startDt.getHours() <= 9 && endDt.getHours() >= 17)) {
+            return false;
+          }
+        } else if (sLow === "college") {
+          return false;
         }
       }
 
-      // Check college location and session keywords
-      if (fullText.includes("medical college") || fullText.includes("jagdalpur") ||
-          sLow.includes("dissection") || sLow.includes("doap") || sLow.includes("sgt") ||
-          sLow.includes("histology") || sLow.includes("sdl")) {
-        return true;
+      // 3. Check positive college & holiday indicators
+      const collegeKeywords = [
+        "anatomy", "physiology", "biochemistry", "pathology", "pharmacology", "microbiology",
+        "community medicine", "psm", "forensic", "aetcom", "ece", "sports & eca", "sports", "holiday",
+        "medical college", "dissection", "doap", "sgt", "histology", "sdl", "recess", "lunch"
+      ];
+      for (const subj of collegeKeywords) {
+        if (fullText.includes(subj)) return true;
+      }
+
+      // 4. Mon-Sat 9:00 AM - 5:00 PM college timing check (future-proof inclusion)
+      if (startDt) {
+        const day = startDt.getDay();
+        if (day >= 1 && day <= 6) {
+          // Starts between 08:30 and 16:59
+          const hr = startDt.getHours();
+          if (hr >= 8 && hr < 17) {
+            return true;
+          }
+        }
       }
 
       return false;
@@ -208,31 +233,63 @@
   }
 
   function detectSubject(summary, desc, loc) {
-    const s = `${summary} ${desc} ${loc}`.toLowerCase();
-    if (s.includes("anatomy") || s.includes("dissection") || s.includes("histology") || s.includes("an ")) {
-      return "anatomy";
-    }
-    if (s.includes("physiology") || s.includes("py ") || s.includes("ecg")) {
-      return "physiology";
-    }
-    if (s.includes("biochemistry") || s.includes("bc ") || s.includes("urine sample") || s.includes("lipid") || s.includes("protein")) {
-      return "biochemistry";
-    }
-    if (s.includes("aetcom")) {
-      return "aetcom";
-    }
-    if (s.includes("ece")) {
-      return "ece";
-    }
-    if (s.includes("sports") || s.includes("eca")) {
-      return "sports";
-    }
-    if (s.includes("holiday") || s.includes("dussehra") || s.includes("diwali")) {
-      return "holiday";
-    }
-    if (s.includes("lunch")) {
+    const titleLow = (summary || "").toLowerCase().trim();
+    const fullText = `${summary || ""} ${desc || ""} ${loc || ""}`.toLowerCase();
+
+    if (titleLow.includes("lunch") || titleLow.includes("break") || titleLow.includes("recess")) {
       return "break";
     }
+    if (titleLow.includes("holiday") || titleLow.includes("vacation") || titleLow.includes("dussehra") || titleLow.includes("diwali")) {
+      return "holiday";
+    }
+    if (titleLow.includes("biochemistry") || /\bbc\s*\d/i.test(titleLow)) {
+      return "biochemistry";
+    }
+    if (titleLow.includes("physiology") || /\bpy\s*\d/i.test(titleLow)) {
+      return "physiology";
+    }
+    if (titleLow.includes("anatomy") || titleLow.includes("dissection") || titleLow.includes("histology") || /\ban\s*\d/i.test(titleLow)) {
+      return "anatomy";
+    }
+    if (titleLow.includes("aetcom")) {
+      return "aetcom";
+    }
+    if (titleLow.includes("ece")) {
+      return "ece";
+    }
+    if (titleLow.includes("sports") || titleLow.includes("eca")) {
+      return "sports";
+    }
+    if (titleLow.includes("pathology")) {
+      return "pathology";
+    }
+    if (titleLow.includes("pharmacology")) {
+      return "pharmacology";
+    }
+    if (titleLow.includes("microbiology")) {
+      return "microbiology";
+    }
+    if (titleLow.includes("community medicine") || titleLow.includes("psm")) {
+      return "community";
+    }
+    if (titleLow.includes("forensic") || titleLow.includes("fmt")) {
+      return "forensic";
+    }
+    if (/clinic|posting|ward|surgery|pediatrics|medicine|obg|ophthalmology|ent|orthopedics/i.test(titleLow)) {
+      return "clinical";
+    }
+
+    // Full text heuristics with word boundaries
+    if (/\b(biochemistry|urine sample|lipid|protein|carbohydrate|vitamins)\b/i.test(fullText)) {
+      return "biochemistry";
+    }
+    if (/\b(physiology|ecg|git disorders|salivary|pancreas|colon)\b/i.test(fullText)) {
+      return "physiology";
+    }
+    if (/\b(anatomy|dissection|histology|pericardium|sternum|mediastinum|heart|lungs|atrium)\b/i.test(fullText)) {
+      return "anatomy";
+    }
+
     return "general";
   }
 
@@ -372,13 +429,14 @@
 
       if (status.toUpperCase() === "CANCELLED") continue;
       if (state.manualExcludedUids.has(uid)) continue;
-      if (!isCollegeEvent(summary, desc, loc)) continue;
 
       const startDt = parseIcsDate(startMatch[1].trim());
       if (!startDt) continue;
 
       const endMatch = ev.match(/DTEND(?:;[^:]+)?:([0-9TZ]+)/);
       let endDt = endMatch ? parseIcsDate(endMatch[1].trim()) : new Date(startDt.getTime() + 60 * 60 * 1000);
+
+      if (!isCollegeEvent(summary, desc, loc, startDt, endDt)) continue;
 
       // Parse EXDATE
       const exRegex = /EXDATE(?:;[^:]+)?:([0-9TZ,]+)/g;
@@ -400,12 +458,19 @@
       const subject = detectSubject(summary, desc, loc);
       const meta = extractMetadata(summary, desc, subject);
 
+      let finalTitle = summary;
+      let finalFaculty = meta.faculty;
+      if (subject === "break") {
+        finalTitle = "Lunch Break";
+        finalFaculty = "Recess / Lunch";
+      }
+
       const eventObj = {
         uid,
-        title: summary,
+        title: finalTitle,
         description: desc,
         cleanDesc: meta.cleanDesc,
-        faculty: meta.faculty,
+        faculty: finalFaculty,
         competency: meta.competency,
         location: loc || "Lt. BRKM Govt. Medical College, Jagdalpur",
         startDate: startDt,
@@ -504,6 +569,50 @@
     }
 
     timeSlotMap.forEach((ev) => deduplicated.push(ev));
+
+    // Auto-inject standard Lunch Break (01:00 PM – 02:00 PM) for college days lacking lunch break
+    const byDateMap = new Map();
+    for (const ev of deduplicated) {
+      const dStr = ev.startDate.toDateString();
+      if (!byDateMap.has(dStr)) byDateMap.set(dStr, []);
+      byDateMap.get(dStr).push(ev);
+    }
+
+    byDateMap.forEach((dayEvents, dStr) => {
+      const firstEv = dayEvents[0];
+      const dayOfWeek = firstEv.startDate.getDay();
+      if (dayOfWeek === 0) return; // Skip Sunday
+
+      // Only inject on active college days with classes (not solely an all-day holiday)
+      const hasClasses = dayEvents.some((e) => e.subject !== "holiday");
+      if (!hasClasses) return;
+
+      const hasLunch = dayEvents.some((e) => e.startDate.getHours() === 13);
+      if (!hasLunch) {
+        const d = firstEv.startDate;
+        const lunchStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 13, 0, 0);
+        const lunchEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 14, 0, 0);
+        const ymd = `${lunchStart.getFullYear()}-${String(lunchStart.getMonth() + 1).padStart(2, "0")}-${String(lunchStart.getDate()).padStart(2, "0")}`;
+
+        deduplicated.push({
+          uid: `college_lunch_${ymd}`,
+          title: "Lunch Break",
+          description: "Daily college lunch recess (01:00 PM – 02:00 PM).",
+          cleanDesc: "Daily college lunch recess (01:00 PM – 02:00 PM).",
+          faculty: "Recess / Lunch",
+          competency: "",
+          location: "College Campus / Cafeteria",
+          startDate: lunchStart,
+          endDate: lunchEnd,
+          startIso: lunchStart.toISOString(),
+          endIso: lunchEnd.toISOString(),
+          subject: "break",
+          sessionType: "break",
+          rawRrule: null
+        });
+      }
+    });
+
     deduplicated.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
     return deduplicated;

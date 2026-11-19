@@ -20,12 +20,21 @@ import scripts.timetable_proxy as tp
 OUTPUT_JSON = os.path.join(REPO_DIR, "assets", "data", "timetable_college.json")
 
 EXCLUDE_KEYWORDS = [
+    # Habits & routines
     "birthday", "anniversary", "marriage", "sleep", "routine", "dinner", "reading", "exercise",
-    "water plants", "journaling", "brush", "freshen up", "meditation", "planning", "eat something",
+    "water plants", "journaling", "brush", "freshen up", "meditation", "meditate", "planning", "eat something",
     "study session", "power hour", "revise", "revision", "canva", "times prime", "vehicle registration",
-    "shopping", "demon slayer", "spider", "animal", "stree 2", "crowdsource", "aptitude test",
-    "botany |", "chemistry |", "physics |", "zoology |", "aiats", "cst", "nbts", "pst",
-    "project phoenix", "pre-neet", "test darwin", "test :", "test-", "bus trip"
+    "shopping", "groceries", "haircut", "workout", "gym", "make bed", "listen articles", "drop school",
+    "growth 365", "study psychology", "study time",
+    # Entertainment & movies
+    "demon slayer", "spider", "animal (a)", "animal", "stree 2", "shaitan", "movie", "netflix", "youtube", "cinema",
+    # Personal finance / misc
+    "crowdsource", "aptitude test", "contrarian investing", "harsh और",
+    # Old NEET prep / Coaching keywords
+    "coaching", "🧑🏻‍🏫 coaching",
+    "botany |", "chemistry |", "physics |", "zoology |",
+    "aiats", "cst", "nbts", "pst", "fts", "ft-", "project phoenix", "pre-neet", "pre neet", "test darwin", "test :", "test-", "mock", "neet form",
+    "bus trip", "train trip", "flight"
 ]
 
 COLLEGE_SUBJECTS = [
@@ -33,24 +42,38 @@ COLLEGE_SUBJECTS = [
     "forensic", "pathology", "pharmacology", "microbiology", "sports & eca", "college"
 ]
 
-def is_college_event(summary, description="", location=""):
+def is_college_event(summary, description="", location="", start_dt=None, end_dt=None):
     s_low = summary.lower().strip()
     d_low = description.lower()
     l_low = location.lower()
     full_text = f"{s_low} {d_low} {l_low}"
 
+    # 1. Personal exclusion check
     for exc in EXCLUDE_KEYWORDS:
         if exc in s_low:
             return False
 
-    for subj in COLLEGE_SUBJECTS:
-        if subj in s_low or subj in l_low or (f"department of {subj}" in d_low):
+    # 2. Skip broad 8h umbrella block
+    if summary in ["🏫 College", "College"]:
+        if start_dt and end_dt:
+            duration = (end_dt - start_dt).total_seconds()
+            if duration >= 21600 or (start_dt.hour <= 9 and end_dt.hour >= 17):
+                return False
+        elif "college" == s_low:
+            return False
+
+    # 3. Explicit college/holiday keyword check (also covers holidays on any day)
+    for subj in ["anatomy", "physiology", "biochemistry", "pathology", "pharmacology", "microbiology",
+                 "community medicine", "psm", "forensic", "aetcom", "ece", "sports & eca", "holiday",
+                 "medical college", "dissection", "doap", "sgt", "histology", "sdl", "recess", "lunch"]:
+        if subj in full_text:
             return True
 
-    if ("medical college" in full_text or "jagdalpur" in full_text or
-        "dissection" in full_text or "doap" in full_text or "sgt" in full_text or
-        "histology" in full_text or "sdl" in full_text):
-        return True
+    # 4. Mon-Sat 9:00 AM - 5:00 PM college timing check (future-proof inclusion)
+    if start_dt and start_dt.weekday() < 6:
+        # College timing: starts between 08:30 and 16:59
+        if 8 <= start_dt.hour < 17:
+            return True
 
     return False
 
@@ -65,24 +88,47 @@ def parse_iso_date(dt_str):
         dt = dt + datetime.timedelta(hours=5, minutes=30)
     return dt
 
-def detect_subject(summary, desc, loc):
-    s = f"{summary} {desc} {loc}".lower()
-    if "anatomy" in s or "dissection" in s or "histology" in s or "an " in s:
-        return "anatomy"
-    if "physiology" in s or "py " in s or "ecg" in s:
-        return "physiology"
-    if "biochemistry" in s or "bc " in s or "urine sample" in s or "lipid" in s or "protein" in s:
-        return "biochemistry"
-    if "aetcom" in s:
-        return "aetcom"
-    if "ece" in s:
-        return "ece"
-    if "sports" in s or "eca" in s:
-        return "sports"
-    if "holiday" in s or "dussehra" in s or "diwali" in s:
-        return "holiday"
-    if "lunch" in s:
+def detect_subject(summary, desc="", loc=""):
+    title_low = summary.lower().strip()
+    full_text = f"{summary} {desc} {loc}".lower()
+
+    if "lunch" in title_low or "break" in title_low or "recess" in title_low:
         return "break"
+    if "holiday" in title_low or "vacation" in title_low or "dussehra" in title_low or "diwali" in title_low:
+        return "holiday"
+    if "biochemistry" in title_low or re.search(r"\bbc\s*\d", title_low):
+        return "biochemistry"
+    if "physiology" in title_low or re.search(r"\bpy\s*\d", title_low):
+        return "physiology"
+    if "anatomy" in title_low or "dissection" in title_low or "histology" in title_low or re.search(r"\ban\s*\d", title_low):
+        return "anatomy"
+    if "aetcom" in title_low:
+        return "aetcom"
+    if "ece" in title_low:
+        return "ece"
+    if "sports" in title_low or "eca" in title_low:
+        return "sports"
+    if "pathology" in title_low:
+        return "pathology"
+    if "pharmacology" in title_low:
+        return "pharmacology"
+    if "microbiology" in title_low:
+        return "microbiology"
+    if "community medicine" in title_low or "psm" in title_low:
+        return "community"
+    if "forensic" in title_low or "fmt" in title_low:
+        return "forensic"
+    if any(k in title_low for k in ["clinic", "posting", "ward", "surgery", "pediatrics", "medicine", "obg", "ophthalmology", "ent", "orthopedics"]):
+        return "clinical"
+
+    # Contextual regex with word boundaries
+    if re.search(r"\b(biochemistry|urine sample|lipid|protein|carbohydrate|vitamins)\b", full_text):
+        return "biochemistry"
+    if re.search(r"\b(physiology|ecg|git disorders|salivary|pancreas|colon)\b", full_text):
+        return "physiology"
+    if re.search(r"\b(anatomy|dissection|histology|pericardium|sternum|mediastinum|heart|lungs|atrium)\b", full_text):
+        return "anatomy"
+
     return "general"
 
 def detect_session_type(summary, desc):
@@ -202,11 +248,14 @@ def sync_timetable():
         loc = loc_m.group(1).strip() if loc_m else ""
         status = status_m.group(1).strip() if status_m else "CONFIRMED"
 
-        if status.upper() == "CANCELLED" or not is_college_event(summary, desc, loc):
+        if status.upper() == "CANCELLED":
             continue
 
         start_dt = parse_iso_date(start_m.group(1).strip())
         end_dt = parse_iso_date(end_m.group(1).strip()) if end_m else (start_dt + datetime.timedelta(hours=1))
+
+        if not is_college_event(summary, desc, loc, start_dt, end_dt):
+            continue
 
         # Check exdate
         for ex_match in re.finditer(r"EXDATE(?:;[^:]+)?:([0-9TZ,]+)", ev):
@@ -217,11 +266,15 @@ def sync_timetable():
         sub = detect_subject(summary, desc, loc)
         fac, comp = extract_faculty_and_competency(summary, desc, sub)
 
+        if sub == "break":
+            summary = "Lunch Break"
+            fac = "Recess / Lunch"
+
         event_obj = {
             "uid": uid,
             "title": summary,
             "description": desc,
-            "location": loc,
+            "location": loc or "Lt. BRKM Govt. Medical College, Jagdalpur",
             "faculty": fac,
             "competency": comp,
             "start": start_dt.strftime("%Y-%m-%d %H:%M:%S"),
@@ -301,6 +354,44 @@ def sync_timetable():
             by_time[key] = ev
 
     cleaned_events = list(by_time.values())
+
+    # Auto-inject standard Lunch Break (01:00 PM – 02:00 PM) for college days lacking lunch break
+    by_date = {}
+    for ev in cleaned_events:
+        d = ev["start"][:10]
+        by_date.setdefault(d, []).append(ev)
+
+    injected_lunches = []
+    for d, day_evs in by_date.items():
+        dt = datetime.datetime.strptime(d, "%Y-%m-%d")
+        if dt.weekday() == 6:  # Skip Sunday
+            continue
+        # Ensure it is an active college day with classes (not solely an all-day holiday)
+        college_classes = [e for e in day_evs if e["subject"] != "holiday"]
+        if not college_classes:
+            continue
+
+        # Check if lunch break already exists (start hour is 13)
+        has_lunch = any(e["start"][11:13] == "13" for e in day_evs)
+        if not has_lunch:
+            lunch_ev = {
+                "uid": f"college_lunch_{d}",
+                "title": "Lunch Break",
+                "description": "Daily college lunch recess (01:00 PM – 02:00 PM).",
+                "location": "College Campus / Cafeteria",
+                "faculty": "Recess / Lunch",
+                "competency": "",
+                "start": f"{d} 13:00:00",
+                "end": f"{d} 14:00:00",
+                "start_iso": f"{d}T13:00:00+05:30",
+                "end_iso": f"{d}T14:00:00+05:30",
+                "subject": "break",
+                "session_type": "break",
+                "raw_rrule": None
+            }
+            injected_lunches.append(lunch_ev)
+
+    cleaned_events.extend(injected_lunches)
     cleaned_events.sort(key=lambda x: x["start"])
 
     os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)
