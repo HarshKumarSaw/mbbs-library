@@ -193,9 +193,6 @@
             <button type="button" class="tab-btn active" data-view="today" role="tab" aria-selected="true">
               Today <span class="tab-count-badge" id="tab-count-today">0</span>
             </button>
-            <button type="button" class="tab-btn" data-view="weekly" role="tab" aria-selected="false">
-              Weekly (Mon–Sat) <span class="tab-count-badge" id="tab-count-weekly">6D</span>
-            </button>
             <button type="button" class="tab-btn" data-view="upcoming" role="tab" aria-selected="false">
               Upcoming <span class="tab-count-badge" id="tab-count-upcoming">0</span>
             </button>
@@ -225,11 +222,6 @@
 
   <!-- Main Content Container -->
   <main class="container" style="padding-top: 1.25rem; min-height: 55vh;">
-    <!-- Weekly Days Pill Navigation (Mon-Sat, shown in Weekly view) -->
-    <div id="days-nav-wrapper" style="display: none;">
-      <div class="timetable-days-nav" id="days-nav"></div>
-    </div>
-
     <!-- Secondary Filters (Subject Pills + Type Select + Search) -->
     <div class="timetable-filter-bar">
       <div class="filter-pills-scroll" role="group" aria-label="Subject filter">

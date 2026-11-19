@@ -34,8 +34,7 @@
 
   // Application State
   const state = {
-    activeView: "today",       // 'today', 'weekly', 'upcoming'
-    selectedDayIndex: 1,       // 1 = Monday ... 6 = Saturday (0 = Sunday)
+    activeView: "today",       // 'today' or 'upcoming'
     selectedSubject: "all",
     selectedSessionType: "all",
     searchQuery: "",
@@ -60,10 +59,7 @@
       filterSettingsBtn: document.getElementById("btn-filter-settings"),
       viewTabs: document.querySelectorAll(".timetable-nav-tabs .tab-btn"),
       tabTodayCount: document.getElementById("tab-count-today"),
-      tabWeeklyCount: document.getElementById("tab-count-weekly"),
       tabUpcomingCount: document.getElementById("tab-count-upcoming"),
-      daysNavWrapper: document.getElementById("days-nav-wrapper"),
-      daysNav: document.getElementById("days-nav"),
       subjectPills: document.querySelectorAll(".filter-pills-scroll .sub-pill"),
       typeSelect: document.getElementById("session-type-select"),
       searchInput: document.getElementById("timetable-search-input"),
@@ -731,55 +727,6 @@
       return s.startDate >= now && s.startDate < upcomingEnd;
     });
     if (DOM.tabUpcomingCount) DOM.tabUpcomingCount.textContent = upcomingSessions.length;
-
-    // Weekly day buttons count
-    renderDaysNavButtons();
-  }
-
-  function renderDaysNavButtons() {
-    if (!DOM.daysNav) return;
-    const now = getNowInKolkata();
-    const currentDayOfWeek = now.getDay(); // 0 = Sun, 1 = Mon, ... 6 = Sat
-
-    // Calculate dates for current week (Mon to Sat)
-    const monOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
-    const mondayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + monOffset);
-
-    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    let html = "";
-
-    for (let i = 0; i < 6; i++) {
-      const dayIndex = i + 1; // 1 to 6
-      const d = new Date(mondayDate.getFullYear(), mondayDate.getMonth(), mondayDate.getDate() + i);
-      const isToday = d.toDateString() === now.toDateString();
-      const isActive = state.selectedDayIndex === dayIndex;
-
-      // Count sessions for this day
-      const count = state.allCollegeSessions.filter((s) => {
-        const sd = s.startDate;
-        return sd.getFullYear() === d.getFullYear() && sd.getMonth() === d.getMonth() && sd.getDate() === d.getDate();
-      }).length;
-
-      html += `
-        <button type="button" class="day-pill-btn ${isActive ? "active" : ""} ${isToday ? "is-today" : ""}" data-day-index="${dayIndex}">
-          <span class="day-label">${dayNames[i]}</span>
-          <span class="day-num">${d.getDate()}</span>
-          <span class="day-count">${count} classes</span>
-        </button>
-      `;
-    }
-
-    DOM.daysNav.innerHTML = html;
-
-    // Attach click listeners to day pills
-    const pillButtons = DOM.daysNav.querySelectorAll(".day-pill-btn");
-    pillButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        state.selectedDayIndex = parseInt(btn.getAttribute("data-day-index"), 10);
-        renderDaysNavButtons();
-        renderTimeline();
-      });
-    });
   }
 
   function renderHappeningNowBanner() {
@@ -851,7 +798,6 @@
     let sessionsToRender = [];
 
     if (state.activeView === "today") {
-      if (DOM.daysNavWrapper) DOM.daysNavWrapper.style.display = "none";
       const todayStr = now.toDateString();
       sessionsToRender = filtered.filter((s) => s.startDate.toDateString() === todayStr);
 
@@ -868,31 +814,7 @@
         </div>
         ${sessionsToRender.map((s) => createSessionCardHtml(s, now)).join("")}
       `;
-    } else if (state.activeView === "weekly") {
-      if (DOM.daysNavWrapper) DOM.daysNavWrapper.style.display = "block";
-      const currentDayOfWeek = now.getDay();
-      const monOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
-      const mondayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + monOffset);
-      const targetDate = new Date(mondayDate.getFullYear(), mondayDate.getMonth(), mondayDate.getDate() + (state.selectedDayIndex - 1));
-
-      const targetStr = targetDate.toDateString();
-      sessionsToRender = filtered.filter((s) => s.startDate.toDateString() === targetStr);
-
-      if (sessionsToRender.length === 0) {
-        showEmpty(`No college classes scheduled for ${formatDateHuman(targetDate)}.`);
-        return;
-      }
-      hideEmpty();
-      const isToday = targetDate.toDateString() === now.toDateString();
-      DOM.timelineContainer.innerHTML = `
-        <div class="date-divider-header">
-          <h2 class="date-divider-title">${formatDateHuman(targetDate)}</h2>
-          <span class="date-divider-badge ${isToday ? "is-today" : ""}">${isToday ? "Today • " : ""}${sessionsToRender.length} classes</span>
-        </div>
-        ${sessionsToRender.map((s) => createSessionCardHtml(s, now)).join("")}
-      `;
     } else if (state.activeView === "upcoming") {
-      if (DOM.daysNavWrapper) DOM.daysNavWrapper.style.display = "none";
       const upcomingEnd = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000));
       sessionsToRender = filtered.filter((s) => s.startDate >= now && s.startDate < upcomingEnd);
 
@@ -1278,11 +1200,6 @@
     initDOM();
     loadSettings();
     setupEventListeners();
-
-    // Set initial selected day to today (if Mon-Sat)
-    const now = getNowInKolkata();
-    const dayOfWeek = now.getDay();
-    state.selectedDayIndex = dayOfWeek === 0 ? 1 : dayOfWeek; // Default to Mon if Sun
 
     // Update live clock every second
     updateClockDisplay();
