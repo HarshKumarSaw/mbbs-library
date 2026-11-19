@@ -215,6 +215,97 @@ def extract_faculty_and_competency(title, desc, subject):
 
     return faculty, competency
 
+DAY_CODE_MAP = {"MO": 0, "TU": 1, "WE": 2, "TH": 3, "FR": 4, "SA": 5, "SU": 6}
+
+def parse_until_date(until_str):
+    clean = until_str.rstrip("Z")
+    if "T" in clean:
+        dt = datetime.datetime.strptime(clean, "%Y%m%dT%H%M%S")
+    else:
+        dt = datetime.datetime.strptime(clean, "%Y%m%d")
+    if until_str.endswith("Z"):
+        dt += datetime.timedelta(hours=5, minutes=30)
+    return dt
+
+def expand_recurring_event(rev, s_dt, e_dt, start_window, end_window, exdates, overrides):
+    rule_str = rev.get("raw_rrule", "") or ""
+    duration = e_dt - s_dt
+    parts = dict(p.split("=", 1) for p in rule_str.split(";") if "=" in p)
+
+    freq = parts.get("FREQ", "WEEKLY").upper()
+    try:
+        interval = int(parts.get("INTERVAL", "1"))
+    except ValueError:
+        interval = 1
+    try:
+        count = int(parts.get("COUNT", "999999"))
+    except ValueError:
+        count = 999999
+
+    until_dt = None
+    if "UNTIL" in parts:
+        try:
+            until_dt = parse_until_date(parts["UNTIL"])
+        except Exception:
+            pass
+
+    bydays_raw = parts.get("BYDAY", "")
+    bydays = [DAY_CODE_MAP[d.strip()[:2]] for d in bydays_raw.split(",") if d.strip()[:2] in DAY_CODE_MAP]
+
+    results = []
+    generated = 0
+    uid = rev["uid"]
+
+    def add_instance(dt_start):
+        d_key = dt_start.strftime("%Y%m%d")
+        dt_key = dt_start.strftime("%Y%m%d_%H%M")
+        if uid in exdates and d_key in exdates[uid]:
+            return
+        if (uid, dt_key) in overrides:
+            results.append(overrides[(uid, dt_key)])
+            return
+        inst = dict(rev)
+        inst["start"] = dt_start.strftime("%Y-%m-%d %H:%M:%S")
+        inst["end"] = (dt_start + duration).strftime("%Y-%m-%d %H:%M:%S")
+        inst["start_iso"] = dt_start.isoformat()
+        inst["end_iso"] = (dt_start + duration).isoformat()
+        results.append(inst)
+
+    if bydays and freq == "WEEKLY":
+        start_monday = s_dt - datetime.timedelta(days=s_dt.weekday())
+        cur_week = start_monday
+        while cur_week < end_window and generated < count:
+            for day_offset in range(7):
+                day_dt = cur_week + datetime.timedelta(days=day_offset)
+                cur_occ = day_dt.replace(hour=s_dt.hour, minute=s_dt.minute, second=s_dt.second)
+                if cur_occ < s_dt:
+                    continue
+                if until_dt and cur_occ > until_dt:
+                    return results
+                if cur_occ.weekday() in bydays:
+                    if cur_occ >= start_window and cur_occ < end_window:
+                        add_instance(cur_occ)
+                    generated += 1
+                    if generated >= count:
+                        break
+            cur_week += datetime.timedelta(weeks=interval)
+    else:
+        cur = s_dt
+        while cur < end_window and generated < count:
+            if until_dt and cur > until_dt:
+                break
+            if cur >= start_window:
+                add_instance(cur)
+            generated += 1
+            if freq == "WEEKLY":
+                cur += datetime.timedelta(weeks=interval)
+            elif freq == "DAILY":
+                cur += datetime.timedelta(days=interval)
+            else:
+                cur += datetime.timedelta(days=interval)
+
+    return results
+
 def sync_timetable():
     print("📥 Fetching iCal feed via proxy resolver...")
     raw_data, url_type, _ = tp.fetch_feed(force_refresh=True)
@@ -295,10 +386,10 @@ def sync_timetable():
         else:
             standalone.append((event_obj, start_dt, end_dt))
 
-    # Expand window: 30 days back to 90 days forward
+    # Expand window: 30 days back to 180 days forward (full semester coverage)
     now = datetime.datetime.now()
     start_window = now - datetime.timedelta(days=30)
-    end_window = now + datetime.timedelta(days=90)
+    end_window = now + datetime.timedelta(days=180)
 
     expanded_events = []
     for ev_tuple in standalone:
@@ -308,31 +399,8 @@ def sync_timetable():
 
     for rev_tuple in base_recurring:
         rev, s_dt, e_dt = rev_tuple
-        rule_str = rev["raw_rrule"]
-        freq = "WEEKLY" if "FREQ=WEEKLY" in rule_str else "DAILY"
-        cur = s_dt
-        duration = e_dt - s_dt
-
-        while cur < end_window:
-            if cur >= start_window:
-                d_key = cur.strftime("%Y%m%d")
-                dt_key = cur.strftime("%Y%m%d_%H%M")
-                if rev["uid"] in exdates and d_key in exdates[rev["uid"]]:
-                    pass
-                elif (rev["uid"], dt_key) in overrides:
-                    expanded_events.append(overrides[(rev["uid"], dt_key)])
-                else:
-                    inst = dict(rev)
-                    inst["start"] = cur.strftime("%Y-%m-%d %H:%M:%S")
-                    inst["end"] = (cur + duration).strftime("%Y-%m-%d %H:%M:%S")
-                    inst["start_iso"] = cur.isoformat()
-                    inst["end_iso"] = (cur + duration).isoformat()
-                    expanded_events.append(inst)
-
-            if freq == "WEEKLY":
-                cur += datetime.timedelta(days=7)
-            else:
-                cur += datetime.timedelta(days=1)
+        recurring_instances = expand_recurring_event(rev, s_dt, e_dt, start_window, end_window, exdates, overrides)
+        expanded_events.extend(recurring_instances)
 
     # Sort chronologically
     expanded_events.sort(key=lambda x: x["start"])
@@ -366,8 +434,11 @@ def sync_timetable():
         dt = datetime.datetime.strptime(d, "%Y-%m-%d")
         if dt.weekday() == 6:  # Skip Sunday
             continue
-        # Ensure it is an active college day with classes (not solely an all-day holiday)
-        college_classes = [e for e in day_evs if e["subject"] != "holiday"]
+        # Skip days that have a holiday
+        if any(e["subject"] == "holiday" for e in day_evs):
+            continue
+        # Ensure it is an active college day with classes
+        college_classes = [e for e in day_evs if e["subject"] != "break"]
         if not college_classes:
             continue
 
@@ -392,6 +463,11 @@ def sync_timetable():
             injected_lunches.append(lunch_ev)
 
     cleaned_events.extend(injected_lunches)
+
+    # If any day has a holiday, remove any recurring break events on that holiday
+    holiday_dates = {e["start"][:10] for e in cleaned_events if e["subject"] == "holiday"}
+    cleaned_events = [e for e in cleaned_events if not (e["start"][:10] in holiday_dates and e["subject"] == "break")]
+
     cleaned_events.sort(key=lambda x: x["start"])
 
     os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)

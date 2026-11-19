@@ -495,10 +495,10 @@
       }
     }
 
-    // Expand recurrence for semester window (4 weeks past to 12 weeks future)
+    // Expand recurrence for semester window (4 weeks past to 26 weeks future)
     const now = getNowInKolkata();
     const windowStart = new Date(now.getTime() - (28 * 24 * 60 * 60 * 1000));
-    const windowEnd = new Date(now.getTime() + (84 * 24 * 60 * 60 * 1000));
+    const windowEnd = new Date(now.getTime() + (182 * 24 * 60 * 60 * 1000));
 
     const expandedList = [];
 
@@ -509,36 +509,87 @@
       }
     }
 
+    const dayCodeMap = { MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6, SU: 0 };
+
     // Expand recurring
     for (const rev of baseRecurring) {
       const rule = rev.rawRrule || "";
-      const isWeekly = rule.includes("FREQ=WEEKLY");
       const durationMs = rev.endDate.getTime() - rev.startDate.getTime();
-      let cur = new Date(rev.startDate.getTime());
+      const parts = {};
+      rule.split(";").forEach((p) => {
+        const idx = p.indexOf("=");
+        if (idx > 0) parts[p.substring(0, idx).trim().toUpperCase()] = p.substring(idx + 1).trim();
+      });
 
-      while (cur < windowEnd) {
-        if (cur >= windowStart) {
-          const dKey = `${cur.getFullYear()}${String(cur.getMonth() + 1).padStart(2, "0")}${String(cur.getDate()).padStart(2, "0")}`;
-          const dtKey = `${dKey}_${String(cur.getHours()).padStart(2, "0")}${String(cur.getMinutes()).padStart(2, "0")}`;
+      const freq = parts.FREQ || "WEEKLY";
+      const interval = parseInt(parts.INTERVAL || "1", 10) || 1;
+      const count = parseInt(parts.COUNT || "999999", 10) || 999999;
+      let untilDt = null;
+      if (parts.UNTIL) {
+        untilDt = parseIcsDate(parts.UNTIL);
+      }
 
-          if (exdates[rev.uid] && exdates[rev.uid].has(dKey)) {
-            // Excluded occurrence (holiday or cancelled)
-          } else if (overrides[`${rev.uid}_${dtKey}`]) {
-            expandedList.push(overrides[`${rev.uid}_${dtKey}`]);
-          } else {
-            const inst = Object.assign({}, rev);
-            inst.startDate = new Date(cur.getTime());
-            inst.endDate = new Date(cur.getTime() + durationMs);
-            inst.startIso = inst.startDate.toISOString();
-            inst.endIso = inst.endDate.toISOString();
-            expandedList.push(inst);
-          }
+      const bydaysRaw = parts.BYDAY || "";
+      const bydays = bydaysRaw.split(",").map((d) => dayCodeMap[d.trim().substr(0, 2).toUpperCase()]).filter((d) => d !== undefined);
+
+      let generated = 0;
+      const uid = rev.uid;
+
+      const addInstance = (dtStart) => {
+        const dKey = `${dtStart.getFullYear()}${String(dtStart.getMonth() + 1).padStart(2, "0")}${String(dtStart.getDate()).padStart(2, "0")}`;
+        const dtKey = `${dKey}_${String(dtStart.getHours()).padStart(2, "0")}${String(dtStart.getMinutes()).padStart(2, "0")}`;
+
+        if (exdates[uid] && exdates[uid].has(dKey)) return;
+        if (overrides[`${uid}_${dtKey}`]) {
+          expandedList.push(overrides[`${uid}_${dtKey}`]);
+          return;
         }
 
-        if (isWeekly) {
-          cur.setDate(cur.getDate() + 7);
-        } else {
-          cur.setDate(cur.getDate() + 1);
+        const inst = Object.assign({}, rev);
+        inst.startDate = new Date(dtStart.getTime());
+        inst.endDate = new Date(dtStart.getTime() + durationMs);
+        inst.startIso = inst.startDate.toISOString();
+        inst.endIso = inst.endDate.toISOString();
+        expandedList.push(inst);
+      };
+
+      if (bydays.length > 0 && freq === "WEEKLY") {
+        const dayOfWeek = rev.startDate.getDay();
+        const diffToMonday = (dayOfWeek + 6) % 7;
+        const startMonday = new Date(rev.startDate.getTime() - (diffToMonday * 24 * 60 * 60 * 1000));
+        let curWeek = new Date(startMonday.getTime());
+
+        while (curWeek < windowEnd && generated < count) {
+          for (let dOffset = 0; dOffset < 7; dOffset++) {
+            const dayDt = new Date(curWeek.getTime() + (dOffset * 24 * 60 * 60 * 1000));
+            dayDt.setHours(rev.startDate.getHours(), rev.startDate.getMinutes(), rev.startDate.getSeconds(), 0);
+
+            if (dayDt < rev.startDate) continue;
+            if (untilDt && dayDt > untilDt) break;
+
+            if (bydays.includes(dayDt.getDay())) {
+              if (dayDt >= windowStart && dayDt < windowEnd) {
+                addInstance(dayDt);
+              }
+              generated++;
+              if (generated >= count) break;
+            }
+          }
+          curWeek.setDate(curWeek.getDate() + (7 * interval));
+        }
+      } else {
+        let cur = new Date(rev.startDate.getTime());
+        while (cur < windowEnd && generated < count) {
+          if (untilDt && cur > untilDt) break;
+          if (cur >= windowStart) {
+            addInstance(cur);
+          }
+          generated++;
+          if (freq === "WEEKLY") {
+            cur.setDate(cur.getDate() + (7 * interval));
+          } else {
+            cur.setDate(cur.getDate() + interval);
+          }
         }
       }
     }
@@ -547,7 +598,7 @@
     expandedList.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
     // Deduplicate overlapping generic sessions
-    const deduplicated = [];
+    let deduplicated = [];
     const timeSlotMap = new Map();
 
     for (const ev of expandedList) {
@@ -584,7 +635,10 @@
       if (dayOfWeek === 0) return; // Skip Sunday
 
       // Only inject on active college days with classes (not solely an all-day holiday)
-      const hasClasses = dayEvents.some((e) => e.subject !== "holiday");
+      const isHoliday = dayEvents.some((e) => e.subject === "holiday");
+      if (isHoliday) return;
+
+      const hasClasses = dayEvents.some((e) => e.subject !== "break");
       if (!hasClasses) return;
 
       const hasLunch = dayEvents.some((e) => e.startDate.getHours() === 13);
@@ -612,6 +666,10 @@
         });
       }
     });
+
+    // Clean up any break on a day that has a holiday
+    const holidayDates = new Set(deduplicated.filter((e) => e.subject === "holiday").map((e) => e.startDate.toDateString()));
+    deduplicated = deduplicated.filter((e) => !(holidayDates.has(e.startDate.toDateString()) && e.subject === "break"));
 
     deduplicated.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 

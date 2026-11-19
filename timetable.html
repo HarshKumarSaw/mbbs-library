@@ -11,7 +11,9 @@
   <!-- End Google Tag Manager -->
 
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#FAF8F4">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>College Timetable | Harsh's Library</title>
   <meta name="description" content="Live 1st Year MBBS class timetable for Late Baliram Kashyap Memorial Govt. Medical College, Jagdalpur. Real-time lectures, dissection hall, practicals and clinical schedules.">
   <meta name="keywords" content="MBBS timetable, medical college class schedule, anatomy dissection timing, physiology practicals, biochemistry lectures, CBME 1st year timetable">
@@ -87,7 +89,7 @@
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.min.css?v=1795022189">
-  <link rel="stylesheet" href="css/timetable.min.css?v=1795022200">
+  <link rel="stylesheet" href="css/timetable.min.css?v=20261119v2">
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -225,8 +227,8 @@
         <button type="button" class="sub-pill" data-subject="aetcom">AETCOM</button>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <select id="session-type-select" class="session-type-select" aria-label="Filter by session type" style="padding: 0.38rem 0.75rem; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.8rem; background: #FFFFFF; font-weight: 600; color: #1E293B;">
+      <div class="timetable-filter-secondary-group">
+        <select id="session-type-select" class="session-type-select" aria-label="Filter by session type">
           <option value="all">All Session Types</option>
           <option value="lecture">Lectures</option>
           <option value="dissection">Dissection Hall</option>
@@ -236,9 +238,9 @@
           <option value="test_exam">Tests &amp; Exams</option>
         </select>
 
-        <div style="position: relative; display: inline-flex; align-items: center;">
-          <input type="text" id="timetable-search-input" placeholder="Search topic or faculty..." style="padding: 0.38rem 1.8rem 0.38rem 0.75rem; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.8rem; width: 180px; background: #FFFFFF;" aria-label="Search timetable">
-          <button type="button" id="timetable-search-clear" style="display: none; position: absolute; right: 6px; border: none; background: transparent; cursor: pointer; color: #94A3B8; font-size: 0.85rem;" aria-label="Clear search">✕</button>
+        <div class="timetable-search-box">
+          <input type="text" id="timetable-search-input" placeholder="Search topic or faculty..." aria-label="Search timetable">
+          <button type="button" id="timetable-search-clear" aria-label="Clear search">✕</button>
         </div>
       </div>
     </div>
@@ -356,6 +358,6 @@
   <!-- Scripts -->
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js" defer></script>
-  <script src="js/timetable.min.js?v=1795022200" defer></script>
+  <script src="js/timetable.min.js?v=20261119v2" defer></script>
 </body>
 </html>

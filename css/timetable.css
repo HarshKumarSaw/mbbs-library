@@ -321,6 +321,56 @@
   border-color: var(--primary-navy, #151B2B);
 }
 
+.timetable-filter-secondary-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-type-select {
+  padding: 0.42rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  font-size: 0.8rem;
+  background: #FFFFFF;
+  font-weight: 600;
+  color: #1E293B;
+  height: 38px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.timetable-search-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+#timetable-search-input {
+  padding: 0.42rem 1.8rem 0.42rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  font-size: 0.8rem;
+  width: 190px;
+  height: 38px;
+  background: #FFFFFF;
+  box-sizing: border-box;
+  color: #0F172A;
+}
+
+#timetable-search-clear {
+  display: none;
+  position: absolute;
+  right: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #94A3B8;
+  font-size: 0.85rem;
+  padding: 4px;
+}
+
 /* "Happening Now" Hero Card */
 .now-banner-card {
   position: relative;
@@ -446,6 +496,9 @@
   overflow: hidden;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .session-card:hover {
@@ -690,7 +743,7 @@
   width: 100%;
   max-width: 600px;
   border-radius: 24px 24px 0 0;
-  padding: 1.25rem 1.5rem 2rem 1.5rem;
+  padding: 1.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom, 16px)) 1.5rem;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
   max-height: 85vh;
   overflow-y: auto;
@@ -761,24 +814,150 @@
   color: #0F172A;
 }
 
-/* Mobile Tweaks */
+/* Mobile Optimizations */
 @media (max-width: 640px) {
   .timetable-hero {
-    padding: 1.5rem 0 1.2rem 0;
+    padding: 1.25rem 0 1rem 0;
   }
+
   .timetable-title {
-    font-size: 1.55rem;
+    font-size: 1.45rem;
+    line-height: 1.25;
   }
+
+  .timetable-subtitle {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
   .timetable-controls-bar {
-    flex-direction: column;
-    align-items: flex-start;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
   }
+
+  .timetable-views-wrapper {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .timetable-nav-tabs {
+    width: 100%;
+    display: flex;
+    box-sizing: border-box;
+    padding: 3px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.82rem;
+    text-align: center;
+  }
+
+  .btn-timetable-action.btn-refresh {
+    padding: 0.5rem 0.7rem;
+    height: 38px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  .btn-timetable-action.btn-refresh span {
+    display: none;
+  }
+
+  .timetable-filter-bar {
+    gap: 0.75rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .timetable-filter-secondary-group {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .session-type-select {
+    flex: 1;
+    min-width: 0;
+    width: 50%;
+    font-size: 0.78rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .timetable-search-box {
+    flex: 1;
+    min-width: 0;
+    width: 50%;
+  }
+
+  #timetable-search-input {
+    width: 100%;
+    font-size: 0.78rem;
+    padding: 0.4rem 1.6rem 0.4rem 0.55rem;
+  }
+
+  .now-banner-card {
+    padding: 1.1rem;
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
+  }
+
+  .now-banner-title {
+    font-size: 1.15rem;
+  }
+
+  .now-banner-time {
+    font-size: 0.82rem;
+  }
+
+  .session-card {
+    border-radius: 14px;
+    margin-bottom: 0.75rem;
+  }
+
+  .session-card:active {
+    transform: scale(0.985);
+  }
+
   .session-card-body {
-    padding: 0.95rem 1rem;
+    padding: 0.85rem 0.95rem;
   }
+
   .session-card-top {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.35rem;
+  }
+
+  .session-title {
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .session-badge-row {
+    gap: 0.35rem;
+  }
+
+  .session-faculty-tag {
+    font-size: 0.75rem;
+  }
+
+  .modal-sheet {
+    padding: 1.25rem 1.15rem calc(1.5rem + env(safe-area-inset-bottom, 16px)) 1.15rem;
+    border-radius: 20px 20px 0 0;
+    max-height: 85vh;
+  }
+
+  .day-section-header {
+    padding: 0.65rem 0.85rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
   }
 }
