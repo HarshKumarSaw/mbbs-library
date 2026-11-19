@@ -88,8 +88,8 @@
   <!-- Self-Hosted Fonts & CSS -->
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1795022189">
-  <link rel="stylesheet" href="css/timetable.min.css?v=20261119v2">
+  <link rel="stylesheet" href="css/style.min.css?v=1795093091">
+  <link rel="stylesheet" href="css/timetable.min.css?v=1795093091v2">
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -180,6 +180,12 @@
           <span class="timetable-sync-indicator" id="current-time-badge">--:-- IST</span>
           <span style="opacity: 0.4;">•</span>
           <span id="last-synced-text">Synced: --</span>
+          <span id="sync-uptodate-badge" class="sync-uptodate-badge" style="display: none;" title="Feed synchronized">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Up to date</span>
+          </span>
         </div>
       </div>
 
@@ -219,12 +225,14 @@
   <main class="container" style="padding-top: 1.25rem; min-height: 55vh;">
     <!-- Secondary Filters (Subject Pills + Type Select + Search) -->
     <div class="timetable-filter-bar">
-      <div class="filter-pills-scroll" role="group" aria-label="Subject filter">
-        <button type="button" class="sub-pill active" data-subject="all">All Subjects</button>
-        <button type="button" class="sub-pill" data-subject="anatomy">Anatomy</button>
-        <button type="button" class="sub-pill" data-subject="physiology">Physiology</button>
-        <button type="button" class="sub-pill" data-subject="biochemistry">Biochemistry</button>
-        <button type="button" class="sub-pill" data-subject="aetcom">AETCOM</button>
+      <div class="filter-pills-container">
+        <div class="filter-pills-scroll" role="group" aria-label="Subject filter">
+          <button type="button" class="sub-pill active" data-subject="all">All Subjects</button>
+          <button type="button" class="sub-pill" data-subject="anatomy">Anatomy</button>
+          <button type="button" class="sub-pill" data-subject="physiology">Physiology</button>
+          <button type="button" class="sub-pill" data-subject="biochemistry">Biochemistry</button>
+          <button type="button" class="sub-pill" data-subject="aetcom">AETCOM</button>
+        </div>
       </div>
 
       <div class="timetable-filter-secondary-group">
@@ -343,6 +351,17 @@
     </div>
   </div>
 
+  <!-- Floating Quick-Return Today Button -->
+  <button type="button" id="btn-floating-today" class="floating-today-btn" aria-label="Return to Today">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </svg>
+    <span>Today</span>
+  </button>
+
   <!-- Minimal Clean Footer -->
   <footer class="footer">
     <div class="container footer-content">
@@ -358,6 +377,6 @@
   <!-- Scripts -->
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js" defer></script>
-  <script src="js/timetable.min.js?v=20261119v2" defer></script>
+  <script src="js/timetable.min.js?v=1795093091v2" defer></script>
 </body>
 </html>

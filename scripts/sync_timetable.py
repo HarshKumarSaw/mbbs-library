@@ -361,6 +361,8 @@ def sync_timetable():
             summary = "Lunch Break"
             fac = "Recess / Lunch"
 
+        is_all_day = ("T" not in start_m.group(1).strip()) or (start_dt.hour == 0 and start_dt.minute == 0 and end_dt.hour == 0 and end_dt.minute == 0 and (end_dt - start_dt).total_seconds() >= 86400)
+
         event_obj = {
             "uid": uid,
             "title": summary,
@@ -372,6 +374,7 @@ def sync_timetable():
             "end": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
             "start_iso": start_dt.isoformat(),
             "end_iso": end_dt.isoformat(),
+            "all_day": is_all_day,
             "subject": sub,
             "session_type": detect_session_type(summary, desc),
             "raw_rrule": rrule_m.group(1).strip() if rrule_m else None
@@ -456,6 +459,7 @@ def sync_timetable():
                 "end": f"{d} 14:00:00",
                 "start_iso": f"{d}T13:00:00+05:30",
                 "end_iso": f"{d}T14:00:00+05:30",
+                "all_day": False,
                 "subject": "break",
                 "session_type": "break",
                 "raw_rrule": None

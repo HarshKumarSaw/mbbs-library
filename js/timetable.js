@@ -45,6 +45,7 @@
     searchQuery: "",
     allCollegeSessions: [],
     lastSyncTime: null,
+    isSynced: false,
     isLoading: false,
     errorMessage: null,
     manualExcludedUids: new Set(),
@@ -60,6 +61,10 @@
     DOM = {
       currentTimeBadge: document.getElementById("current-time-badge"),
       lastSyncedText: document.getElementById("last-synced-text"),
+      syncUpToDateBadge: document.getElementById("sync-uptodate-badge"),
+      floatingTodayBtn: document.getElementById("btn-floating-today"),
+      filterPillsScroll: document.querySelector(".filter-pills-scroll"),
+      filterPillsContainer: document.querySelector(".filter-pills-container"),
       refreshBtn: document.getElementById("btn-refresh-timetable"),
       filterSettingsBtn: document.getElementById("btn-filter-settings"),
       viewTabs: document.querySelectorAll(".timetable-nav-tabs .tab-btn"),
@@ -465,6 +470,8 @@
         finalFaculty = "Recess / Lunch";
       }
 
+      const isAllDay = !startMatch[1].includes("T") || (startDt.getHours() === 0 && startDt.getMinutes() === 0 && endDt.getHours() === 0 && endDt.getMinutes() === 0 && (endDt.getTime() - startDt.getTime() >= 86400000));
+
       const eventObj = {
         uid,
         title: finalTitle,
@@ -477,6 +484,7 @@
         endDate: endDt,
         startIso: startDt.toISOString(),
         endIso: endDt.toISOString(),
+        allDay: isAllDay,
         subject: subject,
         sessionType: detectSessionType(summary, desc),
         rawRrule: rruleMatch ? rruleMatch[1].trim() : null
@@ -709,6 +717,7 @@
             const endDt = new Date(e.end.replace(" ", "T"));
             const sub = e.subject || detectSubject(e.title, e.description, e.location);
             const meta = extractMetadata(e.title, e.description, sub);
+            const isAllDay = Boolean(e.all_day || (startDt.getHours() === 0 && startDt.getMinutes() === 0 && endDt.getHours() === 0 && endDt.getMinutes() === 0 && (endDt.getTime() - startDt.getTime() >= 86400000)));
             return {
               uid: e.uid,
               title: e.title,
@@ -721,6 +730,7 @@
               endDate: endDt,
               startIso: startDt.toISOString(),
               endIso: endDt.toISOString(),
+              allDay: isAllDay,
               subject: sub,
               sessionType: e.session_type || detectSessionType(e.title, e.description)
             };
@@ -760,6 +770,7 @@
   function onFetchSuccess(sessions, sourceMode) {
     state.allCollegeSessions = sessions;
     state.lastSyncTime = new Date();
+    state.isSynced = (sourceMode === "proxy" || sourceMode === "college_json" || sourceMode === "direct_ical");
     setLoading(false);
     saveToLocalStorage(sessions);
     updateLastSyncedDisplay();
@@ -885,15 +896,16 @@
       const d = s.startDate;
       return d.getFullYear() === todayY && d.getMonth() === todayM && d.getDate() === todayD;
     });
-
-    if (DOM.tabTodayCount) DOM.tabTodayCount.textContent = todaySessions.length;
+    const todayTeaching = todaySessions.filter((s) => s.subject !== "break" && s.subject !== "holiday");
+    if (DOM.tabTodayCount) DOM.tabTodayCount.textContent = todayTeaching.length;
 
     // Upcoming sessions (next 14 days)
     const upcomingEnd = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000));
     const upcomingSessions = state.allCollegeSessions.filter((s) => {
       return s.startDate >= now && s.startDate < upcomingEnd;
     });
-    if (DOM.tabUpcomingCount) DOM.tabUpcomingCount.textContent = upcomingSessions.length;
+    const upcomingTeaching = upcomingSessions.filter((s) => s.subject !== "break" && s.subject !== "holiday");
+    if (DOM.tabUpcomingCount) DOM.tabUpcomingCount.textContent = upcomingTeaching.length;
   }
 
   function renderHappeningNowBanner() {
@@ -913,11 +925,12 @@
       });
 
       if (todayNext) {
+        const isAllDay = todayNext.allDay || (todayNext.startDate.getHours() === 0 && todayNext.startDate.getMinutes() === 0 && todayNext.endDate.getHours() === 0 && todayNext.endDate.getMinutes() === 0 && (todayNext.endDate.getTime() - todayNext.startDate.getTime() >= 86400000));
         DOM.nowBannerContainer.innerHTML = `
           <div class="now-banner-card">
             <div class="now-banner-top">
               <span class="now-live-tag" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: #93C5FD;">⏳ UP NEXT TODAY</span>
-              <span class="now-time-range">${formatTimeAMPM(todayNext.startDate)} – ${formatTimeAMPM(todayNext.endDate)}</span>
+              <span class="now-time-range">${isAllDay ? "ALL DAY" : `${formatTimeAMPM(todayNext.startDate)} – ${formatTimeAMPM(todayNext.endDate)}`}</span>
             </div>
             <h3 class="now-title">${escapeHtml(todayNext.title)}</h3>
             <div class="now-meta-row">
@@ -937,12 +950,13 @@
     const totalDuration = activeSession.endDate.getTime() - activeSession.startDate.getTime();
     const elapsed = now.getTime() - activeSession.startDate.getTime();
     const percent = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
+    const isActAllDay = activeSession.allDay || (activeSession.startDate.getHours() === 0 && activeSession.startDate.getMinutes() === 0 && activeSession.endDate.getHours() === 0 && activeSession.endDate.getMinutes() === 0 && (activeSession.endDate.getTime() - activeSession.startDate.getTime() >= 86400000));
 
     DOM.nowBannerContainer.innerHTML = `
       <div class="now-banner-card">
         <div class="now-banner-top">
           <span class="now-live-tag">🟢 HAPPENING NOW</span>
-          <span class="now-time-range">${formatTimeAMPM(activeSession.startDate)} – ${formatTimeAMPM(activeSession.endDate)}</span>
+          <span class="now-time-range">${isActAllDay ? "ALL DAY" : `${formatTimeAMPM(activeSession.startDate)} – ${formatTimeAMPM(activeSession.endDate)}`}</span>
         </div>
         <h3 class="now-title">${escapeHtml(activeSession.title)}</h3>
         <div class="now-meta-row">
@@ -955,6 +969,70 @@
       </div>
     `;
     DOM.nowBannerContainer.style.display = "block";
+  }
+
+  function detectImportantSession(s) {
+    const text = `${s.title || ""} ${s.description || ""} ${s.cleanDesc || ""}`.toLowerCase();
+    const type = (s.sessionType || "").toLowerCase();
+
+    // 1. PCTs / Examinations / Internal Assessments
+    if (
+      type === "test_exam" ||
+      /\b(pct|exam|examination|assessment|term final|viva|ospe|osce|internal assessment|post-test)\b/i.test(text)
+    ) {
+      return {
+        type: "exam",
+        label: "Exam / PCT",
+        icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`
+      };
+    }
+
+    // 2. SDL (Self-Directed Learning)
+    if (type === "sdl" || /\b(sdl|self-directed learning|self directed learning)\b/i.test(text)) {
+      return {
+        type: "sdl",
+        label: "SDL",
+        icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`
+      };
+    }
+
+    // 3. Special Classes / Integrated Seminars / Guest Lectures
+    if (
+      /\b(special class|guest lecture|integrated seminar|symposium|workshop|foundation course|webinar)\b/i.test(text)
+    ) {
+      return {
+        type: "special",
+        label: "Special Session",
+        icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>`
+      };
+    }
+
+    return null;
+  }
+
+  function getDayCategory(groupSessions, dateObj) {
+    const holidays = groupSessions.filter((s) => s.subject === "holiday" || s.sessionType === "holiday");
+    const breaks = groupSessions.filter((s) => s.subject === "break");
+    const teaching = groupSessions.filter((s) => s.subject !== "holiday" && s.sessionType !== "holiday" && s.subject !== "break");
+    const optional = teaching.filter((s) => s.subject === "sports" || s.sessionType === "sports" || s.sessionType === "eca" || s.sessionType === "sdl");
+
+    if (holidays.length > 0 && teaching.length === 0) {
+      return { type: "holiday", label: "Holiday • No Classes", badgeClass: "is-holiday" };
+    }
+    if (holidays.length > 0) {
+      const classWord = teaching.length === 1 ? "class" : "classes";
+      return { type: "partial-holiday", label: `${teaching.length} ${classWord} • Holiday`, badgeClass: "is-holiday" };
+    }
+    if (teaching.length === 0) {
+      const isSun = dateObj && dateObj.getDay() === 0;
+      return { type: "free", label: isSun ? "Sunday • Free Day" : "Free Day • No Classes", badgeClass: "is-free" };
+    }
+    if (optional.length === teaching.length && optional.length > 0) {
+      const actWord = optional.length === 1 ? "activity" : "activities";
+      return { type: "optional-only", label: `Optional Activities (${optional.length} ${actWord})`, badgeClass: "is-optional" };
+    }
+    const classWord = teaching.length === 1 ? "class" : "classes";
+    return { type: "standard", label: `${teaching.length} ${classWord}`, badgeClass: "" };
   }
 
   function renderTimeline() {
@@ -974,10 +1052,18 @@
         return;
       }
       hideEmpty();
+
+      const dayCat = getDayCategory(sessionsToRender, now);
+      let badgeClass = "date-divider-badge is-today";
+      if (dayCat.badgeClass && dayCat.badgeClass !== "is-today") {
+        badgeClass += " " + dayCat.badgeClass;
+      }
+      const summaryText = `Today • ${dayCat.label}`;
+
       DOM.timelineContainer.innerHTML = `
         <div class="date-divider-header">
           <h2 class="date-divider-title">${formatDateHuman(now)}</h2>
-          <span class="date-divider-badge is-today">Today (${sessionsToRender.length} classes)</span>
+          <span class="${badgeClass}">${summaryText}</span>
         </div>
         ${sessionsToRender.map((s) => createSessionCardHtml(s, now)).join("")}
       `;
@@ -991,7 +1077,7 @@
       }
       hideEmpty();
 
-      // Group by date
+      // Group by calendar date
       const grouped = new Map();
       for (const s of sessionsToRender) {
         const dStr = s.startDate.toDateString();
@@ -1003,10 +1089,21 @@
       grouped.forEach((groupSessions, dStr) => {
         const first = groupSessions[0].startDate;
         const rel = formatRelativeDay(first, now);
+        const dayCat = getDayCategory(groupSessions, first);
+
+        let badgeClass = "date-divider-badge";
+        if (rel === "Today") {
+          badgeClass += " is-today";
+        } else if (dayCat.badgeClass) {
+          badgeClass += " " + dayCat.badgeClass;
+        }
+
+        const summaryText = rel ? `${rel} • ${dayCat.label}` : dayCat.label;
+
         html += `
           <div class="date-divider-header">
             <h2 class="date-divider-title">${formatDateHuman(first)}</h2>
-            <span class="date-divider-badge ${rel === "Today" ? "is-today" : ""}">${rel ? rel + " • " : ""}${groupSessions.length} classes</span>
+            <span class="${badgeClass}">${summaryText}</span>
           </div>
           ${groupSessions.map((s) => createSessionCardHtml(s, now)).join("")}
         `;
@@ -1028,26 +1125,41 @@
   }
 
   function createSessionCardHtml(s, now) {
-    const isOngoing = now >= s.startDate && now < s.endDate;
-    const timeFormatted = `${formatTimeAMPM(s.startDate)} – ${formatTimeAMPM(s.endDate)}`;
+    const isOngoing = !s.allDay && now >= s.startDate && now < s.endDate;
+    const isAllDay = s.allDay || (s.startDate.getHours() === 0 && s.startDate.getMinutes() === 0 && s.endDate.getHours() === 0 && s.endDate.getMinutes() === 0 && (s.endDate.getTime() - s.startDate.getTime() >= 86400000));
+    const timeFormatted = isAllDay ? "ALL DAY" : `${formatTimeAMPM(s.startDate)} – ${formatTimeAMPM(s.endDate)}`;
     const durationMinutes = Math.round((s.endDate.getTime() - s.startDate.getTime()) / 60000);
-    const durationLabel = durationMinutes >= 60 ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60 ? durationMinutes % 60 + "m" : ""}` : `${durationMinutes}m`;
+    const durationLabel = isAllDay ? "All-Day Event" : (durationMinutes >= 60 ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60 ? durationMinutes % 60 + "m" : ""}` : `${durationMinutes}m`);
+
+    const important = detectImportantSession(s);
 
     return `
-      <article class="session-card subject-${s.subject} ${isOngoing ? "is-active-session" : ""}" data-session-uid="${escapeHtml(s.uid)}" data-session-start="${escapeHtml(s.startIso)}">
+      <article class="session-card subject-${s.subject} ${isOngoing ? "is-active-session" : ""} ${isAllDay ? "is-allday-card" : ""}" data-session-uid="${escapeHtml(s.uid)}" data-session-start="${escapeHtml(s.startIso)}">
         <div class="session-color-strip"></div>
         <div class="session-card-body">
           <div class="session-card-top">
-            <span class="session-time-chip">
+            <span class="session-time-chip ${isAllDay ? "is-allday-chip" : ""}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
+                ${isAllDay ? `
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                ` : `
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                `}
               </svg>
-              ${timeFormatted} <span style="font-weight: 500; color: #94A3B8;">(${durationLabel})</span>
+              <span>${timeFormatted}</span> ${!isAllDay ? `<span style="font-weight: 500; color: #94A3B8;">(${durationLabel})</span>` : ""}
             </span>
             <div class="session-badges-group">
               <span class="badge-subject">${escapeHtml(s.subject)}</span>
               <span class="badge-type">${escapeHtml(formatSessionTypeName(s.sessionType))}</span>
+              ${important ? `
+                <span class="session-priority-pill priority-${important.type}" title="${important.label}">
+                  ${important.icon} <span>${important.label}</span>
+                </span>
+              ` : ""}
               ${isOngoing ? '<span class="now-live-tag" style="padding: 1px 6px; font-size: 0.65rem;">Live</span>' : ""}
             </div>
           </div>
@@ -1088,7 +1200,10 @@
   function openDetailsModal(s) {
     if (!DOM.detailsModal) return;
     DOM.detailsTitle.textContent = s.title;
-    DOM.detailsTime.textContent = `${formatDateHuman(s.startDate)} • ${formatTimeAMPM(s.startDate)} – ${formatTimeAMPM(s.endDate)}`;
+    const isAllDay = s.allDay || (s.startDate.getHours() === 0 && s.startDate.getMinutes() === 0 && s.endDate.getHours() === 0 && s.endDate.getMinutes() === 0 && (s.endDate.getTime() - s.startDate.getTime() >= 86400000));
+    DOM.detailsTime.textContent = isAllDay
+      ? `${formatDateHuman(s.startDate)} • ALL DAY`
+      : `${formatDateHuman(s.startDate)} • ${formatTimeAMPM(s.startDate)} – ${formatTimeAMPM(s.endDate)}`;
 
     DOM.detailsSubjectBadge.textContent = s.subject.toUpperCase();
     DOM.detailsSubjectBadge.className = `badge-subject subject-${s.subject}`;
@@ -1214,8 +1329,14 @@
   }
 
   function updateLastSyncedDisplay() {
-    if (!DOM.lastSyncedText || !state.lastSyncTime) return;
-    DOM.lastSyncedText.textContent = `Synced: ${formatTimeAMPM(state.lastSyncTime)}`;
+    if (!DOM.lastSyncedText) return;
+    if (state.isSynced && state.lastSyncTime) {
+      DOM.lastSyncedText.textContent = `Synced: ${formatTimeAMPM(state.lastSyncTime)}`;
+      if (DOM.syncUpToDateBadge) DOM.syncUpToDateBadge.style.display = "inline-flex";
+    } else {
+      DOM.lastSyncedText.textContent = state.lastSyncTime ? `Cached: ${formatTimeAMPM(state.lastSyncTime)}` : "Syncing...";
+      if (DOM.syncUpToDateBadge) DOM.syncUpToDateBadge.style.display = "none";
+    }
   }
 
   function escapeHtml(str) {
@@ -1291,8 +1412,45 @@
           tab.classList.add("active");
           state.activeView = tab.getAttribute("data-view");
           renderTimeline();
+          if (DOM.floatingTodayBtn) {
+            const shouldShow = (state.activeView === "upcoming" && window.scrollY > 200) || (window.scrollY > 400);
+            DOM.floatingTodayBtn.classList.toggle("is-visible", shouldShow);
+          }
         });
       });
+    }
+
+    // Floating Quick-Return Today Button
+    if (DOM.floatingTodayBtn) {
+      window.addEventListener("scroll", () => {
+        const shouldShow = (state.activeView === "upcoming" && window.scrollY > 200) || (window.scrollY > 400);
+        DOM.floatingTodayBtn.classList.toggle("is-visible", shouldShow);
+      }, { passive: true });
+
+      DOM.floatingTodayBtn.addEventListener("click", () => {
+        if (state.activeView === "upcoming") {
+          const todayHeader = document.querySelector(".date-divider-header .is-today");
+          if (todayHeader) {
+            const target = todayHeader.closest(".date-divider-header") || todayHeader;
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+        }
+        // Switch to Today tab
+        const todayTab = document.querySelector('.tab-btn[data-view="today"]');
+        if (todayTab) {
+          todayTab.click();
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    // Subject filter horizontal scroll end indicator
+    if (DOM.filterPillsScroll && DOM.filterPillsContainer) {
+      DOM.filterPillsScroll.addEventListener("scroll", () => {
+        const atEnd = DOM.filterPillsScroll.scrollWidth - DOM.filterPillsScroll.scrollLeft <= DOM.filterPillsScroll.clientWidth + 4;
+        DOM.filterPillsContainer.classList.toggle("is-scrolled-end", atEnd);
+      }, { passive: true });
     }
 
     // Subject Pills
