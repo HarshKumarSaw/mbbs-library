@@ -275,22 +275,68 @@
     return "other";
   }
 
-  function extractMetadata(desc) {
-    if (!desc) return { faculty: "", competency: "", cleanDesc: "" };
+  function extractMetadata(title, desc, subject) {
     let faculty = "";
     let competency = "";
     const cleanLines = [];
 
-    const lines = desc.split("\n");
+    const normalizedDesc = (desc || "")
+      .replace(/\\n/g, "\n")
+      .replace(/\\,/g, ",")
+      .replace(/\\;/g, ";");
+
+    const lines = normalizedDesc.split("\n");
     for (const rawLine of lines) {
-      const line = rawLine.replace(/\\,/g, ",").replace(/\\n/g, " ").trim();
-      if (line.toLowerCase().startsWith("faculty:")) {
-        faculty = line.substring(8).trim();
-      } else if (line.toLowerCase().startsWith("competency:")) {
+      const line = rawLine.trim();
+      const lower = line.toLowerCase();
+      if (lower.startsWith("faculty:") || lower.includes("| faculty:")) {
+        const parts = line.split(/faculty:/i);
+        faculty = parts[parts.length - 1].trim();
+        faculty = faculty.split(/department:|special class:|practical preparation:/i)[0].trim().replace(/^\(|\)$/g, "").trim();
+      } else if (lower.startsWith("competency:")) {
         competency = line.substring(11).trim();
       } else {
         cleanLines.push(line);
       }
+    }
+
+    // Check competency in title if not in description, e.g. (AN 13.3) or (BC 5.1)
+    if (!competency && title) {
+      const compMatch = title.match(/\b(AN|BC|PY)\s*\d+(\.\d+)?(-\d+(\.\d+)?)?\b/i);
+      if (compMatch) {
+        competency = compMatch[0].toUpperCase();
+      }
+    }
+
+    // Check teacher initials in title
+    if (!faculty && title) {
+      const initialsMap = {
+        BNK: "Dr. Bakhshilal Kumar (BNK)",
+        HBS: "Dr. Hemlata B. Sheik (HBS)",
+        SD: "Dr. Shreya Dhurandher (SD)",
+        R: "Dr. Ritika (R)",
+        AR: "Dr. Anantika Rai (AR)",
+        FKK: "Dr. Firoj Kumar Khare (FKK)",
+        FK: "Dr. Firoj Kumar Khare (FK)"
+      };
+      for (const [init, name] of Object.entries(initialsMap)) {
+        if (new RegExp(`\\b${init}\\b`).test(title)) {
+          faculty = name;
+          break;
+        }
+      }
+    }
+
+    // Fallback if no specific teacher name
+    if (!faculty) {
+      if (subject === "anatomy") faculty = "Anatomy Faculty";
+      else if (subject === "physiology") faculty = "Physiology Faculty";
+      else if (subject === "biochemistry") faculty = "Biochemistry Faculty";
+      else if (subject === "aetcom") faculty = "AETCOM Faculty";
+      else if (subject === "ece") faculty = "ECE Faculty";
+      else if (subject === "break") faculty = "Lunch Break";
+      else if (subject === "holiday") faculty = "College Holiday";
+      else faculty = "Department Faculty";
     }
 
     return {
@@ -355,7 +401,8 @@
 
       const rruleMatch = ev.match(/RRULE:(.*)/);
       const recidMatch = ev.match(/RECURRENCE-ID(?:;[^:]+)?:([0-9TZ]+)/);
-      const meta = extractMetadata(desc);
+      const subject = detectSubject(summary, desc, loc);
+      const meta = extractMetadata(summary, desc, subject);
 
       const eventObj = {
         uid,
@@ -369,7 +416,7 @@
         endDate: endDt,
         startIso: startDt.toISOString(),
         endIso: endDt.toISOString(),
-        subject: detectSubject(summary, desc, loc),
+        subject: subject,
         sessionType: detectSessionType(summary, desc),
         rawRrule: rruleMatch ? rruleMatch[1].trim() : null
       };
@@ -497,20 +544,21 @@
           const parsed = data.events.map((e) => {
             const startDt = new Date(e.start.replace(" ", "T"));
             const endDt = new Date(e.end.replace(" ", "T"));
-            const meta = extractMetadata(e.description);
+            const sub = e.subject || detectSubject(e.title, e.description, e.location);
+            const meta = extractMetadata(e.title, e.description, sub);
             return {
               uid: e.uid,
               title: e.title,
               description: e.description,
               cleanDesc: meta.cleanDesc,
-              faculty: meta.faculty,
-              competency: meta.competency,
+              faculty: e.faculty || meta.faculty,
+              competency: e.competency || meta.competency,
               location: e.location || "Lt. BRKM Govt. Medical College, Jagdalpur",
               startDate: startDt,
               endDate: endDt,
               startIso: startDt.toISOString(),
               endIso: endDt.toISOString(),
-              subject: e.subject || detectSubject(e.title, e.description, e.location),
+              subject: sub,
               sessionType: e.session_type || detectSessionType(e.title, e.description)
             };
           });
@@ -759,8 +807,8 @@
             </div>
             <h3 class="now-title">${escapeHtml(todayNext.title)}</h3>
             <div class="now-meta-row">
-              <span>🏛️ ${escapeHtml(todayNext.location)}</span>
-              ${todayNext.faculty ? `<span>👨‍🏫 ${escapeHtml(todayNext.faculty)}</span>` : ""}
+              <span>👨‍🏫 ${escapeHtml(todayNext.faculty || "Department Faculty")}</span>
+              ${todayNext.competency ? `<span>📋 Competency: ${escapeHtml(todayNext.competency)}</span>` : ""}
             </div>
           </div>
         `;
@@ -784,8 +832,7 @@
         </div>
         <h3 class="now-title">${escapeHtml(activeSession.title)}</h3>
         <div class="now-meta-row">
-          <span>🏛️ ${escapeHtml(activeSession.location)}</span>
-          ${activeSession.faculty ? `<span>👨‍🏫 ${escapeHtml(activeSession.faculty)}</span>` : ""}
+          <span>👨‍🏫 ${escapeHtml(activeSession.faculty || "Department Faculty")}</span>
           ${activeSession.competency ? `<span>📋 Competency: ${escapeHtml(activeSession.competency)}</span>` : ""}
         </div>
         <div class="now-progress-track">
@@ -918,8 +965,13 @@
           <h3 class="session-title">${escapeHtml(s.title)}</h3>
           <div class="session-metadata-row">
             ${s.competency ? `<span class="session-competency-pill">${escapeHtml(s.competency)}</span>` : ""}
-            ${s.faculty ? `<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${escapeHtml(s.faculty)}</span>` : ""}
-            <span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${escapeHtml(s.location)}</span>
+            <span class="meta-item faculty-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>${escapeHtml(s.faculty || "Department Faculty")}</span>
+            </span>
           </div>
         </div>
       </article>

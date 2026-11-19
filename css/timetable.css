@@ -561,6 +561,15 @@
   gap: 0.35rem;
 }
 
+.faculty-item {
+  font-weight: 650;
+  color: var(--primary-navy, #151B2B);
+}
+
+.faculty-item svg {
+  color: #2563EB;
+}
+
 .meta-item svg {
   flex-shrink: 0;
   color: #94A3B8;

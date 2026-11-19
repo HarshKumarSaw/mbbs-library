@@ -109,6 +109,66 @@ def detect_session_type(summary, desc):
         return "break"
     return "other"
 
+def extract_faculty_and_competency(title, desc, subject):
+    text = f"{title}\n{desc}"
+    text = text.replace("\\n", "\n").replace("\\,", ",").replace("\\;", ";")
+
+    faculty = ""
+    competency = ""
+
+    # 1. Search for Faculty: <name>
+    m = re.search(r"Faculty\s*:\s*([^\n\r|;]+)", text, re.IGNORECASE)
+    if m:
+        fac = m.group(1).strip()
+        fac = re.split(r"department:|special class:|practical preparation:", fac, flags=re.IGNORECASE)[0].strip()
+        faculty = fac.rstrip(") ").lstrip("( ")
+
+    # 2. Search for Competency: <code...>
+    comp_m = re.search(r"Competency\s*:\s*([^\n\r|;]+)", text, re.IGNORECASE)
+    if comp_m:
+        competency = comp_m.group(1).strip()
+    elif title:
+        comp_title = re.search(r"\b(AN|BC|PY)\s*\d+(\.\d+)?(-\d+(\.\d+)?)?\b", title, re.IGNORECASE)
+        if comp_title:
+            competency = comp_title.group(0).upper()
+
+    # 3. Check teacher initials in title
+    if not faculty and title:
+        initials_map = {
+            "BNK": "Dr. Bakhshilal Kumar (BNK)",
+            "HBS": "Dr. Hemlata B. Sheik (HBS)",
+            "SD": "Dr. Shreya Dhurandher (SD)",
+            "R": "Dr. Ritika (R)",
+            "AR": "Dr. Anantika Rai (AR)",
+            "FKK": "Dr. Firoj Kumar Khare (FKK)",
+            "FK": "Dr. Firoj Kumar Khare (FK)"
+        }
+        for init, name in initials_map.items():
+            if re.search(r"\b" + init + r"\b", title):
+                faculty = name
+                break
+
+    # 4. Department fallback if no specific teacher name
+    if not faculty:
+        if subject == "anatomy":
+            faculty = "Anatomy Faculty"
+        elif subject == "physiology":
+            faculty = "Physiology Faculty"
+        elif subject == "biochemistry":
+            faculty = "Biochemistry Faculty"
+        elif subject == "aetcom":
+            faculty = "AETCOM Faculty"
+        elif subject == "ece":
+            faculty = "ECE Faculty"
+        elif subject == "break":
+            faculty = "Lunch Break"
+        elif subject == "holiday":
+            faculty = "College Holiday"
+        else:
+            faculty = "Department Faculty"
+
+    return faculty, competency
+
 def sync_timetable():
     print("📥 Fetching iCal feed via proxy resolver...")
     raw_data, url_type, _ = tp.fetch_feed(force_refresh=True)
@@ -154,16 +214,21 @@ def sync_timetable():
                 ex_dt = parse_iso_date(single_ex.strip())
                 exdates.setdefault(uid, set()).add(ex_dt.strftime("%Y%m%d"))
 
+        sub = detect_subject(summary, desc, loc)
+        fac, comp = extract_faculty_and_competency(summary, desc, sub)
+
         event_obj = {
             "uid": uid,
             "title": summary,
             "description": desc,
             "location": loc,
+            "faculty": fac,
+            "competency": comp,
             "start": start_dt.strftime("%Y-%m-%d %H:%M:%S"),
             "end": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
             "start_iso": start_dt.isoformat(),
             "end_iso": end_dt.isoformat(),
-            "subject": detect_subject(summary, desc, loc),
+            "subject": sub,
             "session_type": detect_session_type(summary, desc),
             "raw_rrule": rrule_m.group(1).strip() if rrule_m else None
         }
