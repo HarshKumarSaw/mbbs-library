@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-19 13:05:34",
+  "generated_at": "2026-11-19 21:59:14",
   "timezone": "Asia/Kolkata",
-  "total_college_sessions": 1069,
+  "total_college_sessions": 1071,
   "events": [
     {
       "uid": "79reru4buhiv4u7s38toqdr7jc@google.com",
@@ -17106,6 +17106,38 @@
       "subject": "break",
       "session_type": "break",
       "raw_rrule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA"
+    },
+    {
+      "uid": "0puaas0tvhrsuno3anvdp4kivk@google.com",
+      "title": "Anatomy (L)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Anatomy Faculty",
+      "competency": "",
+      "start": "2027-05-18 14:00:00",
+      "end": "2027-05-18 15:00:00",
+      "start_iso": "2027-05-18T14:00:00",
+      "end_iso": "2027-05-18T15:00:00",
+      "all_day": false,
+      "subject": "anatomy",
+      "session_type": "lecture",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "7vkfhn2s7m26dpmcst93eun460@google.com",
+      "title": "Physiology / Biochemistry (Practical)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Biochemistry Faculty",
+      "competency": "",
+      "start": "2027-05-18 15:00:00",
+      "end": "2027-05-18 17:00:00",
+      "start_iso": "2027-05-18T15:00:00",
+      "end_iso": "2027-05-18T17:00:00",
+      "all_day": false,
+      "subject": "biochemistry",
+      "session_type": "practical",
+      "raw_rrule": "FREQ=WEEKLY"
     }
   ]
 }
