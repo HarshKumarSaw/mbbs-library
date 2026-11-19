@@ -208,13 +208,6 @@
             </svg>
             <span>Refresh</span>
           </button>
-          <button type="button" class="btn-timetable-action" id="btn-filter-settings" aria-label="Configure filter rules" title="Configure filters">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-            <span>Filter Rules</span>
-          </button>
         </div>
       </div>
     </div>
@@ -343,51 +336,6 @@
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
           <span>Export to Calendar (.ics)</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filter Rules & Settings Modal -->
-  <div class="modal-overlay" id="timetable-settings-modal" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
-    <div class="modal-sheet">
-      <div class="modal-handle-bar"></div>
-      <div class="modal-header-row">
-        <div>
-          <h2 class="modal-sheet-title" id="modal-settings-title">Timetable Filter &amp; Rules</h2>
-          <p style="font-size: 0.8rem; color: #64748B; margin: 4px 0 0 0;">Manage college vs personal event exclusion rules.</p>
-        </div>
-        <button type="button" class="modal-close-round" id="settings-modal-close" aria-label="Close settings">✕</button>
-      </div>
-
-      <div style="margin: 1.25rem 0; display: flex; flex-direction: column; gap: 16px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0;">
-          <div>
-            <div style="font-weight: 750; font-size: 0.9rem; color: #0F172A;">Strict College Mode</div>
-            <div style="font-size: 0.78rem; color: #64748B;">Hides all personal routines, birthdays, NEET prep, and tasks.</div>
-          </div>
-          <input type="checkbox" id="toggle-strict-filter" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #151B2B;">
-        </div>
-
-        <div>
-          <label for="settings-custom-include" style="display: block; font-size: 0.82rem; font-weight: 750; color: #1E293B; margin-bottom: 4px;">Custom Include Keywords (comma-separated)</label>
-          <input type="text" id="settings-custom-include" placeholder="e.g. pharmacology, forensic, elective" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.84rem;">
-          <span style="font-size: 0.74rem; color: #64748B;">Always displays events containing these words.</span>
-        </div>
-
-        <div>
-          <label for="settings-custom-exclude" style="display: block; font-size: 0.82rem; font-weight: 750; color: #1E293B; margin-bottom: 4px;">Custom Exclude Keywords (comma-separated)</label>
-          <input type="text" id="settings-custom-exclude" placeholder="e.g. gym, cricket, trip" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.84rem;">
-          <span style="font-size: 0.74rem; color: #64748B;">Always hides events containing these words.</span>
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 1.5rem;">
-        <button type="button" class="btn-timetable-action" id="btn-reset-settings" style="color: #64748B;">
-          <span>Reset Defaults</span>
-        </button>
-        <button type="button" class="btn-timetable-action" id="btn-save-settings" style="background: #151B2B; color: #FFFFFF; border-color: #151B2B;">
-          <span>Save Preferences</span>
         </button>
       </div>
     </div>
