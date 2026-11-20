@@ -1781,3 +1781,37 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 64
+
+---
+
+### In-App Document Viewer Small White Square Fix: 2026-11-20 10:20:00 UTC
+- **Bug Report**:
+  - In website view (in-app `#pdf-modal` dialog box), opening any PDF displayed a small white square occupying the upper half of the dialog box instead of properly displaying the document.
+- **Root Cause Analysis**:
+  1. **Google Drive Viewer Iframe Deprecation & Sandboxing**:
+     - `drive.google.com/viewerng/viewer` inside an `iframe` with `sandbox="allow-scripts allow-same-origin allow-forms allow-popups"` failed to load Google's interactive viewer player (`doc-*-bk-apps-viewer.googleusercontent.com` enforces `X-Frame-Options: SAMEORIGIN` and fails under sandboxing/cookie restrictions).
+     - Google Drive Viewer stalled permanently on its initial static thumbnail placeholder (`<div class="ndfHFb-c4YZDc-ujibv-nUpftc"><img ...>`), rendered unscaled with `margin-top: 64px` at the top center of the dark `#0B0F19` modal body.
+  2. **Unrendered Canvas Artifact**:
+     - An unrendered `<canvas id="pdf-canvas">` with default HTML5 dimensions (300x150px) and CSS `background: #FFFFFF` was placed inside `#pdf-single-page-view` at the top of `#pdf-viewer-container`, appearing as a blank white box.
+  3. **Iframe Background Artifact**:
+     - `#pdf-embedded-frame` had `background: #ffffff` in CSS.
+- **Resolution**:
+  1. **In-Modal High-Yield Document Reader View**:
+     - Replaced the broken Google Docs Viewer iframe fallback with a dedicated, responsive in-modal Document Reader Experience (`.pdf-reader-card-wrapper`).
+     - Renders document title, department subject pill with theme colors (Anatomy coral, Physiology lavender, Biochemistry mint), file size, verified page counts, and academic session date.
+     - **Primary Action**: 1-tap **"⚡ Open Fullscreen Reader"** button launching the document directly in the browser's native hardware-accelerated reader with instant streaming, pinch zoom, text search, and zero memory overhead.
+     - **Secondary Action**: 1-tap **"⬇ Download PDF"** button triggering direct device download.
+     - Highlight badges: Instant 0ms Load, Search & Pinch-Zoom, Mobile Touch Friendly.
+  2. **Eliminated Canvas & Frame White Square Artifacts**:
+     - In `index.html`, `anatomy.html`, `biochemistry.html`, and `physiology.html`:
+       - Removed static `<iframe id="pdf-embedded-frame">` and added `<div class="pdf-reader-card-container" id="pdf-reader-card-container"></div>`.
+       - Hidden `#pdf-single-page-view` by default (`style="display: none;"`).
+     - In `css/style.css`:
+       - Changed `.pdf-canvas` default background to `transparent` (only `#FFFFFF` when `.has-content` is present).
+       - Changed `.pdf-embedded-frame` to `display: none !important`.
+  3. **Increased In-App Read Threshold to 95MB**:
+     - Enabled "Read PDF" on all high-yield academic documents up to 95MB (e.g. *diFiore Atlas* 41.3MB, *Johari Notes* 52.0MB).
+  4. **Production Build & Cache Invalidation**:
+     - Recompiled minified assets via `scripts/minify.py` (`style.min.css`, `app.min.js`).
+     - Incremented cache-busting version query string to `?v=1795256400` across all HTML templates.
+

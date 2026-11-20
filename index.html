@@ -115,7 +115,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1795166158">
+  <link rel="stylesheet" href="css/style.min.css?v=1795256400">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -917,18 +917,18 @@
           <a href="#" target="_blank" rel="noopener noreferrer" class="modal-btn modal-btn-primary" id="pdf-error-open-btn">Open in External Tab</a>
         </div>
 
-        <div class="pdf-viewer-container mode-single" id="pdf-viewer-container" tabindex="0">
-          <button type="button" class="pdf-floating-nav pdf-float-prev" id="pdf-float-prev-btn" aria-label="Previous Page" title="Previous Page (Left Arrow / Swipe Right)">
+        <div class="pdf-viewer-container" id="pdf-viewer-container" tabindex="0">
+          <button type="button" class="pdf-floating-nav pdf-float-prev" id="pdf-float-prev-btn" style="display: none;" aria-label="Previous Page" title="Previous Page (Left Arrow / Swipe Right)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
-          <button type="button" class="pdf-floating-nav pdf-float-next" id="pdf-float-next-btn" aria-label="Next Page" title="Next Page (Right Arrow / Swipe Left)">
+          <button type="button" class="pdf-floating-nav pdf-float-next" id="pdf-float-next-btn" style="display: none;" aria-label="Next Page" title="Next Page (Right Arrow / Swipe Left)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
-          <div class="pdf-single-page-view" id="pdf-single-page-view">
+          <div class="pdf-single-page-view" id="pdf-single-page-view" style="display: none;">
             <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
           </div>
           <div class="pdf-pages-stack" id="pdf-pages-stack" style="display: none;"></div>
-          <iframe id="pdf-embedded-frame" class="pdf-embedded-frame" allowfullscreen="true" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" title="Document Viewer" src="about:blank"></iframe>
+          <div class="pdf-reader-card-container" id="pdf-reader-card-container"></div>
         </div>
       </div>
     </div>
@@ -961,8 +961,8 @@
     </div>
   </aside>
 
-  <script src="js/data.js?v=1795166158"></script>
-  <script src="js/app.min.js?v=1795166158"></script>
+  <script src="js/data.js?v=1795256400"></script>
+  <script src="js/app.min.js?v=1795256400"></script>
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js?v=1794462000" defer></script>
 </body>

@@ -3792,20 +3792,252 @@ body.modal-open {
   height: 100%;
   min-height: 100%;
   border: none;
-  background: #ffffff;
+  background: transparent;
   border-radius: 0 0 16px 16px;
   flex: 1 1 100%;
-  display: none;
+  display: none !important;
 }
 
 .pdf-viewer-container.mode-embedded .pdf-embedded-frame {
-  display: block !important;
+  display: none !important;
+}
+
+/* ==========================================================================
+   In-Modal Document Reader Experience (Zero White Square / Instant Stream)
+   ========================================================================== */
+.pdf-reader-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+  margin: auto 0;
+}
+
+.pdf-reader-card {
+  background: #111827;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 2.2rem 1.65rem;
+  max-width: 540px;
+  width: 100%;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  box-sizing: border-box;
+  animation: modalFadeIn 0.22s ease-out;
+}
+
+.reader-badge-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.reader-subject-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.8rem;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.reader-subject-pill.subject-pill-anatomy {
+  background: rgba(242, 191, 193, 0.2);
+  color: #FFA5A8;
+  border: 1px solid rgba(242, 191, 193, 0.4);
+}
+
+.reader-subject-pill.subject-pill-physiology {
+  background: rgba(220, 203, 250, 0.2);
+  color: #D3BEFB;
+  border: 1px solid rgba(220, 203, 250, 0.4);
+}
+
+.reader-subject-pill.subject-pill-biochemistry {
+  background: rgba(188, 235, 217, 0.2);
+  color: #8CE3C2;
+  border: 1px solid rgba(188, 235, 217, 0.4);
+}
+
+.reader-stream-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(16, 185, 129, 0.14);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+  border-radius: 9999px;
+  padding: 0.28rem 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.reader-doc-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #F9FAFB;
+  margin: 0;
+  line-height: 1.32;
+  word-break: break-word;
+}
+
+@media (min-width: 640px) {
+  .reader-doc-title {
+    font-size: 1.55rem;
+  }
+}
+
+.reader-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #9CA3AF;
+  font-weight: 600;
+}
+
+.reader-meta-bullet {
+  color: #4B5563;
+  font-size: 0.75rem;
+}
+
+.reader-desc {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #D1D5DB;
+  margin: 0.15rem 0 0.5rem;
+  max-width: 460px;
+}
+
+.reader-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .reader-actions-row {
+    flex-direction: row;
+  }
+}
+
+.reader-btn-primary {
+  flex: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #F9E88A;
+  color: #151B2B !important;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 800;
+  padding: 0.85rem 1.35rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  min-height: 48px;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 16px rgba(249, 232, 138, 0.35);
+  box-sizing: border-box;
+}
+
+.reader-btn-primary:hover {
+  background: #F7DF60;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 20px rgba(249, 232, 138, 0.45);
+}
+
+.reader-btn-primary:active {
+  transform: scale(0.97);
+}
+
+.reader-btn-secondary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #F3F4F6;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.85rem 1.25rem;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  min-height: 48px;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+  box-sizing: border-box;
+}
+
+.reader-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1.5px);
+}
+
+.reader-btn-secondary:active {
+  transform: scale(0.97);
+}
+
+.reader-highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 420px) {
+  .reader-highlights-grid {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
+.reader-highlight-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  white-space: nowrap;
 }
 
 /* Desktop Single-Page View (One page visible horizontally) */
 .pdf-single-page-view {
   width: 100%;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: flex-start;
 }
@@ -3815,11 +4047,15 @@ body.modal-open {
   height: auto;
   display: block;
   margin: 0 auto;
-  background: #FFFFFF;
+  background: transparent;
   border-radius: 6px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.1);
   user-select: none;
   transition: transform 0.12s ease-out;
+}
+
+.pdf-canvas.has-content {
+  background: #FFFFFF;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 /* Mobile Continuous Vertical Scroll Stack */

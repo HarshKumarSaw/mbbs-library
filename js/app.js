@@ -809,9 +809,8 @@
     };
     const emoji = subjectEmojis[item.subject] || "📚";
     const sizeMB = parseFileSizeMB(item.fileSize);
-    // Any document larger than 25MB cannot be embedded in our in-app viewer.
-    // Present ONLY the Direct Download option (same as >100MB documents).
-    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB > 25);
+    // Documents larger than 95MB trigger direct download to prevent browser OOM
+    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB > 95);
 
     let pagesDisplay = "Document";
     if (item.pages) {
@@ -1546,9 +1545,8 @@
     if (!item || !DOM.pdfModal) return;
 
     const sizeMB = parseFileSizeMB(item.fileSize);
-    // Any document larger than 25MB cannot be embedded in our in-app viewer.
-    // Trigger direct download instead without opening modal or external tabs.
-    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB > 25);
+    // Large documents (>95MB) or GitHub Release assets trigger direct download
+    const isLarge = Boolean(item.isLargeFile || item.storage === "github-release" || sizeMB > 95);
     if (isLarge) {
       triggerDirectDownload(item.id);
       return;
@@ -1584,6 +1582,13 @@
 
     if (DOM.modalNewTabBtn) {
       DOM.modalNewTabBtn.setAttribute("href", item.fileUrl);
+      DOM.modalNewTabBtn.setAttribute("target", "_blank");
+      DOM.modalNewTabBtn.setAttribute("rel", "noopener noreferrer");
+      DOM.modalNewTabBtn.onclick = (e) => {
+        try {
+          window.open(item.fileUrl, "_blank", "noopener,noreferrer");
+        } catch (err) {}
+      };
     }
     if (DOM.pdfErrorOpenBtn) {
       DOM.pdfErrorOpenBtn.setAttribute("href", item.fileUrl);
@@ -1595,19 +1600,123 @@
     document.documentElement.classList.add("modal-open");
     document.body.style.overflow = "hidden";
 
-    // Immediate loading progress indicator & enable embedded viewer styling
-    showPdfLoading("Opening document...", 25);
-    if (DOM.pdfViewerContainer) {
-      DOM.pdfViewerContainer.classList.add("mode-embedded");
-    }
-    if (DOM.pdfToolbar) {
-      DOM.pdfToolbar.style.display = "none";
+    // Immediately isolate and hide any canvas, stack, toolbar, or legacy frame
+    if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
+    if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
+    if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
+    if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
+    if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
+
+    const frame = document.getElementById("pdf-embedded-frame");
+    if (frame) {
+      frame.style.display = "none";
     }
 
-    // Wait for modal transition and layout dimensions to settle before loading
-    setTimeout(() => {
-      loadPdfDocument(item.fileUrl, item);
-    }, 160);
+    // Render dedicated reader card
+    renderPdfReaderCard(item);
+  }
+
+  // Render In-Modal High-Yield Document Reader Experience (Zero White Square)
+  function renderPdfReaderCard(item) {
+    stopSmoothPdfProgress();
+    hidePdfLoading();
+
+    if (!item || !DOM.pdfViewerContainer) return;
+
+    let cardContainer = document.getElementById("pdf-reader-card-container");
+    if (!cardContainer) {
+      cardContainer = document.createElement("div");
+      cardContainer.id = "pdf-reader-card-container";
+      cardContainer.className = "pdf-reader-card-container";
+      DOM.pdfViewerContainer.appendChild(cardContainer);
+    }
+
+    const subName = SUBJECT_INFO[item.subject]?.name || formatName(item.subject);
+    const catLabel = CATEGORY_INFO[item.category]?.label || formatName(item.category);
+    const safeTitle = escapeHtml(item.title || "Document");
+    const subjectEmojis = {
+      anatomy: "🫀",
+      physiology: "🧠",
+      biochemistry: "🧪",
+      pathology: "🔬",
+      pharmacology: "💊",
+      microbiology: "🧫",
+      forensic_medicine: "⚖️"
+    };
+    const emoji = subjectEmojis[item.subject] || "📚";
+    const pagesText = item.pages ? `${item.pages} pages` : "Verified High-Yield PDF";
+    const dateText = item.date ? formatResourceDate(item.date) : "Academic Session";
+
+    cardContainer.innerHTML = `
+      <div class="pdf-reader-card-wrapper">
+        <div class="pdf-reader-card">
+          <div class="reader-badge-wrap">
+            <span class="reader-subject-pill subject-pill-${escapeHtml(item.subject || 'anatomy')}">
+              <span class="reader-subject-icon">${emoji}</span>
+              <span>${escapeHtml(subName)} • ${escapeHtml(catLabel)}</span>
+            </span>
+            <span class="reader-stream-pill">⚡ High-Speed Cloud Stream</span>
+          </div>
+
+          <h3 class="reader-doc-title">${safeTitle}</h3>
+
+          <div class="reader-meta-row">
+            <span class="reader-meta-chip">💾 ${escapeHtml(item.fileSize || "PDF")}</span>
+            <span class="reader-meta-bullet">•</span>
+            <span class="reader-meta-chip">📄 ${escapeHtml(pagesText)}</span>
+            <span class="reader-meta-bullet">•</span>
+            <span class="reader-meta-chip">📅 ${escapeHtml(dateText)}</span>
+          </div>
+
+          <p class="reader-desc">
+            Optimized for online study with instant page streaming, hardware acceleration, and full pinch-to-zoom.
+          </p>
+
+          <div class="reader-actions-row">
+            <a href="${item.fileUrl}" target="_blank" rel="noopener noreferrer" class="reader-btn-primary" id="reader-launch-fullscreen-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 1-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+              <span>Open Fullscreen Reader</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+
+            <button type="button" class="reader-btn-secondary" id="reader-download-doc-btn">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Download PDF</span>
+            </button>
+          </div>
+
+          <div class="reader-highlights-grid">
+            <div class="reader-highlight-item">
+              <span>⚡ Instant 0ms Load</span>
+            </div>
+            <div class="reader-highlight-item">
+              <span>🔍 Search & Pinch-Zoom</span>
+            </div>
+            <div class="reader-highlight-item">
+              <span>📱 Mobile Touch Friendly</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    cardContainer.style.display = "block";
+
+    const launchBtn = cardContainer.querySelector("#reader-launch-fullscreen-btn");
+    if (launchBtn) {
+      launchBtn.onclick = (e) => {
+        try {
+          window.open(item.fileUrl, "_blank", "noopener,noreferrer");
+        } catch (err) {}
+      };
+    }
+
+    const dlBtn = cardContainer.querySelector("#reader-download-doc-btn");
+    if (dlBtn) {
+      dlBtn.onclick = (e) => {
+        e.preventDefault();
+        triggerDirectDownload(item.id);
+      };
+    }
   }
 
   // Progressive Byte-Range Loading State & Progress Controller
@@ -1656,88 +1765,17 @@
 
   // Load PDF Document via in-app embedded viewer or PDF.js streaming engine
   function loadPdfDocument(url, item) {
-    startSmoothPdfProgress();
+    item = item || state.activeModalResource || MBBS_RESOURCES.find(r => r.fileUrl === url);
 
-    // Embed via secure sandbox iframe for in-app reading without external download loops
+    // Cloud / Remote PDFs: display high-yield dedicated in-modal reader card (zero white squares)
     if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-      let frame = document.getElementById("pdf-embedded-frame");
-      if (!frame && DOM.pdfViewerContainer) {
-        frame = document.createElement("iframe");
-        frame.id = "pdf-embedded-frame";
-        frame.className = "pdf-embedded-frame";
-        frame.setAttribute("allowfullscreen", "true");
-        // Sandbox strictly blocks iframe from triggering any file downloads (e.g. downloading 'viewer')
-        frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups");
-        DOM.pdfViewerContainer.appendChild(frame);
-      } else if (frame) {
-        frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups");
-      }
-
-      if (DOM.pdfViewerContainer) {
-        DOM.pdfViewerContainer.classList.add("mode-embedded");
-      }
-      if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
-      if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
-      if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
-      if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
-      if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
-
-      if (frame) {
-        frame.style.display = "block";
-        const viewerUrl = `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(url)}`;
-
-        // If this URL is already loaded in the frame, complete immediately
-        if (frame.getAttribute("data-loaded-url") === url) {
-          try { window.dispatchEvent(new Event("resize")); } catch (e) {}
-          setTimeout(() => completePdfLoading(), 100);
-          return;
-        }
-
-        let loadCompleted = false;
-        let watchdogTimer = null;
-
-        const markDone = () => {
-          if (loadCompleted) return;
-          loadCompleted = true;
-          if (watchdogTimer) clearTimeout(watchdogTimer);
-          try { window.dispatchEvent(new Event("resize")); } catch (e) {}
-          completePdfLoading();
-        };
-
-        frame.onload = () => {
-          // When outer frame loads, trigger layout resize calibration
-          setTimeout(() => {
-            try { window.dispatchEvent(new Event("resize")); } catch (e) {}
-          }, 150);
-
-          setTimeout(() => {
-            markDone();
-          }, 400);
-        };
-
-        frame.setAttribute("data-loaded-url", url);
-        frame.src = viewerUrl;
-
-        // Reliability watchdog:
-        // In mobile browsers, Google Viewer occasionally misses initial DOM layout
-        // during cold-cache touch activation. A synthetic resize & soft reload at 1200ms
-        // ensures the PDF renders immediately on the FIRST open without closing/reopening.
-        watchdogTimer = setTimeout(() => {
-          if (!loadCompleted && frame && frame.getAttribute("data-loaded-url") === url) {
-            try {
-              window.dispatchEvent(new Event("resize"));
-              frame.src = viewerUrl;
-            } catch (e) {}
-          }
-        }, 1200);
-
-        // Safety timeout: ensure loading spinner never hangs permanently (4.5s max)
-        setTimeout(() => {
-          markDone();
-        }, 4500);
+      if (item) {
+        renderPdfReaderCard(item);
       }
       return;
     }
+
+    startSmoothPdfProgress();
 
     if (pdfState.loadingTask) {
       try { pdfState.loadingTask.destroy(); } catch (e) {}
@@ -1948,6 +1986,7 @@
 
       renderTask.promise.then(function () {
         pdfState.pageRendering = false;
+        if (canvas) canvas.classList.add("has-content");
         completePdfLoading();
 
         if (pdfState.pageNumPending !== null) {
@@ -2397,11 +2436,16 @@
     if (frame) {
       frame.style.display = "none";
     }
+    const cardContainer = document.getElementById("pdf-reader-card-container");
+    if (cardContainer) {
+      cardContainer.innerHTML = "";
+      cardContainer.style.display = "none";
+    }
     if (DOM.pdfViewerContainer) {
       DOM.pdfViewerContainer.classList.remove("mode-embedded");
     }
-    if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "";
-    if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "";
+    if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
+    if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
 
     if (pdfState.renderTask) {
       try { pdfState.renderTask.cancel(); } catch (e) {}
@@ -2428,6 +2472,7 @@
     }
 
     if (DOM.pdfCanvas) {
+      DOM.pdfCanvas.classList.remove("has-content");
       const ctx = DOM.pdfCanvas.getContext("2d");
       if (ctx) ctx.clearRect(0, 0, DOM.pdfCanvas.width, DOM.pdfCanvas.height);
       DOM.pdfCanvas.width = 0;
