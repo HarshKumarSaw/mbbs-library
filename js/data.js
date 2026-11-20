@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-histology_front_page-6148",
+    title: "Histology Front Pages",
+    subject: "anatomy",
+    category: "histology",
+    subcategories: ["histology"],
+    code: "Anatomy / Histology",
+    description: "Uploaded document: Histology Front Pages.pdf. Organized under Anatomy / Histology.",
+    tags: ["Anatomy", "Histology", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/f04f0c04-e63c-4a9d-87df-1d76f60f3421",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Histology_Front_Pages.pdf",
+    fileSize: "46 KB",
+    pages: "2 Pages",
+    author: "HarshKumarSaw",
+    date: "20 Nov 2026",
+    updatedAt: 1795166127,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_practical-1680",
     title: "Physiology Practical",
     subject: "physiology",
