@@ -18,7 +18,7 @@ if (!self._ONESIGNAL_WORKER_LOADED) {
  *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.3.6';
+const CACHE_NAME = 'harsh-library-v1.3.7';
 
 // Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
 const getBasePath = () => {
@@ -49,6 +49,8 @@ const RELATIVE_ASSETS = [
   'css/style.css',
   'css/timetable.min.css',
   'css/timetable.css',
+  'js/analytics.min.js',
+  'js/analytics.js',
   'js/data.js',
   'js/app.min.js',
   'js/app.js',

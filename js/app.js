@@ -881,6 +881,10 @@
     initLazyGrid();
     renderActiveFilterTags(filtered.length);
     renderActiveFilterChips();
+
+    if (query && window.Analytics && typeof window.Analytics.trackSearchDebounced === "function") {
+      window.Analytics.trackSearchDebounced(state.searchQuery, filtered.length);
+    }
   }
 
   // Initialize Lazy-Loaded Grid
@@ -1598,6 +1602,10 @@
       "_captcha": "false"
     };
 
+    if (window.Analytics && typeof window.Analytics.trackRequestSubmit === "function") {
+      window.Analytics.trackRequestSubmit(topicVal, subjectVal, categoryVal);
+    }
+
     const mailtoUrl = `mailto:harshsaw01@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(
       `Hi Harsh,\n\nI would like to request the following study resource for the MBBS Library:\n\n• Topic: ${topicVal}\n• Subject: ${subjectVal}\n• Type: ${categoryVal}\n• Name: ${nameVal}\n• Contact: ${contactVal}\n• Notes: ${notesVal}\n\nThank you!`
     )}`;
@@ -1742,6 +1750,10 @@
   function openPdfModal(id) {
     const item = MBBS_RESOURCES.find(r => r.id === id);
     if (!item || !DOM.pdfModal) return;
+
+    if (window.Analytics && typeof window.Analytics.trackResourceView === "function") {
+      window.Analytics.trackResourceView(item);
+    }
 
     const sizeMB = parseFileSizeMB(item.fileSize);
     // Large documents (>95MB) or GitHub Release assets trigger direct download
@@ -2924,6 +2936,10 @@
   function triggerDirectDownload(id) {
     const item = MBBS_RESOURCES.find(r => r.id === id);
     if (!item) return;
+
+    if (window.Analytics && typeof window.Analytics.trackDownload === "function") {
+      window.Analytics.trackDownload(item);
+    }
 
     const safeTitle = (item.title || "document").replace(/[^\w\s\-\.]/g, "").trim();
     const filename = `${safeTitle}.pdf`;

@@ -1404,6 +1404,9 @@
   function switchView(viewName, isManual = false) {
     if (isManual) {
       state.userHasManuallySelectedView = true;
+      if (window.Analytics && typeof window.Analytics.trackTimetable === "function") {
+        window.Analytics.trackTimetable("view_switch", { view: viewName });
+      }
     }
     state.activeView = viewName;
     if (DOM.viewTabs) {

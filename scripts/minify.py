@@ -13,6 +13,7 @@ def main():
         ("timetable.css", "timetable.min.css")
     ]
     js_files = [
+        ("analytics.js", "analytics.min.js"),
         ("app.js", "app.min.js"),
         ("timetable.js", "timetable.min.js")
     ]

@@ -1848,3 +1848,24 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 1
 - **Total In-Sync Files**: 65
+
+---
+
+### Unified PostHog + Google Analytics Integration: 2026-11-20 18:30:00 UTC
+- **Architecture**:
+  - Implemented centralized dual-dispatch analytics engine in `js/analytics.js` (`analytics.min.js`).
+  - Automatically routes high-yield events simultaneously to **PostHog** (behavioral funnels, session replay, search query tracking) and **Google Analytics / GTM** (traffic acquisition).
+- **Core Event Instrumentation**:
+  - `resource_viewed`: Fired on in-app document reader launches with document ID, title, subject, category, and file size.
+  - `resource_downloaded`: Fired on 1-tap direct file downloads.
+  - `search_performed`: Debounced search queries recording terms and zero-result counts to pinpoint study content gaps.
+  - `resource_requested`: Student topic requests captured safely without storing personal contact PII.
+  - `pwa_action`: PWA installation lifecycle tracking (prompted, accepted, installed).
+  - `timetable_action`: College timetable mode switches and navigation.
+- **Privacy & Security**:
+  - Enabled `maskAllInputs: true` and password masking for PostHog session replay to protect student confidentiality.
+- **Build & Cache Invalidation**:
+  - Added `analytics.js` to `scripts/minify.py`.
+  - Bumped Service Worker cache in `sw.js` to `harsh-library-v1.3.7`.
+  - Injected `analytics.min.js` across all site templates (`index.html`, `anatomy.html`, `biochemistry.html`, `physiology.html`, `timetable.html`, `404.html`).
+

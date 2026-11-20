@@ -93,6 +93,9 @@
     window.addEventListener('appinstalled', () => {
       deferredPrompt = null;
       hideAllTriggers();
+      if (window.Analytics && typeof window.Analytics.trackPwa === 'function') {
+        window.Analytics.trackPwa('installed');
+      }
       console.log('[PWA] Installed successfully!');
     });
 
@@ -103,6 +106,13 @@
         const choiceResult = await deferredPrompt.userChoice;
         if (choiceResult.outcome === 'accepted') {
           hideAllTriggers();
+          if (window.Analytics && typeof window.Analytics.trackPwa === 'function') {
+            window.Analytics.trackPwa('accepted');
+          }
+        } else {
+          if (window.Analytics && typeof window.Analytics.trackPwa === 'function') {
+            window.Analytics.trackPwa('declined');
+          }
         }
         deferredPrompt = null;
       } else if (isIOS) {
