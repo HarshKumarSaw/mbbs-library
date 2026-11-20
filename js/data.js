@@ -12,6 +12,27 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-comm-parks_preventive_soc-4820",
+    title: "Parks Preventive Social Medicine 23Rd Ed",
+    subject: "community_medicine",
+    category: "other",
+    subcategories: ["other"],
+    code: "Community Medicine / Other",
+    description: "Uploaded document: parks-preventive-social-medicine-23rd-ed.pdf. Comprehensive reference book (46.3 MB) hosted on GitHub Releases for high-speed direct download.",
+    tags: ["Community Medicine", "Mobile Upload", "Large Book"],
+    fileUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/parks-preventive-social-medicine-23rd-ed.pdf",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/parks-preventive-social-medicine-23rd-ed.pdf",
+    fileSize: "46.3 MB",
+    pages: "942 Pages",
+    author: "HarshKumarSaw",
+    date: "20 Nov 2026",
+    updatedAt: 1795194582,
+    year: "1st Year MBBS",
+    isLargeFile: true,
+    storage: "github-release"
+
+  },
+  {
     id: "user-anat-histology_front_page-6148",
     title: "Histology Front Pages",
     subject: "anatomy",

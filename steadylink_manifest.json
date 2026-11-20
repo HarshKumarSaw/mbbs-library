@@ -625,5 +625,14 @@
     "size": 47181,
     "filename": "Histology Front Pages.pdf",
     "uploaded_at": "2026-11-20 09:15:47 UTC"
+  },
+  "parks-preventive-social-medicine-23rd-ed.pdf": {
+    "asset_id": "gh-release-parks-preventive-social-medicine-23rd-ed.pdf",
+    "url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/parks-preventive-social-medicine-23rd-ed.pdf",
+    "download_url": "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/parks-preventive-social-medicine-23rd-ed.pdf",
+    "size": 48560215,
+    "status": "ready",
+    "storage": "github-release",
+    "is_large_file": true
   }
 }
