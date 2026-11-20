@@ -10,6 +10,7 @@ __pycache__/
 .DS_Store
 node_modules/
 .onesignal_key
+.posthog_key
 *.key
 .college_ical_url
 .env
