@@ -11,7 +11,7 @@
     apiKey: "phc_A9g4GsLWQAhmvi27AxfGEHyKv2hCthLdkWot7L5CMMvB",
     host: "https://us.i.posthog.com",
     defaults: "2026-05-30",
-    personProfiles: "identified_only",
+    personProfiles: "always", // Create individual profile for every visitor (anonymous & identified)
     maskInputs: true
   };
 
