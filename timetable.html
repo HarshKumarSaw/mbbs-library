@@ -89,7 +89,7 @@
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/style.min.css?v=1795257503">
-  <link rel="stylesheet" href="css/timetable.min.css?v=1795166158v9">
+  <link rel="stylesheet" href="css/timetable.min.css?v=1795166158v10">
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -211,39 +211,13 @@
             </g>
           </svg>
         </div>
-
-        <div class="timetable-controls-bar">
-          <!-- View Switcher Tabs -->
-          <div class="timetable-views-wrapper">
-            <div class="timetable-nav-tabs" role="tablist" aria-label="Schedule view">
-              <button type="button" class="tab-btn active" data-view="today" role="tab" aria-selected="true">
-                Today <span class="tab-count-badge" id="tab-count-today">0</span>
-              </button>
-              <button type="button" class="tab-btn" data-view="tomorrow" role="tab" aria-selected="false">
-                Tomorrow <span class="tab-count-badge" id="tab-count-tomorrow">0</span>
-              </button>
-              <button type="button" class="tab-btn" data-view="upcoming" role="tab" aria-selected="false">
-                Upcoming <span class="tab-count-badge" id="tab-count-upcoming">0</span>
-              </button>
-            </div>
-          </div>
-
-          <button type="button" class="btn-timetable-action btn-refresh" id="btn-refresh-timetable" aria-label="Refresh timetable feed" title="Refresh schedule">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="23 4 23 10 17 10"></polyline>
-              <polyline points="1 20 1 14 7 14"></polyline>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
-            <span>Refresh</span>
-          </button>
-        </div>
       </div>
     </div>
   </section>
 
   <!-- Main Content Container -->
   <main class="container" style="padding-top: 1.25rem; min-height: 55vh;">
-    <!-- Secondary Filters (Subject Pills + Type Select + Search) -->
+    <!-- Secondary Filters (Subject Pills + Type Select + Search) - Positioned ABOVE view switcher -->
     <div class="timetable-filter-bar">
       <!-- Mobile Filter Toggle Bar -->
       <div class="mobile-filter-header">
@@ -295,6 +269,32 @@
           <button type="button" id="timetable-search-clear" aria-label="Clear search">✕</button>
         </div>
       </div>
+    </div>
+
+    <!-- View Switcher Tabs (Today, Tomorrow, Upcoming) + Actions - Positioned BELOW filter -->
+    <div class="timetable-controls-bar">
+      <div class="timetable-views-wrapper">
+        <div class="timetable-nav-tabs" role="tablist" aria-label="Schedule view">
+          <button type="button" class="tab-btn active" data-view="today" role="tab" aria-selected="true">
+            Today <span class="tab-count-badge" id="tab-count-today">0</span>
+          </button>
+          <button type="button" class="tab-btn" data-view="tomorrow" role="tab" aria-selected="false">
+            Tomorrow <span class="tab-count-badge" id="tab-count-tomorrow">0</span>
+          </button>
+          <button type="button" class="tab-btn" data-view="upcoming" role="tab" aria-selected="false">
+            Upcoming <span class="tab-count-badge" id="tab-count-upcoming">0</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="btn-timetable-action btn-refresh" id="btn-refresh-timetable" aria-label="Refresh timetable feed" title="Refresh schedule">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span>Refresh</span>
+      </button>
     </div>
 
     <!-- Happening Now / Next Class Banner -->
