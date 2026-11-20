@@ -115,7 +115,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1795257503">
+  <link rel="stylesheet" href="css/style.min.css?v=1795257504">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -799,6 +799,17 @@
           </div>
         </div>
 
+        <!-- Sub-Subjects Section (Dynamically visible when Anatomy is selected) -->
+        <div class="filter-group" id="modal-subsubject-group" style="display: none;">
+          <div class="filter-group-header">
+            <span class="filter-group-label">Sub-Subjects / Modules</span>
+            <span class="filter-group-hint">Filter by branch (e.g. Histology, Neuroanatomy)</span>
+          </div>
+          <div class="filter-pill-grid" id="modal-subsubject-filters" role="tablist">
+            <!-- Populated dynamically via JS when Anatomy is selected -->
+          </div>
+        </div>
+
         <!-- Content Format Section (Linked to Offline Folders) -->
         <div class="filter-group">
           <div class="filter-group-header">
@@ -970,7 +981,7 @@
   </aside>
 
   <script src="js/data.js?v=1795257500"></script>
-  <script src="js/app.min.js?v=1795257500"></script>
+  <script src="js/app.min.js?v=1795257504"></script>
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js?v=1794463000" defer></script>
 </body>

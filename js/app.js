@@ -9,6 +9,7 @@
   // Application State
   const state = {
     selectedSubject: "all",
+    selectedSubSubject: "all",
     selectedCategory: "all",
     searchQuery: "",
     sortBy: "updated-desc", // Default: Newest updated date to oldest
@@ -135,7 +136,11 @@
     filterClearAllBtn: document.getElementById("filter-clear-all-btn"),
     filterApplyBtn: document.getElementById("filter-apply-btn"),
     modalSubjectFilters: document.getElementById("modal-subject-filters"),
+    modalSubSubjectFilters: document.getElementById("modal-subsubject-filters"),
+    modalSubSubjectGroup: document.getElementById("modal-subsubject-group"),
     modalCategoryFilters: document.getElementById("modal-category-filters"),
+    subSubjectFilters: document.getElementById("subsubject-filters"),
+    anatomySubSubjectRow: document.getElementById("anatomy-subsubject-row"),
     // Request PDF Modal Elements
     requestModal: document.getElementById("request-pdf-modal"),
     requestModalBackdrop: document.getElementById("request-modal-backdrop"),
@@ -228,6 +233,7 @@
     }
     parseUrlParameters();
     renderSubjectPills();
+    renderSubSubjectPills();
     renderCategoryPills();
     updateStatsCounters();
     applyFilterAndRender();
@@ -413,6 +419,14 @@
       state.selectedCategory = categoryParam.toLowerCase();
     }
 
+    const subSubjectParam = params.get("subsubject") || params.get("sub_subject") || params.get("branch") || params.get("module");
+    if (subSubjectParam) {
+      state.selectedSubSubject = toSlug(subSubjectParam);
+      if (state.selectedSubject === "all") {
+        state.selectedSubject = "anatomy";
+      }
+    }
+
     const searchParam = params.get("q");
     if (searchParam) {
       state.searchQuery = searchParam;
@@ -486,10 +500,15 @@
           const subId = btn.dataset.subject;
           if (state.selectedSubject === subId && subId !== "all") {
             state.selectedSubject = "all";
+            state.selectedSubSubject = "all";
           } else {
             state.selectedSubject = subId;
+            if (subId !== "anatomy") {
+              state.selectedSubSubject = "all";
+            }
           }
           renderSubjectPills();
+          renderSubSubjectPills();
           renderCategoryPills(); // Keep content formats in sync with the subject!
           applyFilterAndRender();
           updateHash();
@@ -501,148 +520,287 @@
   // Metadata/system tags to ignore when generating folder/tag filter pills
   const SYSTEM_FILTER_TAGS_LOWER = new Set(["mobile upload", "large book", "1st year mbbs", "textbook", "document"]);
 
-  // Check if a resource matches a category, subfolder, or tag slug
-  function resourceMatchesFilter(item, filterSlug) {
+  // Anatomy Curriculum Sub-Subjects / Branches
+  const ANATOMY_SUB_SUBJECTS = {
+    general_anatomy: {
+      id: "general_anatomy",
+      label: "General Anatomy",
+      icon: "🦴"
+    },
+    gross_anatomy: {
+      id: "gross_anatomy",
+      label: "Gross Anatomy",
+      icon: "🫀"
+    },
+    histology: {
+      id: "histology",
+      label: "Histology",
+      icon: "🔬"
+    },
+    embryology: {
+      id: "embryology",
+      label: "Embryology",
+      icon: "🌱"
+    },
+    neuroanatomy: {
+      id: "neuroanatomy",
+      label: "Neuroanatomy",
+      icon: "🧠"
+    },
+    genetics: {
+      id: "genetics",
+      label: "Genetics",
+      icon: "🧬"
+    }
+  };
+
+  // Known sub-subject keys to exclude from Content Format pills
+  const SUB_SUBJECT_KEYS_SET = new Set([
+    "general_anatomy", "gross_anatomy", "histology", "embryology", "neuroanatomy", "genetics",
+    "general anatomy", "gross anatomy"
+  ]);
+
+  // Check if a resource matches an Anatomy sub-subject branch
+  function resourceMatchesSubSubject(item, subKey) {
     if (!item) return false;
-    const target = (filterSlug || "").toLowerCase().trim();
+    if (!subKey || subKey === "all") return true;
+
+    const hay = [
+      item.category || "",
+      ...(item.subcategories || []),
+      ...(item.tags || []),
+      item.title || "",
+      item.code || "",
+      item.description || ""
+    ].map(s => (s || "").toLowerCase());
+
+    if (subKey === "general_anatomy") {
+      return hay.some(h => h === "general_anatomy" || h === "general anatomy" || h.includes("general anat") || h.includes("general_anat"));
+    }
+    if (subKey === "gross_anatomy") {
+      return hay.some(h => h === "gross_anatomy" || h === "gross anatomy" || h.includes("gross") ||
+        h.includes("upper limb") || h.includes("lower limb") || h.includes("thorax") ||
+        h.includes("abdomen") || h.includes("pelvis") || h.includes("head and neck") ||
+        h.includes("head & neck") || h.includes("cunningham") || h.includes("bdc") || h.includes("dissection"));
+    }
+    if (subKey === "histology") {
+      return hay.some(h => h === "histology" || h.includes("histo"));
+    }
+    if (subKey === "embryology") {
+      return hay.some(h => h === "embryology" || h.includes("embryo"));
+    }
+    if (subKey === "neuroanatomy") {
+      return hay.some(h => h === "neuroanatomy" || h.includes("neuro"));
+    }
+    if (subKey === "genetics") {
+      return hay.some(h => h === "genetics" || h.includes("genetic"));
+    }
+    return false;
+  }
+
+  // Check if a resource matches a genuine Content Format (Notes, Books, Practicals, SDL, PYQs, etc.)
+  function resourceMatchesFormat(item, formatSlug) {
+    if (!item) return false;
+    const target = (formatSlug || "").toLowerCase().trim();
     if (target === "all") return true;
 
-    // 1. Primary category
-    if (item.category && item.category.toLowerCase().trim() === target) {
-      return true;
-    }
-    // 2. Subcategories array (all folder levels)
-    if (item.subcategories && Array.isArray(item.subcategories)) {
-      if (item.subcategories.some(s => s.toLowerCase().trim() === target)) {
+    // Direct match against category or subcategories (as long as it's not a sub-subject key)
+    if (!SUB_SUBJECT_KEYS_SET.has(target)) {
+      if (item.category && item.category.toLowerCase().trim() === target) {
         return true;
       }
+      if (item.subcategories && Array.isArray(item.subcategories)) {
+        if (item.subcategories.some(s => s.toLowerCase().trim() === target)) {
+          return true;
+        }
+      }
     }
-    // 3. Tags array
+
+    const hay = [
+      item.category || "",
+      ...(item.subcategories || []),
+      ...(item.tags || []),
+      item.title || "",
+      item.description || ""
+    ].map(s => (s || "").toLowerCase());
+
+    if (target === "notes" || target === "note") {
+      return hay.some(h => h === "notes" || h === "note" || h.includes("note") || h.includes("johari") || h.includes("bajrang") || h.includes("lecture"));
+    }
+    if (target === "books" || target === "book") {
+      return hay.some(h => h === "books" || h === "book" || h.includes("book") || h.includes("textbook") || h.includes("atlas") || h.includes("manual") || h.includes("edition") || h.includes("bdc"));
+    }
+    if (target === "practicals" || target === "practical") {
+      return hay.some(h => h === "practicals" || h === "practical" || h.includes("practical") || h.includes("spotter") || h.includes("dissection") || h.includes("cunningham"));
+    }
+    if (target === "assignments" || target === "assignment" || target === "homework") {
+      return hay.some(h => h === "assignments" || h === "assignment" || h.includes("assignment") || h.includes("homework") || h.includes("worksheet"));
+    }
+    if (target === "sdl" || target === "sdls") {
+      return hay.some(h => h === "sdl" || h === "sdls" || h.includes("sdl") || h.includes("self-directed"));
+    }
+    if (target === "diagrams" || target === "diagram") {
+      return hay.some(h => h === "diagrams" || h === "diagram" || h.includes("diagram"));
+    }
+    if (target === "pyq" || target === "pyqs") {
+      return hay.some(h => h === "pyq" || h === "pyqs" || h.includes("pyq") || h.includes("question paper"));
+    }
+    if (target === "project" || target === "projects") {
+      return hay.some(h => h === "project" || h === "projects" || h.includes("project"));
+    }
+    if (target === "other" || target === "others") {
+      return hay.some(h => h === "other" || h === "others" || h.includes("imp topic") || h.includes("reasoning"));
+    }
+
+    // Fallback: check tags
     if (item.tags && Array.isArray(item.tags)) {
-      if (item.tags.some(t => {
-        const cleanSlug = toSlug(t);
-        return cleanSlug === target || t.toLowerCase().trim() === target;
-      })) {
+      if (item.tags.some(t => toSlug(t) === target || t.toLowerCase().trim() === target)) {
         return true;
       }
     }
     return false;
   }
 
-  // Render Content Format & Subfolder Filter Buttons (Dynamically discovered from resources; no empty formats!)
+  // Alias for backward compatibility
+  const resourceMatchesFilter = resourceMatchesFormat;
+
+  // Render Sub-Subject / Anatomy Branches (Dynamically visible when Anatomy is selected)
+  function renderSubSubjectPills() {
+    const containers = [DOM.subSubjectFilters, DOM.modalSubSubjectFilters].filter(Boolean);
+    const modalGroup = DOM.modalSubSubjectGroup;
+    const anatRow = DOM.anatomySubSubjectRow;
+
+    // Show only when Anatomy is selected
+    const isAnatomy = state.selectedSubject === "anatomy";
+
+    if (modalGroup) {
+      modalGroup.style.display = isAnatomy ? "block" : "none";
+    }
+    if (anatRow) {
+      anatRow.style.display = isAnatomy ? "flex" : "none";
+    }
+
+    if (!isAnatomy) {
+      state.selectedSubSubject = "all";
+      containers.forEach(c => c.innerHTML = "");
+      return;
+    }
+
+    if (!containers.length) return;
+
+    // Anatomy resources
+    const anatResources = MBBS_RESOURCES.filter(r => r.subject === "anatomy");
+
+    const preferredSubKeys = [
+      "general_anatomy", "gross_anatomy", "histology", "embryology", "neuroanatomy", "genetics"
+    ];
+
+    const subCounts = {};
+    preferredSubKeys.forEach(k => {
+      let count = 0;
+      anatResources.forEach(r => {
+        if (resourceMatchesSubSubject(r, k)) count++;
+      });
+      if (count > 0) {
+        subCounts[k] = count;
+      }
+    });
+
+    const activeSubKeys = Object.keys(subCounts);
+    const ordered = ["all", ...activeSubKeys];
+
+    // If current selected subsubject doesn't exist, revert to all
+    if (state.selectedSubSubject !== "all" && !activeSubKeys.includes(state.selectedSubSubject)) {
+      state.selectedSubSubject = "all";
+    }
+
+    containers.forEach(container => {
+      container.innerHTML = ordered.map(subKey => {
+        const meta = ANATOMY_SUB_SUBJECTS[subKey] || { label: formatName(subKey), icon: "📚" };
+        const label = subKey === "all" ? "All Anatomy" : meta.label;
+        const icon = subKey === "all" ? "🦴" : (meta.icon || "🧬");
+        const count = subKey === "all" ? anatResources.length : subCounts[subKey];
+        const isActive = state.selectedSubSubject === subKey ? "active" : "";
+
+        return `
+          <button type="button" class="filter-pill subsubject-pill ${isActive}" data-subsubject="${subKey}">
+            <span class="subsubject-pill-icon" aria-hidden="true">${icon}</span>
+            <span>${label}</span>
+            <span class="pill-count">${count}</span>
+          </button>
+        `;
+      }).join("");
+
+      container.querySelectorAll(".filter-pill").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const subKey = btn.dataset.subsubject;
+          if (state.selectedSubSubject === subKey && subKey !== "all") {
+            state.selectedSubSubject = "all";
+          } else {
+            state.selectedSubSubject = subKey;
+          }
+          renderSubSubjectPills();
+          renderCategoryPills();
+          applyFilterAndRender();
+        });
+      });
+    });
+  }
+
+  // Render Content Format Filter Buttons (Notes, Books, Practicals, SDL, PYQs, etc.)
   function renderCategoryPills() {
     const containers = [DOM.categoryFilters, DOM.modalCategoryFilters].filter(Boolean);
     if (!containers.length) return;
 
-    // Filter resources based on currently selected subject (or all)
-    const scopeResources = state.selectedSubject === "all"
-      ? MBBS_RESOURCES
-      : MBBS_RESOURCES.filter(r => r.subject === state.selectedSubject);
+    // Filter resources based on currently selected subject and sub-subject
+    let scopeResources = MBBS_RESOURCES;
+    if (state.selectedSubject !== "all") {
+      scopeResources = scopeResources.filter(r => r.subject === state.selectedSubject);
+    }
+    if (state.selectedSubject === "anatomy" && state.selectedSubSubject !== "all") {
+      scopeResources = scopeResources.filter(r => resourceMatchesSubSubject(r, state.selectedSubSubject));
+    }
 
-    // Discover all category and subfolder keys present in current scope
-    const filterKeyCounts = {};
-    const filterKeyLabels = {};
-    const candidateKeys = new Set();
-
-    scopeResources.forEach(r => {
-      // 1. Primary category
-      if (r.category) {
-        const catSlug = toSlug(r.category);
-        if (catSlug) {
-          candidateKeys.add(catSlug);
-          if (!filterKeyLabels[catSlug]) {
-            filterKeyLabels[catSlug] = (typeof CATEGORY_INFO !== "undefined" && CATEGORY_INFO[catSlug]?.label) || formatName(r.category);
-          }
-        }
-      }
-      // 2. Subcategories (nested folders)
-      if (r.subcategories && Array.isArray(r.subcategories)) {
-        r.subcategories.forEach(sub => {
-          const subSlug = toSlug(sub);
-          if (subSlug) {
-            candidateKeys.add(subSlug);
-            if (!filterKeyLabels[subSlug]) {
-              filterKeyLabels[subSlug] = (typeof CATEGORY_INFO !== "undefined" && CATEGORY_INFO[subSlug]?.label) || formatName(sub);
-            }
-          }
-        });
-      }
-      // 3. Resource tags (creator, subfolder, and topic tags)
-      if (r.tags && Array.isArray(r.tags)) {
-        r.tags.forEach(t => {
-          const tTrim = (t || "").trim();
-          const tLow = tTrim.toLowerCase();
-          if (!tTrim || SYSTEM_FILTER_TAGS_LOWER.has(tLow)) return;
-          // Avoid showing subject itself as a category tag pill
-          if (r.subject && (tLow === r.subject.toLowerCase() || (typeof SUBJECT_INFO !== "undefined" && tLow === (SUBJECT_INFO[r.subject]?.name || "").toLowerCase()))) {
-            return;
-          }
-          const tSlug = toSlug(tTrim);
-          if (tSlug) {
-            candidateKeys.add(tSlug);
-            if (!filterKeyLabels[tSlug]) {
-              filterKeyLabels[tSlug] = (typeof CATEGORY_INFO !== "undefined" && CATEGORY_INFO[tSlug]?.label) || tTrim;
-            }
-          }
-        });
-      }
-    });
-
-    // Count matching resources for each discovered key
-    candidateKeys.forEach(k => {
-      let count = 0;
-      scopeResources.forEach(r => {
-        if (resourceMatchesFilter(r, k)) count++;
-      });
-      if (count > 0) {
-        filterKeyCounts[k] = count;
-      }
-    });
-
-    const activeKeys = Object.keys(filterKeyCounts);
-
-    // Preferred sort order for standard formats, then subfolder tags, then other
-    const preferredOrder = [
-      "notes", "books", "assignments", "homework", "sdl", "sdls",
-      "practicals", "diagrams", "histology", "embryology",
-      "neuroanatomy", "general_anatomy", "project", "projects", "pyq", "pyqs"
+    // Standard format keys in preferred order
+    const standardFormats = [
+      "notes", "books", "practicals", "assignments", "sdl", "diagrams", "pyq", "other"
     ];
 
-    activeKeys.sort((a, b) => {
-      const idxA = preferredOrder.indexOf(a);
-      const idxB = preferredOrder.indexOf(b);
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      if (idxA !== -1) return -1;
-      if (idxB !== -1) return 1;
-      if (a === "other") return 1;
-      if (b === "other") return -1;
-      const countDiff = filterKeyCounts[b] - filterKeyCounts[a];
-      if (countDiff !== 0) return countDiff;
-      return a.localeCompare(b);
+    const formatCounts = {};
+    standardFormats.forEach(fmtKey => {
+      let count = 0;
+      scopeResources.forEach(r => {
+        if (resourceMatchesFormat(r, fmtKey)) count++;
+      });
+      if (count > 0) {
+        formatCounts[fmtKey] = count;
+      }
     });
 
+    const activeFormatKeys = Object.keys(formatCounts);
     const ordered = [];
     if (scopeResources.length > 0) {
       ordered.push("all");
     }
-    activeKeys.forEach(k => ordered.push(k));
+    activeFormatKeys.forEach(k => ordered.push(k));
 
     // If current selected category doesn't exist in current scope, revert to 'all'
-    if (state.selectedCategory !== "all" && !activeKeys.includes(state.selectedCategory)) {
+    if (state.selectedCategory !== "all" && !activeFormatKeys.includes(state.selectedCategory)) {
       state.selectedCategory = "all";
     }
 
     containers.forEach(container => {
       if (ordered.length === 0) {
-        container.innerHTML = `<span class="empty-filter-hint" style="font-size:0.85rem; color:#6B7280; padding:0.5rem 0.2rem;">No format folders available for this subject</span>`;
+        container.innerHTML = `<span class="empty-filter-hint" style="font-size:0.85rem; color:#6B7280; padding:0.5rem 0.2rem;">No formats available for this selection</span>`;
         return;
       }
 
       container.innerHTML = ordered.map(catId => {
-        const label = catId === "all" ? "All Resources" : (filterKeyLabels[catId] || formatName(catId));
+        const meta = CATEGORY_INFO[catId] || { label: formatName(catId) };
+        const label = catId === "all" ? (state.selectedSubject === "all" ? "All Resources" : "All Formats") : meta.label;
         const count = catId === "all"
           ? scopeResources.length
-          : (filterKeyCounts[catId] || 0);
+          : (formatCounts[catId] || 0);
         const isActive = state.selectedCategory === catId ? "active" : "";
 
         return `
@@ -691,8 +849,13 @@
         return false;
       }
 
-      // Category / Subfolder / Tag match
-      if (state.selectedCategory !== "all" && !resourceMatchesFilter(item, state.selectedCategory)) {
+      // Sub-Subject match (When Anatomy branch is selected)
+      if (state.selectedSubject === "anatomy" && state.selectedSubSubject !== "all" && !resourceMatchesSubSubject(item, state.selectedSubSubject)) {
+        return false;
+      }
+
+      // Content Format match
+      if (state.selectedCategory !== "all" && !resourceMatchesFormat(item, state.selectedCategory)) {
         return false;
       }
 
@@ -1050,6 +1213,16 @@
       `);
     }
 
+    if (state.selectedSubject === "anatomy" && state.selectedSubSubject !== "all") {
+      const subMeta = ANATOMY_SUB_SUBJECTS[state.selectedSubSubject] || { label: formatName(state.selectedSubSubject) };
+      tags.push(`
+        <span class="filter-tag">
+          Branch: ${subMeta.label}
+          <button type="button" class="filter-tag-remove" data-clear="subsubject" aria-label="Clear sub-subject filter">×</button>
+        </span>
+      `);
+    }
+
     if (state.selectedCategory !== "all") {
       const catName = CATEGORY_INFO[state.selectedCategory]?.label || formatName(state.selectedCategory);
       tags.push(`
@@ -1078,15 +1251,20 @@
           const type = btn.dataset.clear;
           if (type === "subject") {
             state.selectedSubject = "all";
+            state.selectedSubSubject = "all";
             renderSubjectPills();
+            renderSubSubjectPills();
+          } else if (type === "subsubject") {
+            state.selectedSubSubject = "all";
+            renderSubSubjectPills();
           } else if (type === "category") {
             state.selectedCategory = "all";
-            renderCategoryPills();
           } else if (type === "search") {
             state.searchQuery = "";
             if (DOM.searchInput) DOM.searchInput.value = "";
             if (DOM.searchClear) DOM.searchClear.style.display = "none";
           }
+          renderCategoryPills();
           applyFilterAndRender();
         });
       });
@@ -1103,11 +1281,13 @@
   // Reset All Filters
   function resetAllFilters() {
     state.selectedSubject = "all";
+    state.selectedSubSubject = "all";
     state.selectedCategory = "all";
     state.searchQuery = "";
     if (DOM.searchInput) DOM.searchInput.value = "";
     if (DOM.searchClear) DOM.searchClear.style.display = "none";
     renderSubjectPills();
+    renderSubSubjectPills();
     renderCategoryPills();
     applyFilterAndRender();
     updateHash();
@@ -1131,6 +1311,7 @@
   function updateFilterBadge() {
     let count = 0;
     if (state.selectedSubject !== "all") count++;
+    if (state.selectedSubject === "anatomy" && state.selectedSubSubject !== "all") count++;
     if (state.selectedCategory !== "all") count++;
 
     if (DOM.filterBadge) {
@@ -1178,6 +1359,16 @@
       `);
     }
 
+    if (state.selectedSubject === "anatomy" && state.selectedSubSubject !== "all") {
+      const subMeta = ANATOMY_SUB_SUBJECTS[state.selectedSubSubject] || { label: formatName(state.selectedSubSubject) };
+      chips.push(`
+        <span class="active-chip active-chip-subsubject">
+          <span>🧬 ${subMeta.label}</span>
+          <button type="button" class="active-chip-remove" data-clear="subsubject" aria-label="Remove ${subMeta.label} filter">✕</button>
+        </span>
+      `);
+    }
+
     if (state.selectedCategory !== "all") {
       const catMeta = CATEGORY_INFO[state.selectedCategory] || { label: formatName(state.selectedCategory) };
       chips.push(`
@@ -1198,11 +1389,15 @@
           const type = btn.dataset.clear;
           if (type === "subject") {
             state.selectedSubject = "all";
+            state.selectedSubSubject = "all";
             updateHash();
+          } else if (type === "subsubject") {
+            state.selectedSubSubject = "all";
           } else if (type === "category") {
             state.selectedCategory = "all";
           }
           renderSubjectPills();
+          renderSubSubjectPills();
           renderCategoryPills();
           applyFilterAndRender();
         });
@@ -1212,8 +1407,10 @@
       if (clearAllBtn) {
         clearAllBtn.addEventListener("click", () => {
           state.selectedSubject = "all";
+          state.selectedSubSubject = "all";
           state.selectedCategory = "all";
           renderSubjectPills();
+          renderSubSubjectPills();
           renderCategoryPills();
           applyFilterAndRender();
           updateHash();
@@ -1264,8 +1461,10 @@
     if (DOM.filterClearAllBtn) {
       DOM.filterClearAllBtn.addEventListener("click", () => {
         state.selectedSubject = "all";
+        state.selectedSubSubject = "all";
         state.selectedCategory = "all";
         renderSubjectPills();
+        renderSubSubjectPills();
         renderCategoryPills();
         applyFilterAndRender();
         updateHash();

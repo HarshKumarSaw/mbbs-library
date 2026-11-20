@@ -122,7 +122,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1795257503">
+  <link rel="stylesheet" href="css/style.min.css?v=1795257504">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -381,9 +381,23 @@
       <div class="container">
         <h2 class="sr-only">Human Anatomy Curriculum Resources</h2>
         
-        <!-- Category Filter Track -->
+        <!-- Sub-Subjects & Category Filter Tracks -->
         <div class="filter-toolbar">
-          <div class="filter-row">
+          <!-- Anatomy Sub-Subjects Track (Branches) -->
+          <div class="filter-row filter-row-subsubjects" id="anatomy-subsubject-row">
+            <div class="filter-row-header">
+              <span class="filter-track-label">Branch / Sub-Subject:</span>
+            </div>
+            <div class="filter-pills filter-pills-subsubject" id="subsubject-filters" role="tablist" aria-label="Filter by anatomy sub-subject">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Format Track -->
+          <div class="filter-row filter-row-formats">
+            <div class="filter-row-header">
+              <span class="filter-track-label">Format:</span>
+            </div>
             <div class="filter-pills" id="category-filters" role="tablist" aria-label="Filter by category">
               <!-- Populated dynamically via JS -->
             </div>
@@ -857,7 +871,7 @@
   </aside>
 
   <script src="js/data.js?v=1795257500"></script>
-  <script src="js/app.min.js?v=1795257500"></script>
+  <script src="js/app.min.js?v=1795257504"></script>
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js?v=1794463000" defer></script>
 </body>

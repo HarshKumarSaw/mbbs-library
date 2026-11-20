@@ -1627,6 +1627,12 @@ textarea,
   color: var(--biochem-text);
 }
 
+.active-chip-subsubject {
+  border-color: #E5B3B6;
+  background: #FDF2F2;
+  color: #A33D43;
+}
+
 .active-chip-remove {
   display: inline-flex;
   align-items: center;
@@ -2344,6 +2350,53 @@ textarea,
 /* Subtle subject accent indicator on active category pills in subject pages */
 .page-anatomy .filter-pill.active {
   box-shadow: inset 0 -2.5px 0 var(--anatomy-accent), 0 4px 14px rgba(21, 27, 43, 0.22);
+}
+
+/* Sub-Subject Pills (Anatomy Branches: Histology, Embryology, Neuroanatomy, etc.) */
+.subsubject-pill {
+  border-color: #E2E8F0;
+  background: #FFFFFF;
+}
+
+.subsubject-pill-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+.subsubject-pill.active {
+  background: #A33D43 !important; /* Signature Anatomy Burgundy */
+  border-color: #A33D43 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(163, 61, 67, 0.28) !important;
+}
+
+.subsubject-pill.active .pill-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+/* Filter Row Track Headers inside .filter-toolbar */
+.filter-row-subsubjects {
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px dashed rgba(232, 224, 213, 0.7);
+}
+
+.filter-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.25rem 0.15rem 0.25rem;
+}
+
+.filter-track-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #64748B);
 }
 
 .page-physiology .filter-pill.active {
