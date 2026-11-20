@@ -87,6 +87,56 @@ if [ ! -d "$REPO_DIR" ]; then
     exit 1
 fi
 
+setup_git_merge_driver() {
+    cd "$REPO_DIR"
+    git config merge.timetable_resolver.name "Automated Timetable JSON Merge Resolver" 2>/dev/null || true
+    git config merge.timetable_resolver.driver "python3 scripts/merge_timetable.py %O %A %B" 2>/dev/null || true
+}
+
+sync_remote_repository() {
+    [ -d "$REPO_DIR/.git" ] || return 0
+    cd "$REPO_DIR"
+    setup_git_merge_driver
+
+    # Only attempt if internet is reachable
+    if ! curl -s --connect-timeout 4 -I https://github.com >/dev/null 2>&1; then
+        return 0
+    fi
+
+    # Fetch origin
+    if ! git fetch origin main >/dev/null 2>&1; then
+        return 0
+    fi
+
+    local behind
+    behind=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+    if [ "$behind" -eq 0 ]; then
+        return 0
+    fi
+
+    [ "$ON_STARTUP" -eq 0 ] && echo -e "🔄 ${CYAN}[Git] Synchronizing $behind remote update(s) from GitHub...${RESET}"
+
+    local has_unstaged=0
+    if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+        has_unstaged=1
+        git stash push -q -m "mbbs-sync-auto-stash" 2>/dev/null || true
+    fi
+
+    if ! git rebase origin/main >/dev/null 2>&1; then
+        if [ -f "$REPO_DIR/scripts/merge_timetable.py" ]; then
+            python3 "$REPO_DIR/scripts/merge_timetable.py" >/dev/null 2>&1 || true
+            git add assets/data/timetable_college.json 2>/dev/null || true
+        fi
+        GIT_EDITOR=: git rebase --continue >/dev/null 2>&1 || git rebase --abort >/dev/null 2>&1 || true
+    fi
+
+    if [ "$has_unstaged" -eq 1 ]; then
+        git stash pop -q 2>/dev/null || true
+    fi
+}
+
+sync_remote_repository
+
 # Fallback for phone directory if /storage/emulated/0 is mapped via Termux storage
 if [ ! -d "$PHONE_DIR" ]; then
     if [ -d "$HOME/storage/shared/mbbs-library" ]; then
@@ -1153,72 +1203,104 @@ if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
         printf "\r   ⏳ [%s%s] %3d%% (%s) • %ds%s\033[K" "$fill_str" "$empty_str" "$pct" "$stage" "$elapsed" "$eta_str"
     }
 
-    push_start=$(date +%s)
-    last_sec=0
-    last_pct=-1
+    MAX_PUSH_RETRIES=3
+    push_attempt=1
+    push_success=0
 
-    render_push_progress 0 "Connecting to GitHub..." 0 ""
-
-    push_success=1
-    if ! (
-        git push --progress origin main 2>&1 | tr '\r' '\n' | tee "$PUSH_LOG" | while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            now=$(date +%s)
-            elapsed=$((now - push_start))
-
-            if [[ "$line" =~ Writing[[:space:]]+objects:[[:space:]]*([0-9]+)%[[:space:]]*\(([0-9]+)\/([0-9]+)\)(,[[:space:]]*([^|,]+))?([[:space:]]*\|[[:space:]]*([^,]+))? ]]; then
-                pct="${BASH_REMATCH[1]}"
-                curr="${BASH_REMATCH[2]}"
-                total="${BASH_REMATCH[3]}"
-                bytes=$(echo "${BASH_REMATCH[5]:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-                speed=$(echo "${BASH_REMATCH[7]:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-
-                eta=""
-                if [ "$pct" -gt 0 ] && [ "$pct" -lt 100 ] && [ "$elapsed" -ge 1 ]; then
-                    eta=$(( (elapsed * (100 - pct)) / pct ))
+    while [ "$push_attempt" -le "$MAX_PUSH_RETRIES" ]; do
+        if [ "$push_attempt" -gt 1 ]; then
+            echo -e "${YELLOW}🔄 [Git] Remote was updated (e.g. calendar sync). Re-syncing branch (attempt $push_attempt/$MAX_PUSH_RETRIES)...${RESET}"
+            git fetch origin main >/dev/null 2>&1 || true
+            setup_git_merge_driver
+            if ! git rebase origin/main >/dev/null 2>&1; then
+                if [ -f "$REPO_DIR/scripts/merge_timetable.py" ]; then
+                    python3 "$REPO_DIR/scripts/merge_timetable.py" >/dev/null 2>&1 || true
+                    git add assets/data/timetable_college.json 2>/dev/null || true
                 fi
-
-                detail="Uploading $curr/$total obj"
-                if [ -n "$bytes" ]; then
-                    detail="$detail • $bytes"
-                fi
-                if [ -n "$speed" ]; then
-                    detail="$detail @ $speed"
-                fi
-
-                if [ "$pct" -ne "$last_pct" ] || [ "$now" -ne "$last_sec" ]; then
-                    last_pct=$pct
-                    last_sec=$now
-                    render_push_progress "$pct" "$detail" "$elapsed" "$eta"
-                fi
-            elif [[ "$line" =~ Compressing[[:space:]]+objects:[[:space:]]*([0-9]+)%[[:space:]]*\(([0-9]+)\/([0-9]+)\) ]]; then
-                pct="${BASH_REMATCH[1]}"
-                curr="${BASH_REMATCH[2]}"
-                total="${BASH_REMATCH[3]}"
-                if [ "$now" -ne "$last_sec" ]; then
-                    last_sec=$now
-                    render_push_progress 0 "Compressing objects $curr/$total" "$elapsed" ""
-                fi
-            elif [[ "$line" =~ Counting[[:space:]]+objects:[[:space:]]*([0-9]+)% ]]; then
-                if [ "$now" -ne "$last_sec" ]; then
-                    last_sec=$now
-                    render_push_progress 0 "Counting objects..." "$elapsed" ""
-                fi
-            elif [[ "$line" =~ remote:[[:space:]]*Resolving[[:space:]]+deltas:[[:space:]]*([0-9]+)% ]]; then
-                if [ "$now" -ne "$last_sec" ]; then
-                    last_sec=$now
-                    render_push_progress 100 "Finalizing on GitHub Pages..." "$elapsed" ""
-                fi
-            elif [[ "$line" =~ Everything[[:space:]]+up-to-date ]]; then
-                render_push_progress 100 "Everything up-to-date" "$elapsed" ""
+                GIT_EDITOR=: git rebase --continue >/dev/null 2>&1 || git rebase --abort >/dev/null 2>&1 || true
             fi
-        done
-    ); then
-        push_success=0
-    fi
+        fi
 
-    # Clear progress bar line
-    printf "\r\033[K"
+        push_start=$(date +%s)
+        last_sec=0
+        last_pct=-1
+
+        render_push_progress 0 "Connecting to GitHub..." 0 ""
+
+        push_ok=1
+        if ! (
+            git push --progress origin main 2>&1 | tr '\r' '\n' | tee "$PUSH_LOG" | while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                now=$(date +%s)
+                elapsed=$((now - push_start))
+
+                if [[ "$line" =~ Writing[[:space:]]+objects:[[:space:]]*([0-9]+)%[[:space:]]*\(([0-9]+)\/([0-9]+)\)(,[[:space:]]*([^|,]+))?([[:space:]]*\|[[:space:]]*([^,]+))? ]]; then
+                    pct="${BASH_REMATCH[1]}"
+                    curr="${BASH_REMATCH[2]}"
+                    total="${BASH_REMATCH[3]}"
+                    bytes=$(echo "${BASH_REMATCH[5]:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+                    speed=$(echo "${BASH_REMATCH[7]:-}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+                    eta=""
+                    if [ "$pct" -gt 0 ] && [ "$pct" -lt 100 ] && [ "$elapsed" -ge 1 ]; then
+                        eta=$(( (elapsed * (100 - pct)) / pct ))
+                    fi
+
+                    detail="Uploading $curr/$total obj"
+                    if [ -n "$bytes" ]; then
+                        detail="$detail • $bytes"
+                    fi
+                    if [ -n "$speed" ]; then
+                        detail="$detail @ $speed"
+                    fi
+
+                    if [ "$pct" -ne "$last_pct" ] || [ "$now" -ne "$last_sec" ]; then
+                        last_pct=$pct
+                        last_sec=$now
+                        render_push_progress "$pct" "$detail" "$elapsed" "$eta"
+                    fi
+                elif [[ "$line" =~ Compressing[[:space:]]+objects:[[:space:]]*([0-9]+)%[[:space:]]*\(([0-9]+)\/([0-9]+)\) ]]; then
+                    pct="${BASH_REMATCH[1]}"
+                    curr="${BASH_REMATCH[2]}"
+                    total="${BASH_REMATCH[3]}"
+                    if [ "$now" -ne "$last_sec" ]; then
+                        last_sec=$now
+                        render_push_progress 0 "Compressing objects $curr/$total" "$elapsed" ""
+                    fi
+                elif [[ "$line" =~ Counting[[:space:]]+objects:[[:space:]]*([0-9]+)% ]]; then
+                    if [ "$now" -ne "$last_sec" ]; then
+                        last_sec=$now
+                        render_push_progress 0 "Counting objects..." "$elapsed" ""
+                    fi
+                elif [[ "$line" =~ remote:[[:space:]]*Resolving[[:space:]]+deltas:[[:space:]]*([0-9]+)% ]]; then
+                    if [ "$now" -ne "$last_sec" ]; then
+                        last_sec=$now
+                        render_push_progress 100 "Finalizing on GitHub Pages..." "$elapsed" ""
+                    fi
+                elif [[ "$line" =~ Everything[[:space:]]+up-to-date ]]; then
+                    render_push_progress 100 "Everything up-to-date" "$elapsed" ""
+                fi
+            done
+        ); then
+            push_ok=0
+        fi
+
+        # Clear progress bar line
+        printf "\r\033[K"
+
+        if [ "$push_ok" -eq 1 ]; then
+            push_success=1
+            break
+        fi
+
+        # Check if error is retryable (non-fast-forward / rejected / remote ahead)
+        if grep -qE "\[rejected\]|fetch first|non-fast-forward|Updates were rejected" "$PUSH_LOG" 2>/dev/null; then
+            push_attempt=$((push_attempt + 1))
+            sleep 1
+        else
+            break
+        fi
+    done
 
     if [ "$push_success" -eq 1 ]; then
         echo -e "${GREEN}${BOLD}✅ Successfully synchronized with GitHub Pages!${RESET}"
