@@ -5,37 +5,44 @@
 
 /* Hero Banner & Live Status Bar */
 .timetable-hero {
-  padding: 2.2rem 0 1.5rem 0;
+  padding: 1.4rem 0 1.25rem 0;
   border-bottom: 1px solid var(--border-subtle, #E8E0D5);
   background: var(--canvas-bg, #FAF8F4);
 }
 
-.timetable-header-row {
+.timetable-header-main {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.1rem;
+}
+
+.timetable-brand-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
 .timetable-college-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
+  gap: 0.45rem;
+  padding: 0.28rem 0.75rem;
   background: #FFFFFF;
   border: 1px solid var(--border-subtle, #E8E0D5);
   border-radius: 9999px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted, #5A6578);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  width: fit-content;
+  letter-spacing: 0.01em;
 }
 
 .timetable-pulse-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #10B981;
   box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
@@ -44,72 +51,28 @@
 
 @keyframes pulse-green {
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
 .timetable-title {
   font-family: 'Outfit', sans-serif;
-  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
   font-weight: 800;
   color: var(--text-headline, #151B2B);
   line-height: 1.15;
-  margin: 0.4rem 0 0.5rem 0;
-  letter-spacing: -0.02em;
-}
-
-.timetable-subtitle {
-  font-size: 0.92rem;
-  color: var(--text-muted, #5A6578);
-  max-width: 680px;
-  line-height: 1.5;
   margin: 0;
+  letter-spacing: -0.025em;
 }
 
 /* Control Toolbar & Refresh */
 .timetable-controls-bar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-top: 1.4rem;
-  padding-top: 1.1rem;
-  border-top: 1px dashed var(--border-subtle, #E8E0D5);
-}
-
-.timetable-status-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--text-muted, #5A6578);
-  flex-wrap: wrap;
-}
-
-.sync-uptodate-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  padding: 0.15rem 0.55rem;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #047857;
-  font-size: 0.72rem;
-  font-weight: 750;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  margin-left: 0.25rem;
-  letter-spacing: 0.02em;
-}
-
-.sync-uptodate-badge svg {
-  color: #10B981;
-}
-
-.timetable-sync-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 .btn-timetable-action {
@@ -1011,17 +974,18 @@
 /* Mobile Optimizations */
 @media (max-width: 640px) {
   .timetable-hero {
-    padding: 1.25rem 0 1rem 0;
+    padding: 1.15rem 0 1rem 0;
+  }
+
+  .timetable-header-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
   }
 
   .timetable-title {
     font-size: 1.45rem;
-    line-height: 1.25;
-  }
-
-  .timetable-subtitle {
-    font-size: 0.85rem;
-    line-height: 1.4;
+    line-height: 1.2;
   }
 
   .timetable-controls-bar {
@@ -1030,8 +994,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 0.85rem;
+    width: 100%;
+    margin-top: 0;
+    padding-top: 0;
   }
 
   .timetable-views-wrapper {

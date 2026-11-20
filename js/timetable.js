@@ -1329,6 +1329,9 @@
   }
 
   function updateLastSyncedDisplay() {
+    if (DOM.refreshBtn && state.lastSyncTime) {
+      DOM.refreshBtn.title = `Last synced: ${formatTimeAMPM(state.lastSyncTime)}`;
+    }
     if (!DOM.lastSyncedText) return;
     if (state.isSynced && state.lastSyncTime) {
       DOM.lastSyncedText.textContent = `Synced: ${formatTimeAMPM(state.lastSyncTime)}`;
@@ -1526,9 +1529,11 @@
     loadSettings();
     setupEventListeners();
 
-    // Update live clock every second
-    updateClockDisplay();
-    setInterval(updateClockDisplay, 1000);
+    // Update live clock every second if badge is present
+    if (DOM.currentTimeBadge) {
+      updateClockDisplay();
+      setInterval(updateClockDisplay, 1000);
+    }
 
     // Update Happening Now banner every 30 seconds
     setInterval(renderHappeningNowBanner, 30000);
