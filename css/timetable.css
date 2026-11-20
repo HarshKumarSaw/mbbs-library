@@ -13,15 +13,14 @@
 .timetable-header-main {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 1.1rem;
 }
 
 .timetable-brand-col {
   display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
+  align-items: center;
 }
 
 .timetable-college-badge {
