@@ -41,7 +41,8 @@
 
   // Application State
   const state = {
-    activeView: "today",       // 'today' or 'upcoming'
+    activeView: "today",       // 'today', 'tomorrow', or 'upcoming'
+    userHasManuallySelectedView: false,
     selectedSubject: "all",
     selectedSessionType: "all",
     searchQuery: "",
@@ -121,6 +122,7 @@
       filterSettingsBtn: document.getElementById("btn-filter-settings"),
       viewTabs: document.querySelectorAll(".timetable-nav-tabs .tab-btn"),
       tabTodayCount: document.getElementById("tab-count-today"),
+      tabTomorrowCount: document.getElementById("tab-count-tomorrow"),
       tabUpcomingCount: document.getElementById("tab-count-upcoming"),
       subjectPills: document.querySelectorAll(".filter-pills-scroll .sub-pill"),
       typeSelect: document.getElementById("session-type-select"),
@@ -175,6 +177,36 @@
     const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
     const kolkataOffsetMs = 5.5 * 3600000; // UTC +5:30
     return new Date(utcTime + kolkataOffsetMs);
+  }
+
+  function getTomorrowDateObj(now) {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+  }
+
+  function shouldAutoShowTomorrow(now, sessions) {
+    const todayY = now.getFullYear();
+    const todayM = now.getMonth();
+    const todayD = now.getDate();
+
+    const todaySessions = (sessions || []).filter((s) => {
+      const d = s.startDate;
+      return d.getFullYear() === todayY && d.getMonth() === todayM && d.getDate() === todayD;
+    });
+
+    const teachingToday = todaySessions.filter(
+      (s) => s.subject !== "holiday" && s.sessionType !== "holiday" && s.subject !== "break"
+    );
+    const isHoliday = todaySessions.some(
+      (s) => s.subject === "holiday" || s.sessionType === "holiday"
+    );
+    const isSunday = now.getDay() === 0;
+
+    // 1. If someone is looking at the timetable after 5:00 PM (17:00 IST onwards)
+    const isAfter5PM = now.getHours() >= 17;
+
+    // 2. Today is a holiday
+    // 3. Today has no classes (e.g. Sunday, vacation, or non-scheduled day)
+    return isAfter5PM || isHoliday || isSunday || (sessions.length > 0 && teachingToday.length === 0);
   }
 
   function formatTimeAMPM(dateObj) {
@@ -897,6 +929,21 @@
     setLoading(false);
     saveToLocalStorage(sessions);
     updateLastSyncedDisplay();
+
+    // Smart default view: show Tomorrow instead of Today after 5 PM, or if today is holiday / no classes
+    if (!state.userHasManuallySelectedView) {
+      const now = getNowInKolkata();
+      const autoTomorrow = shouldAutoShowTomorrow(now, sessions);
+      state.activeView = autoTomorrow ? "tomorrow" : "today";
+      if (DOM.viewTabs) {
+        DOM.viewTabs.forEach((tab) => {
+          const isActive = tab.getAttribute("data-view") === state.activeView;
+          tab.classList.toggle("active", isActive);
+          tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+      }
+    }
+
     renderAll();
   }
 
@@ -1046,6 +1093,18 @@
     const todayTeaching = todaySessions.filter((s) => s.subject !== "break" && s.subject !== "holiday");
     if (DOM.tabTodayCount) DOM.tabTodayCount.textContent = todayTeaching.length;
 
+    // Tomorrow sessions
+    const tomDate = getTomorrowDateObj(now);
+    const tomY = tomDate.getFullYear();
+    const tomM = tomDate.getMonth();
+    const tomD = tomDate.getDate();
+    const tomorrowSessions = state.allCollegeSessions.filter((s) => {
+      const d = s.startDate;
+      return d.getFullYear() === tomY && d.getMonth() === tomM && d.getDate() === tomD;
+    });
+    const tomorrowTeaching = tomorrowSessions.filter((s) => s.subject !== "break" && s.subject !== "holiday");
+    if (DOM.tabTomorrowCount) DOM.tabTomorrowCount.textContent = tomorrowTeaching.length;
+
     // Upcoming sessions (next 14 days)
     const upcomingEnd = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000));
     const upcomingSessions = state.allCollegeSessions.filter((s) => {
@@ -1073,6 +1132,87 @@
 
     // In upcoming view, keep layout uncluttered so student focuses on date jumps
     if (state.activeView === "upcoming") {
+      DOM.nowBannerContainer.innerHTML = "";
+      DOM.nowBannerContainer.style.display = "none";
+      return;
+    }
+
+    // Tomorrow view banner
+    if (state.activeView === "tomorrow") {
+      const tomDate = getTomorrowDateObj(now);
+      const tomY = tomDate.getFullYear();
+      const tomM = tomDate.getMonth();
+      const tomD = tomDate.getDate();
+      const tomorrowSessions = state.allCollegeSessions.filter((s) => {
+        const d = s.startDate;
+        return d.getFullYear() === tomY && d.getMonth() === tomM && d.getDate() === tomD;
+      });
+      const tomorrowTeaching = tomorrowSessions
+        .filter((s) => s.subject !== "holiday" && s.sessionType !== "holiday" && s.subject !== "break")
+        .sort((a, b) => a.startDate - b.startDate);
+      const tomorrowHoliday = tomorrowSessions.find((s) => s.subject === "holiday" || s.sessionType === "holiday");
+      const isSunTomorrow = tomDate.getDay() === 0;
+
+      const isAfter5 = now.getHours() >= 17;
+      const todaySessions = state.allCollegeSessions.filter((s) => s.startDate.toDateString() === todayStr);
+      const teachingToday = todaySessions.filter((s) => s.subject !== "holiday" && s.sessionType !== "holiday" && s.subject !== "break");
+      const isHolidayToday = todaySessions.some((s) => s.subject === "holiday" || s.sessionType === "holiday");
+      const isSunToday = now.getDay() === 0;
+
+      let reason = "";
+      if (isAfter5 && teachingToday.length > 0) {
+        reason = "College classes for today concluded at 05:00 PM.";
+      } else if (isHolidayToday) {
+        reason = "Today is a college holiday.";
+      } else if (isSunToday || teachingToday.length === 0) {
+        reason = isSunToday ? "College is closed today (Sunday)." : "No classes scheduled today.";
+      }
+
+      if (tomorrowHoliday && tomorrowTeaching.length === 0) {
+        DOM.nowBannerContainer.innerHTML = `
+          <div class="day-status-banner holiday-banner">
+            <div class="day-status-icon">🎉</div>
+            <div class="day-status-body">
+              <h4 class="day-status-title">Tomorrow is a College Holiday • ${escapeHtml(tomorrowHoliday.title)}</h4>
+              <p class="day-status-desc">${reason ? reason + " " : ""}Enjoy your rest and revision!</p>
+            </div>
+          </div>
+        `;
+        DOM.nowBannerContainer.style.display = "block";
+        return;
+      }
+
+      if (isSunTomorrow || tomorrowSessions.length === 0) {
+        DOM.nowBannerContainer.innerHTML = `
+          <div class="day-status-banner sunday-banner">
+            <div class="day-status-icon">🎉</div>
+            <div class="day-status-body">
+              <h4 class="day-status-title">${isSunTomorrow ? "Tomorrow is Sunday • College Closed" : "No Classes Scheduled Tomorrow"}</h4>
+              <p class="day-status-desc">${reason ? reason + " " : ""}Self-study & revision day.</p>
+            </div>
+          </div>
+        `;
+        DOM.nowBannerContainer.style.display = "block";
+        return;
+      }
+
+      if (tomorrowTeaching.length > 0) {
+        const firstClass = tomorrowTeaching[0];
+        DOM.nowBannerContainer.innerHTML = `
+          <div class="day-status-banner tomorrow-preview-banner">
+            <div class="day-status-icon">🌅</div>
+            <div class="day-status-body">
+              <h4 class="day-status-title">Tomorrow's Schedule • Preview</h4>
+              <p class="day-status-desc">
+                ${reason ? reason + " " : ""}First session tomorrow is <strong>${escapeHtml(firstClass.title)}</strong> at <strong>${formatTimeAMPM(firstClass.startDate)}</strong>.
+              </p>
+            </div>
+          </div>
+        `;
+        DOM.nowBannerContainer.style.display = "block";
+        return;
+      }
+
       DOM.nowBannerContainer.innerHTML = "";
       DOM.nowBannerContainer.style.display = "none";
       return;
@@ -1168,11 +1308,16 @@
           <div class="day-status-icon">🎉</div>
           <div class="day-status-body">
             <h4 class="day-status-title">College Holiday • ${escapeHtml(hol.title)}</h4>
-            <p class="day-status-desc">No academic sessions scheduled today. Enjoy your revision and rest!</p>
+            <p class="day-status-desc">
+              No academic sessions scheduled today. Enjoy your revision and rest!
+              <button type="button" class="btn-banner-action" id="btn-banner-view-tomorrow">View Tomorrow's Schedule →</button>
+            </p>
           </div>
         </div>
       `;
       DOM.nowBannerContainer.style.display = "block";
+      const btn = document.getElementById("btn-banner-view-tomorrow");
+      if (btn) btn.addEventListener("click", () => switchView("tomorrow", true));
       return;
     }
 
@@ -1184,11 +1329,16 @@
           <div class="day-status-icon">🎉</div>
           <div class="day-status-body">
             <h4 class="day-status-title">${isSun ? "Sunday • College Closed" : "No Classes Scheduled Today"}</h4>
-            <p class="day-status-desc">Rest, self-study and revision day. Next scheduled classes resume on Monday.</p>
+            <p class="day-status-desc">
+              Rest, self-study and revision day.
+              <button type="button" class="btn-banner-action" id="btn-banner-view-tomorrow">View Tomorrow's Schedule →</button>
+            </p>
           </div>
         </div>
       `;
       DOM.nowBannerContainer.style.display = "block";
+      const btn = document.getElementById("btn-banner-view-tomorrow");
+      if (btn) btn.addEventListener("click", () => switchView("tomorrow", true));
       return;
     }
 
@@ -1199,11 +1349,16 @@
           <div class="day-status-icon">✅</div>
           <div class="day-status-body">
             <h4 class="day-status-title">All Classes Completed for Today</h4>
-            <p class="day-status-desc">All ${teachingToday.length} sessions for today have concluded. Great work!</p>
+            <p class="day-status-desc">
+              All ${teachingToday.length} sessions for today have concluded. Great work!
+              <button type="button" class="btn-banner-action" id="btn-banner-view-tomorrow">View Tomorrow's Schedule →</button>
+            </p>
           </div>
         </div>
       `;
       DOM.nowBannerContainer.style.display = "block";
+      const btn = document.getElementById("btn-banner-view-tomorrow");
+      if (btn) btn.addEventListener("click", () => switchView("tomorrow", true));
       return;
     }
 
@@ -1246,6 +1401,26 @@
     return { type: "standard", label: `${teaching.length} ${classWord}`, badgeClass: "" };
   }
 
+  function switchView(viewName, isManual = false) {
+    if (isManual) {
+      state.userHasManuallySelectedView = true;
+    }
+    state.activeView = viewName;
+    if (DOM.viewTabs) {
+      DOM.viewTabs.forEach((tab) => {
+        const matches = tab.getAttribute("data-view") === viewName;
+        tab.classList.toggle("active", matches);
+        tab.setAttribute("aria-selected", matches ? "true" : "false");
+      });
+    }
+    renderHappeningNowBanner();
+    renderTimeline();
+    if (DOM.floatingTodayBtn) {
+      const shouldShow = (state.activeView === "upcoming" && window.scrollY > 200) || (window.scrollY > 400);
+      DOM.floatingTodayBtn.classList.toggle("is-visible", shouldShow);
+    }
+  }
+
   function renderTimeline() {
     if (!DOM.timelineContainer) return;
     const now = getNowInKolkata();
@@ -1283,6 +1458,47 @@
             <span class="date-weekday">${dayName}</span>
             <span class="date-calendar">${dateStr}</span>
             <span class="date-badge-today">TODAY</span>
+          </div>
+          <div class="date-header-right">
+            <span class="date-count-badge ${dayCat.badgeClass}">${dayCat.label}</span>
+          </div>
+        </div>
+        ${sessionsToRender.map((s) => createSessionCardHtml(s, now)).join("")}
+      `;
+    } else if (state.activeView === "tomorrow") {
+      const tomDate = getTomorrowDateObj(now);
+      const tomY = tomDate.getFullYear();
+      const tomM = tomDate.getMonth();
+      const tomD = tomDate.getDate();
+
+      const sessionsToRender = filtered.filter((s) => {
+        const d = s.startDate;
+        return d.getFullYear() === tomY && d.getMonth() === tomM && d.getDate() === tomD;
+      });
+
+      if (sessionsToRender.length === 0) {
+        if (state.selectedSubject === "bookmarks") {
+          showEmpty("No bookmarked classes for tomorrow. Tap the bookmark star on any class to save it here!");
+        } else {
+          const isSunday = tomDate.getDay() === 0;
+          showEmpty(isSunday ? "Sunday • College Closed • Rest & Revision Day 🎉" : "No college classes scheduled for tomorrow.");
+        }
+        return;
+      }
+      hideEmpty();
+
+      const dayCat = getDayCategory(sessionsToRender, tomDate);
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dayName = days[tomDate.getDay()];
+      const dateStr = `${tomDate.getDate()} ${months[tomDate.getMonth()]} ${tomDate.getFullYear()}`;
+
+      DOM.timelineContainer.innerHTML = `
+        <div class="date-divider-header is-tomorrow-header" id="date-heading-tomorrow">
+          <div class="date-header-left">
+            <span class="date-weekday">${dayName}</span>
+            <span class="date-calendar">${dateStr}</span>
+            <span class="date-badge-tomorrow">TOMORROW</span>
           </div>
           <div class="date-header-right">
             <span class="date-count-badge ${dayCat.badgeClass}">${dayCat.label}</span>
@@ -1767,14 +1983,8 @@
     if (DOM.viewTabs) {
       DOM.viewTabs.forEach((tab) => {
         tab.addEventListener("click", () => {
-          DOM.viewTabs.forEach((t) => t.classList.remove("active"));
-          tab.classList.add("active");
-          state.activeView = tab.getAttribute("data-view");
-          renderTimeline();
-          if (DOM.floatingTodayBtn) {
-            const shouldShow = (state.activeView === "upcoming" && window.scrollY > 200) || (window.scrollY > 400);
-            DOM.floatingTodayBtn.classList.toggle("is-visible", shouldShow);
-          }
+          const view = tab.getAttribute("data-view");
+          if (view) switchView(view, true);
         });
       });
     }
@@ -2005,8 +2215,31 @@
       setInterval(updateClockDisplay, 1000);
     }
 
+    // Set initial active view if after 5 PM or Sunday before sessions arrive
+    const initNow = getNowInKolkata();
+    if (shouldAutoShowTomorrow(initNow, [])) {
+      state.activeView = "tomorrow";
+      if (DOM.viewTabs) {
+        DOM.viewTabs.forEach((tab) => {
+          const isActive = tab.getAttribute("data-view") === "tomorrow";
+          tab.classList.toggle("active", isActive);
+          tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+      }
+    }
+
     // Update Happening Now banner every 15 seconds (for accurate countdown)
-    setInterval(renderHappeningNowBanner, 15000);
+    setInterval(() => {
+      // Auto-switch to tomorrow if clock crosses 5 PM while user hasn't manually selected view
+      if (!state.userHasManuallySelectedView && state.activeView === "today") {
+        const checkNow = getNowInKolkata();
+        if (shouldAutoShowTomorrow(checkNow, state.allCollegeSessions)) {
+          switchView("tomorrow", false);
+          return;
+        }
+      }
+      renderHappeningNowBanner();
+    }, 15000);
 
     // Initial load: render cached data first if present, then fetch fresh
     const cached = loadFromLocalStorage();
