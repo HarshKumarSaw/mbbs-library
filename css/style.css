@@ -56,29 +56,37 @@
   --border-focus: #151B2B;       /* Midnight Navy on focus */
 
   /* Subject Color Identity Tokens */
-  /* Anatomy - Anatomy Coral (#F2BFC1) */
+  /* Anatomy - Anatomy (#A33D43) */
   --accent-anatomy: #F2BFC1;     /* Anatomy Coral distinctive accent */
   --anatomy-accent: #F2BFC1;
   --anatomy-border: #F2BFC1;     /* Subtle coral border / strip */
   --anatomy-bg: #FDF3F3;         /* Lightly tinted subject badge background */
-  --anatomy-text: #8A2024;       /* High-contrast deep coral text & icon (7.2:1 AAA) */
-  --color-anatomy: #8A2024;
+  --anatomy-text: #A33D43;       /* High-contrast deep coral text & icon */
+  --color-anatomy: #A33D43;
 
-  /* Physiology - Physiology Lavender (#DCCBFA) */
+  /* Physiology - Physiology (#6950A1) */
   --accent-physiology: #DCCBFA;  /* Physiology Lavender distinctive accent */
   --physiology-accent: #DCCBFA;
   --physiology-border: #DCCBFA;  /* Subtle lavender border / strip */
   --physiology-bg: #F7F4FD;      /* Lightly tinted subject badge background */
-  --physiology-text: #4E2888;    /* High-contrast deep lavender text & icon (7.5:1 AAA) */
-  --color-physiology: #4E2888;
+  --physiology-text: #6950A1;    /* High-contrast deep lavender text & icon */
+  --color-physiology: #6950A1;
 
-  /* Biochemistry - Biochemistry Mint (#BCEBD9) */
+  /* Biochemistry - Biochemistry (#23775C) */
   --accent-biochem: #BCEBD9;     /* Biochemistry Mint distinctive accent */
   --biochem-accent: #BCEBD9;
   --biochem-border: #BCEBD9;     /* Subtle mint border / strip */
   --biochem-bg: #EFF9F4;         /* Lightly tinted subject badge background */
-  --biochem-text: #0E5E41;       /* High-contrast deep mint text & icon (7.1:1 AAA) */
-  --color-biochem: #0E5E41;
+  --biochem-text: #23775C;       /* High-contrast deep mint text & icon */
+  --color-biochem: #23775C;
+
+  /* Community Medicine (#159B91) */
+  --color-community-medicine: #159B91;
+  --color-community: #159B91;
+
+  /* Sports (#28729B) & Break (#A45A29) */
+  --color-sports: #28729B;
+  --color-break: #A45A29;
 
   /* Content-Format Badges (Neutral Warm Gray/Beige) */
   --badge-neutral-bg: #F3EFEA;
@@ -2622,9 +2630,9 @@ textarea,
 }
 
 .subject-badge.community_medicine {
-  background: var(--canvas-subtle);
-  color: #099268;
-  border: 1px solid var(--border-subtle);
+  background: #F0FDFA;
+  color: #159B91;
+  border: 1px solid rgba(21, 155, 145, 0.3);
 }
 
 .subject-badge.aetcom {

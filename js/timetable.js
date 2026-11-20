@@ -15,6 +15,8 @@
   const PUBLIC_ICAL_URL = "https://calendar.google.com/calendar/ical/harshsaw01%40gmail.com/public/basic.ics";
   const CACHE_STORAGE_KEY = "mbbs_timetable_cache_v2";
   const SETTINGS_STORAGE_KEY = "mbbs_timetable_settings_v2";
+  const BOOKMARKS_STORAGE_KEY = "mbbs_timetable_bookmarks_v2";
+  const NOTES_STORAGE_KEY = "mbbs_timetable_notes_v2";
   const REFRESH_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes auto-refresh
 
   // Default filtering keywords
@@ -51,8 +53,58 @@
     manualExcludedUids: new Set(),
     customIncludeWords: [],
     customExcludeWords: [],
-    strictCollegeFilter: true
+    strictCollegeFilter: true,
+    bookmarks: new Set(),
+    notes: {},
+    activeSessionForModal: null,
+    filtersExpandedOnMobile: false
   };
+
+  // Helper: Unique session key
+  function getSessionKey(s) {
+    if (!s) return "";
+    return `${s.uid}_${s.startIso || s.startDate.toISOString()}`;
+  }
+
+  // Bookmarks & Private Notes Storage Helpers
+  function loadUserBookmarks() {
+    try {
+      const raw = localStorage.getItem(BOOKMARKS_STORAGE_KEY);
+      if (raw) return new Set(JSON.parse(raw));
+    } catch (e) {
+      console.warn("Could not load bookmarks", e);
+    }
+    return new Set();
+  }
+
+  function saveUserBookmarks() {
+    try {
+      localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(Array.from(state.bookmarks)));
+    } catch (e) {}
+  }
+
+  function loadUserNotes() {
+    try {
+      const raw = localStorage.getItem(NOTES_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.warn("Could not load notes", e);
+    }
+    return {};
+  }
+
+  function saveUserNote(sessionKey, text) {
+    if (!sessionKey) return;
+    if (!state.notes) state.notes = {};
+    if (text && text.trim()) {
+      state.notes[sessionKey] = text.trim();
+    } else {
+      delete state.notes[sessionKey];
+    }
+    try {
+      localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(state.notes));
+    } catch (e) {}
+  }
 
   // DOM Elements cache
   let DOM = {};
@@ -81,6 +133,14 @@
       errorState: document.getElementById("timetable-error-state"),
       errorDetailsText: document.getElementById("error-details-text"),
       retryBtn: document.getElementById("btn-retry-fetch"),
+      // Filter expansion on mobile
+      mobileFilterToggleBtn: document.getElementById("mobile-filter-toggle-btn"),
+      filterActiveCount: document.getElementById("filter-active-count"),
+      secondaryFiltersGroup: document.getElementById("timetable-secondary-filters"),
+      // Jump bar
+      jumpBar: document.getElementById("timetable-jump-bar"),
+      jumpDatePicker: document.getElementById("timetable-jump-date-input"),
+      jumpPillBtns: document.querySelectorAll(".jump-pill-btn"),
       // Modals
       detailsModal: document.getElementById("session-details-modal"),
       detailsCloseBtn: document.getElementById("session-details-close"),
@@ -93,6 +153,10 @@
       detailsLocation: document.getElementById("modal-session-location"),
       detailsDescription: document.getElementById("modal-session-description"),
       detailsExportIcsBtn: document.getElementById("modal-export-ics-btn"),
+      modalPrivateNoteInput: document.getElementById("modal-private-note-input"),
+      modalNoteSavedStatus: document.getElementById("modal-note-saved-status"),
+      modalBookmarkBtn: document.getElementById("modal-bookmark-btn"),
+      modalBookmarkLabel: document.getElementById("modal-bookmark-label"),
       // Settings Modal
       settingsModal: document.getElementById("timetable-settings-modal"),
       settingsCloseBtn: document.getElementById("settings-modal-close"),
@@ -140,6 +204,14 @@
     if (diffDays === -1) return "Yesterday";
     if (diffDays > 1 && diffDays <= 6) return `In ${diffDays} days`;
     return "";
+  }
+
+  function formatDateKey(dateObj) {
+    if (!dateObj) return "";
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   }
 
   function parseIcsDate(dtStr) {
@@ -854,13 +926,16 @@
     updateCounts();
     renderHappeningNowBanner();
     renderTimeline();
+    updateActiveFilterCount();
   }
 
   function getFilteredSessions() {
     let list = state.allCollegeSessions.slice();
 
-    // Subject Filter
-    if (state.selectedSubject !== "all") {
+    // Subject Filter (including personal bookmarks)
+    if (state.selectedSubject === "bookmarks") {
+      list = list.filter((s) => state.bookmarks.has(getSessionKey(s)));
+    } else if (state.selectedSubject !== "all") {
       list = list.filter((s) => s.subject === state.selectedSubject);
     }
 
@@ -886,6 +961,22 @@
     return list;
   }
 
+  function updateActiveFilterCount() {
+    let count = 0;
+    if (state.selectedSubject !== "all") count++;
+    if (state.selectedSessionType !== "all") count++;
+    if (state.searchQuery.trim()) count++;
+
+    if (DOM.filterActiveCount) {
+      if (count > 0) {
+        DOM.filterActiveCount.textContent = count;
+        DOM.filterActiveCount.style.display = "inline-flex";
+      } else {
+        DOM.filterActiveCount.style.display = "none";
+      }
+    }
+  }
+
   function updateCounts() {
     const now = getNowInKolkata();
     const todayY = now.getFullYear();
@@ -908,67 +999,169 @@
     if (DOM.tabUpcomingCount) DOM.tabUpcomingCount.textContent = upcomingTeaching.length;
   }
 
+  function formatCountdown(ms) {
+    if (ms <= 0) return "starting now";
+    const totalMinutes = Math.max(1, Math.round(ms / 60000));
+    if (totalMinutes < 60) {
+      return `in ${totalMinutes} min${totalMinutes === 1 ? "" : "s"}`;
+    }
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return `in ${hours}h${mins ? ` ${mins}m` : ""}`;
+  }
+
   function renderHappeningNowBanner() {
     if (!DOM.nowBannerContainer) return;
     const now = getNowInKolkata();
+    const todayStr = now.toDateString();
 
-    // Find session currently active
-    const activeSession = state.allCollegeSessions.find((s) => {
-      return now >= s.startDate && now < s.endDate;
-    });
-
-    if (!activeSession) {
-      // Find next session today
-      const todayNext = state.allCollegeSessions.find((s) => {
-        const isToday = s.startDate.toDateString() === now.toDateString();
-        return isToday && s.startDate > now;
-      });
-
-      if (todayNext) {
-        const isAllDay = todayNext.allDay || (todayNext.startDate.getHours() === 0 && todayNext.startDate.getMinutes() === 0 && todayNext.endDate.getHours() === 0 && todayNext.endDate.getMinutes() === 0 && (todayNext.endDate.getTime() - todayNext.startDate.getTime() >= 86400000));
-        DOM.nowBannerContainer.innerHTML = `
-          <div class="now-banner-card">
-            <div class="now-banner-top">
-              <span class="now-live-tag" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: #93C5FD;">⏳ UP NEXT TODAY</span>
-              <span class="now-time-range">${isAllDay ? "ALL DAY" : `${formatTimeAMPM(todayNext.startDate)} – ${formatTimeAMPM(todayNext.endDate)}`}</span>
-            </div>
-            <h3 class="now-title">${escapeHtml(todayNext.title)}</h3>
-            <div class="now-meta-row">
-              <span>👨‍🏫 ${escapeHtml(todayNext.faculty || "Department Faculty")}</span>
-              ${todayNext.competency ? `<span>📋 Competency: ${escapeHtml(todayNext.competency)}</span>` : ""}
-            </div>
-          </div>
-        `;
-        DOM.nowBannerContainer.style.display = "block";
-      } else {
-        DOM.nowBannerContainer.innerHTML = "";
-        DOM.nowBannerContainer.style.display = "none";
-      }
+    // In upcoming view, keep layout uncluttered so student focuses on date jumps
+    if (state.activeView === "upcoming") {
+      DOM.nowBannerContainer.innerHTML = "";
+      DOM.nowBannerContainer.style.display = "none";
       return;
     }
 
-    const totalDuration = activeSession.endDate.getTime() - activeSession.startDate.getTime();
-    const elapsed = now.getTime() - activeSession.startDate.getTime();
-    const percent = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
-    const isActAllDay = activeSession.allDay || (activeSession.startDate.getHours() === 0 && activeSession.startDate.getMinutes() === 0 && activeSession.endDate.getHours() === 0 && activeSession.endDate.getMinutes() === 0 && (activeSession.endDate.getTime() - activeSession.startDate.getTime() >= 86400000));
+    const todaySessions = state.allCollegeSessions.filter(
+      (s) => s.startDate.toDateString() === todayStr
+    );
 
-    DOM.nowBannerContainer.innerHTML = `
-      <div class="now-banner-card">
-        <div class="now-banner-top">
-          <span class="now-live-tag">🟢 HAPPENING NOW</span>
-          <span class="now-time-range">${isActAllDay ? "ALL DAY" : `${formatTimeAMPM(activeSession.startDate)} – ${formatTimeAMPM(activeSession.endDate)}`}</span>
+    // 1. Genuinely ongoing timed session (not all-day)
+    const activeTimed = todaySessions.find(
+      (s) => !s.allDay && now >= s.startDate && now < s.endDate && s.subject !== "holiday"
+    );
+
+    if (activeTimed) {
+      const totalDuration = Math.max(1, activeTimed.endDate.getTime() - activeTimed.startDate.getTime());
+      const elapsed = Math.max(0, now.getTime() - activeTimed.startDate.getTime());
+      const percent = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
+      const remainingMs = Math.max(0, activeTimed.endDate.getTime() - now.getTime());
+      const remMins = Math.max(1, Math.round(remainingMs / 60000));
+      const remText = remMins < 60 ? `${remMins}m remaining` : `${Math.floor(remMins / 60)}h ${remMins % 60}m remaining`;
+
+      DOM.nowBannerContainer.innerHTML = `
+        <div class="live-session-banner subject-${activeTimed.subject}" data-session-uid="${escapeHtml(activeTimed.uid)}" data-session-start="${escapeHtml(activeTimed.startIso)}" title="Click to view details">
+          <div class="live-banner-top">
+            <span class="live-badge-pulse">
+              <span class="timetable-pulse-dot" aria-hidden="true"></span>
+              <span>LIVE NOW</span>
+            </span>
+            <span class="live-time-chip">${formatTimeAMPM(activeTimed.startDate)} – ${formatTimeAMPM(activeTimed.endDate)}</span>
+            <span class="live-remaining-pill">${remText}</span>
+          </div>
+          <div class="live-banner-content">
+            <span class="badge-subject">${escapeHtml(activeTimed.subject)}</span>
+            <h3 class="live-banner-title">${escapeHtml(activeTimed.title)}</h3>
+          </div>
+          <div class="live-banner-meta">
+            <span>👨‍🏫 ${escapeHtml(activeTimed.faculty || "Department Faculty")}</span>
+            ${activeTimed.location ? `<span>🏛️ ${escapeHtml(activeTimed.location)}</span>` : ""}
+          </div>
+          <div class="live-progress-bar" title="${percent}% of session completed">
+            <div class="live-progress-fill" style="width: ${percent}%;"></div>
+          </div>
         </div>
-        <h3 class="now-title">${escapeHtml(activeSession.title)}</h3>
-        <div class="now-meta-row">
-          <span>👨‍🏫 ${escapeHtml(activeSession.faculty || "Department Faculty")}</span>
-          ${activeSession.competency ? `<span>📋 Competency: ${escapeHtml(activeSession.competency)}</span>` : ""}
+      `;
+      DOM.nowBannerContainer.style.display = "block";
+      attachBannerClick(activeTimed);
+      return;
+    }
+
+    // 2. Upcoming timed session today with next-class countdown
+    const upcomingTimed = todaySessions
+      .filter((s) => !s.allDay && s.startDate > now && s.subject !== "holiday" && s.subject !== "break")
+      .sort((a, b) => a.startDate - b.startDate);
+
+    if (upcomingTimed.length > 0) {
+      const nextSession = upcomingTimed[0];
+      const diffMs = nextSession.startDate.getTime() - now.getTime();
+      const countdownStr = formatCountdown(diffMs);
+
+      DOM.nowBannerContainer.innerHTML = `
+        <div class="next-session-banner subject-${nextSession.subject}" data-session-uid="${escapeHtml(nextSession.uid)}" data-session-start="${escapeHtml(nextSession.startIso)}" title="Click to view details">
+          <div class="next-banner-top">
+            <span class="next-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>UP NEXT • ${countdownStr}</span>
+            </span>
+            <span class="next-time-chip">${formatTimeAMPM(nextSession.startDate)} – ${formatTimeAMPM(nextSession.endDate)}</span>
+          </div>
+          <div class="next-banner-content">
+            <span class="badge-subject">${escapeHtml(nextSession.subject)}</span>
+            <h3 class="next-banner-title">${escapeHtml(nextSession.title)}</h3>
+          </div>
+          <div class="next-banner-meta">
+            <span>👨‍🏫 ${escapeHtml(nextSession.faculty || "Department Faculty")}</span>
+            ${nextSession.competency ? `<span>📋 ${escapeHtml(nextSession.competency)}</span>` : ""}
+          </div>
         </div>
-        <div class="now-progress-track">
-          <div class="now-progress-fill" style="width: ${percent}%;"></div>
+      `;
+      DOM.nowBannerContainer.style.display = "block";
+      attachBannerClick(nextSession);
+      return;
+    }
+
+    // 3. Today is a Holiday / All-Day event (and no teaching classes running)
+    const holidaysToday = todaySessions.filter((s) => s.subject === "holiday" || s.sessionType === "holiday" || s.allDay);
+    const teachingToday = todaySessions.filter((s) => s.subject !== "holiday" && s.sessionType !== "holiday" && s.subject !== "break");
+
+    if (holidaysToday.length > 0 && teachingToday.length === 0) {
+      const hol = holidaysToday[0];
+      DOM.nowBannerContainer.innerHTML = `
+        <div class="day-status-banner holiday-banner">
+          <div class="day-status-icon">🎉</div>
+          <div class="day-status-body">
+            <h4 class="day-status-title">College Holiday • ${escapeHtml(hol.title)}</h4>
+            <p class="day-status-desc">No academic sessions scheduled today. Enjoy your revision and rest!</p>
+          </div>
         </div>
-      </div>
-    `;
-    DOM.nowBannerContainer.style.display = "block";
+      `;
+      DOM.nowBannerContainer.style.display = "block";
+      return;
+    }
+
+    // 4. Sunday / Day with no classes
+    if (todaySessions.length === 0) {
+      const isSun = now.getDay() === 0;
+      DOM.nowBannerContainer.innerHTML = `
+        <div class="day-status-banner sunday-banner">
+          <div class="day-status-icon">🎉</div>
+          <div class="day-status-body">
+            <h4 class="day-status-title">${isSun ? "Sunday • College Closed" : "No Classes Scheduled Today"}</h4>
+            <p class="day-status-desc">Rest, self-study and revision day. Next scheduled classes resume on Monday.</p>
+          </div>
+        </div>
+      `;
+      DOM.nowBannerContainer.style.display = "block";
+      return;
+    }
+
+    // 5. All classes today are finished
+    if (teachingToday.length > 0) {
+      DOM.nowBannerContainer.innerHTML = `
+        <div class="day-status-banner completed-banner">
+          <div class="day-status-icon">✅</div>
+          <div class="day-status-body">
+            <h4 class="day-status-title">All Classes Completed for Today</h4>
+            <p class="day-status-desc">All ${teachingToday.length} sessions for today have concluded. Great work!</p>
+          </div>
+        </div>
+      `;
+      DOM.nowBannerContainer.style.display = "block";
+      return;
+    }
+
+    DOM.nowBannerContainer.innerHTML = "";
+    DOM.nowBannerContainer.style.display = "none";
+  }
+
+  function attachBannerClick(session) {
+    if (!DOM.nowBannerContainer) return;
+    const banner = DOM.nowBannerContainer.querySelector(".live-session-banner, .next-session-banner");
+    if (banner) {
+      banner.style.cursor = "pointer";
+      banner.addEventListener("click", () => openDetailsModal(session));
+    }
   }
 
   function detectImportantSession(s) {
@@ -1040,39 +1233,55 @@
     const now = getNowInKolkata();
     const filtered = getFilteredSessions();
 
-    let sessionsToRender = [];
+    // Toggle Jump Bar visibility based on view
+    if (DOM.jumpBar) {
+      DOM.jumpBar.style.display = state.activeView === "upcoming" ? "block" : "none";
+    }
 
     if (state.activeView === "today") {
       const todayStr = now.toDateString();
-      sessionsToRender = filtered.filter((s) => s.startDate.toDateString() === todayStr);
+      const sessionsToRender = filtered.filter((s) => s.startDate.toDateString() === todayStr);
 
       if (sessionsToRender.length === 0) {
-        const isSunday = now.getDay() === 0;
-        showEmpty(isSunday ? "Sunday • College Closed • Rest & Revision Day 🎉" : "No college classes scheduled for today.");
+        if (state.selectedSubject === "bookmarks") {
+          showEmpty("No bookmarked classes for today. Tap the bookmark star on any class to save it here!");
+        } else {
+          const isSunday = now.getDay() === 0;
+          showEmpty(isSunday ? "Sunday • College Closed • Rest & Revision Day 🎉" : "No college classes scheduled for today.");
+        }
         return;
       }
       hideEmpty();
 
       const dayCat = getDayCategory(sessionsToRender, now);
-      let badgeClass = "date-divider-badge is-today";
-      if (dayCat.badgeClass && dayCat.badgeClass !== "is-today") {
-        badgeClass += " " + dayCat.badgeClass;
-      }
-      const summaryText = `Today • ${dayCat.label}`;
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dayName = days[now.getDay()];
+      const dateStr = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 
       DOM.timelineContainer.innerHTML = `
-        <div class="date-divider-header">
-          <h2 class="date-divider-title">${formatDateHuman(now)}</h2>
-          <span class="${badgeClass}">${summaryText}</span>
+        <div class="date-divider-header is-today-header" id="date-heading-today">
+          <div class="date-header-left">
+            <span class="date-weekday">${dayName}</span>
+            <span class="date-calendar">${dateStr}</span>
+            <span class="date-badge-today">TODAY</span>
+          </div>
+          <div class="date-header-right">
+            <span class="date-count-badge ${dayCat.badgeClass}">${dayCat.label}</span>
+          </div>
         </div>
         ${sessionsToRender.map((s) => createSessionCardHtml(s, now)).join("")}
       `;
     } else if (state.activeView === "upcoming") {
       const upcomingEnd = new Date(now.getTime() + (14 * 24 * 60 * 60 * 1000));
-      sessionsToRender = filtered.filter((s) => s.startDate >= now && s.startDate < upcomingEnd);
+      const sessionsToRender = filtered.filter((s) => s.startDate >= now && s.startDate < upcomingEnd);
 
       if (sessionsToRender.length === 0) {
-        showEmpty("No upcoming classes scheduled in the next 14 days.");
+        if (state.selectedSubject === "bookmarks") {
+          showEmpty("No upcoming bookmarked classes found in the next 14 days.");
+        } else {
+          showEmpty("No upcoming classes scheduled in the next 14 days.");
+        }
         return;
       }
       hideEmpty();
@@ -1086,24 +1295,29 @@
       }
 
       let html = "";
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
       grouped.forEach((groupSessions, dStr) => {
         const first = groupSessions[0].startDate;
         const rel = formatRelativeDay(first, now);
         const dayCat = getDayCategory(groupSessions, first);
-
-        let badgeClass = "date-divider-badge";
-        if (rel === "Today") {
-          badgeClass += " is-today";
-        } else if (dayCat.badgeClass) {
-          badgeClass += " " + dayCat.badgeClass;
-        }
-
-        const summaryText = rel ? `${rel} • ${dayCat.label}` : dayCat.label;
+        const dayName = days[first.getDay()];
+        const dateStr = `${first.getDate()} ${months[first.getMonth()]} ${first.getFullYear()}`;
+        const dateAnchorId = `date-anchor-${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, "0")}-${String(first.getDate()).padStart(2, "0")}`;
 
         html += `
-          <div class="date-divider-header">
-            <h2 class="date-divider-title">${formatDateHuman(first)}</h2>
-            <span class="${badgeClass}">${summaryText}</span>
+          <div class="date-divider-header ${rel === "Today" ? "is-today-header" : ""}" id="${dateAnchorId}">
+            <div class="date-header-left">
+              <span class="date-weekday">${dayName}</span>
+              <span class="date-calendar">${dateStr}</span>
+              ${rel === "Today" ? '<span class="date-badge-today">TODAY</span>' : ""}
+              ${rel === "Tomorrow" ? '<span class="date-badge-tomorrow">TOMORROW</span>' : ""}
+              ${rel && rel !== "Today" && rel !== "Tomorrow" ? `<span class="date-badge-rel">${rel}</span>` : ""}
+            </div>
+            <div class="date-header-right">
+              <span class="date-count-badge ${dayCat.badgeClass}">${dayCat.label}</span>
+            </div>
           </div>
           ${groupSessions.map((s) => createSessionCardHtml(s, now)).join("")}
         `;
@@ -1112,10 +1326,23 @@
       DOM.timelineContainer.innerHTML = html;
     }
 
-    // Attach click listeners to session cards for details modal
+    // Attach click listeners to session cards and bookmarks
+    attachCardListeners();
+  }
+
+  function attachCardListeners() {
     const cards = DOM.timelineContainer.querySelectorAll(".session-card");
     cards.forEach((card) => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", (e) => {
+        // If clicking bookmark button, do not open details modal
+        if (e.target.closest(".btn-card-bookmark")) {
+          e.stopPropagation();
+          const bookmarkBtn = e.target.closest(".btn-card-bookmark");
+          const key = bookmarkBtn.getAttribute("data-bookmark-key");
+          toggleBookmark(key);
+          return;
+        }
+
         const uid = card.getAttribute("data-session-uid");
         const startIso = card.getAttribute("data-session-start");
         const session = state.allCollegeSessions.find((s) => s.uid === uid && s.startIso === startIso);
@@ -1124,22 +1351,73 @@
     });
   }
 
+  function toggleBookmark(key) {
+    if (!key) return;
+    if (state.bookmarks.has(key)) {
+      state.bookmarks.delete(key);
+    } else {
+      state.bookmarks.add(key);
+    }
+    saveUserBookmarks();
+
+    // If currently filtered by bookmarks, re-render timeline
+    if (state.selectedSubject === "bookmarks") {
+      renderTimeline();
+    } else {
+      // Update bookmark buttons in current DOM
+      const cardBtns = document.querySelectorAll(`.btn-card-bookmark[data-bookmark-key="${key}"]`);
+      const isBookmarked = state.bookmarks.has(key);
+      cardBtns.forEach((btn) => {
+        btn.classList.toggle("is-bookmarked", isBookmarked);
+        btn.setAttribute("title", isBookmarked ? "Bookmarked" : "Bookmark this lecture");
+        const svg = btn.querySelector("svg");
+        if (svg) svg.setAttribute("fill", isBookmarked ? "currentColor" : "none");
+      });
+      // If modal is open for this session, update modal button too
+      if (state.activeSessionForModal && getSessionKey(state.activeSessionForModal) === key) {
+        updateModalBookmarkBtn(isBookmarked);
+      }
+    }
+  }
+
+  function jumpToDateAnchor(anchorKey) {
+    const targetEl = document.getElementById(`date-anchor-${anchorKey}`);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      targetEl.classList.add("jump-target-active");
+      setTimeout(() => targetEl.classList.remove("jump-target-active"), 1600);
+    } else {
+      // Find closest date if exact date has no classes
+      const allAnchors = Array.from(document.querySelectorAll("[id^='date-anchor-']"));
+      const match = allAnchors.find((el) => el.id >= `date-anchor-${anchorKey}`);
+      if (match) {
+        match.scrollIntoView({ behavior: "smooth", block: "start" });
+        match.classList.add("jump-target-active");
+        setTimeout(() => match.classList.remove("jump-target-active"), 1600);
+      }
+    }
+  }
+
   function createSessionCardHtml(s, now) {
-    const isOngoing = !s.allDay && now >= s.startDate && now < s.endDate;
+    const isOngoing = !s.allDay && now >= s.startDate && now < s.endDate && s.subject !== "holiday";
     const isAllDay = s.allDay || (s.startDate.getHours() === 0 && s.startDate.getMinutes() === 0 && s.endDate.getHours() === 0 && s.endDate.getMinutes() === 0 && (s.endDate.getTime() - s.startDate.getTime() >= 86400000));
     const timeFormatted = isAllDay ? "ALL DAY" : `${formatTimeAMPM(s.startDate)} – ${formatTimeAMPM(s.endDate)}`;
     const durationMinutes = Math.round((s.endDate.getTime() - s.startDate.getTime()) / 60000);
-    const durationLabel = isAllDay ? "All-Day Event" : (durationMinutes >= 60 ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60 ? durationMinutes % 60 + "m" : ""}` : `${durationMinutes}m`);
+    const durationLabel = isAllDay ? "All Day" : (durationMinutes >= 60 ? `${Math.floor(durationMinutes / 60)}h${durationMinutes % 60 ? ` ${durationMinutes % 60}m` : ""}` : `${durationMinutes}m`);
 
     const important = detectImportantSession(s);
+    const isExam = important && important.type === "exam";
+    const sessionKey = getSessionKey(s);
+    const isBookmarked = state.bookmarks.has(sessionKey);
+    const hasNote = Boolean(state.notes && state.notes[sessionKey]);
 
     return `
-      <article class="session-card subject-${s.subject} ${isOngoing ? "is-active-session" : ""} ${isAllDay ? "is-allday-card" : ""}" data-session-uid="${escapeHtml(s.uid)}" data-session-start="${escapeHtml(s.startIso)}">
+      <article class="session-card subject-${s.subject} ${isOngoing ? "is-active-session" : ""} ${isAllDay ? "is-allday-card" : ""} ${isExam ? "is-exam-session" : ""}" data-session-uid="${escapeHtml(s.uid)}" data-session-start="${escapeHtml(s.startIso)}" data-session-key="${escapeHtml(sessionKey)}">
         <div class="session-color-strip"></div>
         <div class="session-card-body">
           <div class="session-card-top">
             <span class="session-time-chip ${isAllDay ? "is-allday-chip" : ""}">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 ${isAllDay ? `
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -1150,17 +1428,26 @@
                   <polyline points="12 6 12 12 16 14"></polyline>
                 `}
               </svg>
-              <span>${timeFormatted}</span> ${!isAllDay ? `<span style="font-weight: 500; color: #94A3B8;">(${durationLabel})</span>` : ""}
+              <span>${timeFormatted}</span>
+              ${!isAllDay ? `<span class="session-duration-tag">${durationLabel}</span>` : ""}
             </span>
-            <div class="session-badges-group">
-              <span class="badge-subject">${escapeHtml(s.subject)}</span>
-              <span class="badge-type">${escapeHtml(formatSessionTypeName(s.sessionType))}</span>
-              ${important ? `
-                <span class="session-priority-pill priority-${important.type}" title="${important.label}">
-                  ${important.icon} <span>${important.label}</span>
-                </span>
-              ` : ""}
-              ${isOngoing ? '<span class="now-live-tag" style="padding: 1px 6px; font-size: 0.65rem;">Live</span>' : ""}
+            <div class="session-top-actions">
+              <div class="session-badges-group">
+                <span class="badge-subject">${escapeHtml(s.subject)}</span>
+                <span class="badge-type">${escapeHtml(formatSessionTypeName(s.sessionType))}</span>
+                ${important ? `
+                  <span class="session-priority-pill priority-${important.type}" title="${important.label}">
+                    ${important.icon} <span>${important.label}</span>
+                  </span>
+                ` : ""}
+                ${hasNote ? '<span class="session-note-pill" title="Has private preparation notes">📝 Note</span>' : ""}
+                ${isOngoing ? '<span class="session-live-tag">Live</span>' : ""}
+              </div>
+              <button type="button" class="btn-card-bookmark ${isBookmarked ? "is-bookmarked" : ""}" data-bookmark-key="${escapeHtml(sessionKey)}" aria-label="${isBookmarked ? "Remove bookmark" : "Bookmark lecture"}" title="${isBookmarked ? "Bookmarked" : "Bookmark this lecture"}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="${isBookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
             </div>
           </div>
           <h3 class="session-title">${escapeHtml(s.title)}</h3>
@@ -1173,6 +1460,15 @@
               </svg>
               <span>${escapeHtml(s.faculty || "Department Faculty")}</span>
             </span>
+            ${s.location ? `
+              <span class="meta-item location-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>${escapeHtml(s.location.split(",")[0])}</span>
+              </span>
+            ` : ""}
           </div>
         </div>
       </article>
@@ -1199,6 +1495,9 @@
   // --- Modals ---
   function openDetailsModal(s) {
     if (!DOM.detailsModal) return;
+    state.activeSessionForModal = s;
+    const sessionKey = getSessionKey(s);
+
     DOM.detailsTitle.textContent = s.title;
     const isAllDay = s.allDay || (s.startDate.getHours() === 0 && s.startDate.getMinutes() === 0 && s.endDate.getHours() === 0 && s.endDate.getMinutes() === 0 && (s.endDate.getTime() - s.startDate.getTime() >= 86400000));
     DOM.detailsTime.textContent = isAllDay
@@ -1227,11 +1526,33 @@
     if (DOM.detailsLocation) DOM.detailsLocation.textContent = s.location;
     if (DOM.detailsDescription) DOM.detailsDescription.textContent = s.cleanDesc || s.description || "Official college academic session.";
 
+    // Private Notes
+    if (DOM.modalPrivateNoteInput) {
+      DOM.modalPrivateNoteInput.value = (state.notes && state.notes[sessionKey]) || "";
+    }
+    if (DOM.modalNoteSavedStatus) {
+      DOM.modalNoteSavedStatus.textContent = state.notes && state.notes[sessionKey] ? "Saved on this device ✓" : "Private • Saved on this device";
+    }
+
+    // Modal Bookmark Button State
+    const isBookmarked = state.bookmarks.has(sessionKey);
+    updateModalBookmarkBtn(isBookmarked);
+
     if (DOM.detailsExportIcsBtn) {
       DOM.detailsExportIcsBtn.onclick = () => exportSingleEventIcs(s);
     }
 
     DOM.detailsModal.classList.add("active");
+  }
+
+  function updateModalBookmarkBtn(isBookmarked) {
+    if (!DOM.modalBookmarkBtn) return;
+    DOM.modalBookmarkBtn.classList.toggle("is-bookmarked", isBookmarked);
+    if (DOM.modalBookmarkLabel) {
+      DOM.modalBookmarkLabel.textContent = isBookmarked ? "★ Bookmarked" : "☆ Bookmark Lecture";
+    }
+    const svg = DOM.modalBookmarkBtn.querySelector("svg");
+    if (svg) svg.setAttribute("fill", isBookmarked ? "currentColor" : "none");
   }
 
   function closeDetailsModal() {
@@ -1456,6 +1777,19 @@
       }, { passive: true });
     }
 
+    // Mobile Filter Collapse Toggle
+    if (DOM.mobileFilterToggleBtn && DOM.secondaryFiltersGroup) {
+      DOM.mobileFilterToggleBtn.addEventListener("click", () => {
+        state.filtersExpandedOnMobile = !state.filtersExpandedOnMobile;
+        DOM.secondaryFiltersGroup.classList.toggle("is-expanded", state.filtersExpandedOnMobile);
+        DOM.mobileFilterToggleBtn.setAttribute("aria-expanded", state.filtersExpandedOnMobile ? "true" : "false");
+        const icon = DOM.mobileFilterToggleBtn.querySelector(".filter-toggle-icon");
+        if (icon) {
+          icon.textContent = state.filtersExpandedOnMobile ? "▲" : "▼";
+        }
+      });
+    }
+
     // Subject Pills
     if (DOM.subjectPills) {
       DOM.subjectPills.forEach((pill) => {
@@ -1463,6 +1797,7 @@
           DOM.subjectPills.forEach((p) => p.classList.remove("active"));
           pill.classList.add("active");
           state.selectedSubject = pill.getAttribute("data-subject");
+          updateActiveFilterCount();
           renderTimeline();
         });
       });
@@ -1472,6 +1807,7 @@
     if (DOM.typeSelect) {
       DOM.typeSelect.addEventListener("change", (e) => {
         state.selectedSessionType = e.target.value;
+        updateActiveFilterCount();
         renderTimeline();
       });
     }
@@ -1481,6 +1817,7 @@
       DOM.searchInput.addEventListener("input", (e) => {
         state.searchQuery = e.target.value;
         if (DOM.searchClear) DOM.searchClear.style.display = state.searchQuery ? "block" : "none";
+        updateActiveFilterCount();
         renderTimeline();
       });
     }
@@ -1489,7 +1826,82 @@
         state.searchQuery = "";
         DOM.searchInput.value = "";
         DOM.searchClear.style.display = "none";
+        updateActiveFilterCount();
         renderTimeline();
+      });
+    }
+
+    // Jump-to-Date Controls
+    if (DOM.jumpPillBtns) {
+      DOM.jumpPillBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetKey = btn.getAttribute("data-jump") || btn.getAttribute("data-jump-target");
+          const now = getNowInKolkata();
+          if (targetKey === "tomorrow") {
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            jumpToDateAnchor(formatDateKey(tomorrow));
+          } else if (targetKey === "next_monday" || targetKey === "next-monday") {
+            const nextMon = new Date(now);
+            const day = nextMon.getDay();
+            const daysToAdd = day === 0 ? 1 : (8 - day);
+            nextMon.setDate(nextMon.getDate() + daysToAdd);
+            jumpToDateAnchor(formatDateKey(nextMon));
+          }
+        });
+      });
+    }
+
+    if (DOM.jumpDatePicker) {
+      DOM.jumpDatePicker.addEventListener("change", (e) => {
+        const selectedDate = e.target.value;
+        if (selectedDate) {
+          jumpToDateAnchor(selectedDate);
+        }
+      });
+    }
+
+    // Details Modal Private Notes (debounced auto-save)
+    let noteSaveTimeout = null;
+    if (DOM.modalPrivateNoteInput) {
+      DOM.modalPrivateNoteInput.addEventListener("input", (e) => {
+        if (!state.activeSessionForModal) return;
+        const key = getSessionKey(state.activeSessionForModal);
+        if (!key) return;
+        const noteText = e.target.value;
+        if (DOM.modalNoteSavedStatus) {
+          DOM.modalNoteSavedStatus.textContent = "Saving...";
+        }
+        if (noteSaveTimeout) clearTimeout(noteSaveTimeout);
+        noteSaveTimeout = setTimeout(() => {
+          saveUserNote(key, noteText);
+          if (DOM.modalNoteSavedStatus) {
+            DOM.modalNoteSavedStatus.textContent = "Saved on this device ✓";
+          }
+          renderTimeline();
+        }, 400);
+      });
+
+      DOM.modalPrivateNoteInput.addEventListener("blur", (e) => {
+        if (!state.activeSessionForModal) return;
+        const key = getSessionKey(state.activeSessionForModal);
+        if (!key) return;
+        if (noteSaveTimeout) clearTimeout(noteSaveTimeout);
+        saveUserNote(key, e.target.value);
+        if (DOM.modalNoteSavedStatus) {
+          DOM.modalNoteSavedStatus.textContent = "Saved on this device ✓";
+        }
+        renderTimeline();
+      });
+    }
+
+    // Details Modal Bookmark Button
+    if (DOM.modalBookmarkBtn) {
+      DOM.modalBookmarkBtn.addEventListener("click", () => {
+        if (!state.activeSessionForModal) return;
+        const key = getSessionKey(state.activeSessionForModal);
+        if (!key) return;
+        toggleBookmark(key);
       });
     }
 
@@ -1547,6 +1959,9 @@
   function init() {
     initDOM();
     loadSettings();
+    state.bookmarks = loadUserBookmarks();
+    state.notes = loadUserNotes();
+    updateActiveFilterCount();
     setupEventListeners();
 
     // Update live clock every second if badge is present
@@ -1555,8 +1970,8 @@
       setInterval(updateClockDisplay, 1000);
     }
 
-    // Update Happening Now banner every 30 seconds
-    setInterval(renderHappeningNowBanner, 30000);
+    // Update Happening Now banner every 15 seconds (for accurate countdown)
+    setInterval(renderHappeningNowBanner, 15000);
 
     // Initial load: render cached data first if present, then fetch fresh
     const cached = loadFromLocalStorage();

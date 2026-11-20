@@ -88,8 +88,8 @@
   <!-- Self-Hosted Fonts & CSS -->
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1795257501">
-  <link rel="stylesheet" href="css/timetable.min.css?v=1795166158v5">
+  <link rel="stylesheet" href="css/style.min.css?v=1795257502">
+  <link rel="stylesheet" href="css/timetable.min.css?v=1795166158v6">
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -212,17 +212,37 @@
   <main class="container" style="padding-top: 1.25rem; min-height: 55vh;">
     <!-- Secondary Filters (Subject Pills + Type Select + Search) -->
     <div class="timetable-filter-bar">
+      <!-- Mobile Filter Toggle Bar -->
+      <div class="mobile-filter-header">
+        <button type="button" class="mobile-filter-toggle-btn" id="mobile-filter-toggle-btn" aria-expanded="false" aria-label="Toggle search and filters">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span>Search &amp; Filter Options</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="filter-count-badge" id="filter-active-count" style="display: none;">0</span>
+            <svg class="chevron-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </button>
+      </div>
+
       <div class="filter-pills-container">
         <div class="filter-pills-scroll" role="group" aria-label="Subject filter">
-          <button type="button" class="sub-pill active" data-subject="all">All Subjects</button>
+          <button type="button" class="sub-pill active" data-subject="all">All</button>
           <button type="button" class="sub-pill" data-subject="anatomy">Anatomy</button>
           <button type="button" class="sub-pill" data-subject="physiology">Physiology</button>
           <button type="button" class="sub-pill" data-subject="biochemistry">Biochemistry</button>
+          <button type="button" class="sub-pill" data-subject="community">Community Med</button>
           <button type="button" class="sub-pill" data-subject="aetcom">AETCOM</button>
+          <button type="button" class="sub-pill sub-pill-bookmarks" data-subject="bookmarks" id="pill-bookmarks" title="Show only bookmarked lectures">★ Bookmarked</button>
         </div>
       </div>
 
-      <div class="timetable-filter-secondary-group">
+      <div class="timetable-filter-secondary-group" id="timetable-secondary-filters">
         <select id="session-type-select" class="session-type-select" aria-label="Filter by session type">
           <option value="all">All Session Types</option>
           <option value="lecture">Lectures</option>
@@ -234,14 +254,45 @@
         </select>
 
         <div class="timetable-search-box">
+          <svg class="search-input-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
           <input type="text" id="timetable-search-input" placeholder="Search topic or faculty..." aria-label="Search timetable">
           <button type="button" id="timetable-search-clear" aria-label="Clear search">✕</button>
         </div>
       </div>
     </div>
 
-    <!-- Happening Now Banner -->
+    <!-- Happening Now / Next Class Banner -->
     <div id="now-banner-container" style="display: none;"></div>
+
+    <!-- Jump-to-Date Control (Active in Upcoming View) -->
+    <div class="timetable-jump-bar" id="timetable-jump-bar" style="display: none;">
+      <div class="jump-bar-inner">
+        <span class="jump-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>Jump to:</span>
+        </span>
+        <div class="jump-actions-scroll">
+          <button type="button" class="jump-pill-btn" data-jump="tomorrow">Tomorrow</button>
+          <button type="button" class="jump-pill-btn" data-jump="next_monday">Next Mon</button>
+          <label class="jump-picker-label" title="Pick specific date">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+            <span>Pick Date</span>
+            <input type="date" id="timetable-jump-date-input" class="jump-date-hidden-input" aria-label="Jump to specific date">
+          </label>
+        </div>
+      </div>
+    </div>
 
     <!-- Skeletons Loading State -->
     <div id="timetable-loading-state" style="display: none;">
@@ -320,20 +371,38 @@
         </div>
       </div>
 
-      <div style="margin-bottom: 1.5rem;">
+      <div style="margin-bottom: 1.25rem;">
         <h4 style="font-size: 0.85rem; font-weight: 750; color: #1E293B; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em;">Session Notes &amp; Description</h4>
         <div id="modal-session-description" style="font-size: 0.88rem; color: #334155; line-height: 1.6; white-space: pre-wrap; background: #FFFFFF; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0;"></div>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button type="button" class="btn-timetable-action" id="modal-export-ics-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
+      <!-- Private Preparation Notes -->
+      <div class="modal-private-notes-block" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+          <h4 style="font-size: 0.85rem; font-weight: 750; color: #1E293B; margin: 0; text-transform: uppercase; letter-spacing: 0.04em;">📝 Private Preparation Notes</h4>
+          <span class="private-note-badge" id="modal-note-saved-status">Private &bull; Saved on this device</span>
+        </div>
+        <textarea id="modal-private-note-input" class="modal-private-note-textarea" rows="3" placeholder="Add your private notes, study reminders, or viva prep questions for this lecture..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn-timetable-action" id="modal-bookmark-btn" aria-label="Bookmark this lecture">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
           </svg>
-          <span>Export to Calendar (.ics)</span>
+          <span id="modal-bookmark-label">Bookmark Lecture</span>
         </button>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-timetable-action" id="modal-export-ics-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export (.ics)</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -364,6 +433,6 @@
   <!-- Scripts -->
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js" defer></script>
-  <script src="js/timetable.min.js?v=1795166158v5" defer></script>
+  <script src="js/timetable.min.js?v=1795166158v6" defer></script>
 </body>
 </html>
