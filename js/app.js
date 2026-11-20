@@ -1600,20 +1600,28 @@
     document.documentElement.classList.add("modal-open");
     document.body.style.overflow = "hidden";
 
-    // Immediately isolate and hide any canvas, stack, toolbar, or legacy frame
+    // Immediate loading progress indicator & enable embedded viewer styling
+    showPdfLoading("Opening document on website...", 25);
+    if (DOM.pdfViewerContainer) {
+      DOM.pdfViewerContainer.classList.add("mode-embedded");
+    }
+    if (DOM.pdfToolbar) {
+      DOM.pdfToolbar.style.display = "none";
+    }
     if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
     if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
-    if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
     if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
     if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
 
-    const frame = document.getElementById("pdf-embedded-frame");
-    if (frame) {
-      frame.style.display = "none";
+    const cardContainer = document.getElementById("pdf-reader-card-container");
+    if (cardContainer) {
+      cardContainer.style.display = "none";
     }
 
-    // Render dedicated reader card
-    renderPdfReaderCard(item);
+    // Wait for modal transition and layout dimensions to settle before loading
+    setTimeout(() => {
+      loadPdfDocument(item.fileUrl, item);
+    }, 160);
   }
 
   // Render In-Modal High-Yield Document Reader Experience (Zero White Square)
@@ -1766,11 +1774,86 @@
   // Load PDF Document via in-app embedded viewer or PDF.js streaming engine
   function loadPdfDocument(url, item) {
     item = item || state.activeModalResource || MBBS_RESOURCES.find(r => r.fileUrl === url);
+    startSmoothPdfProgress();
 
-    // Cloud / Remote PDFs: display high-yield dedicated in-modal reader card (zero white squares)
+    // In-App Website Document Reader for cloud resources
     if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-      if (item) {
-        renderPdfReaderCard(item);
+      let frame = document.getElementById("pdf-embedded-frame");
+      if (!frame && DOM.pdfViewerContainer) {
+        frame = document.createElement("iframe");
+        frame.id = "pdf-embedded-frame";
+        frame.className = "pdf-embedded-frame";
+        frame.setAttribute("allowfullscreen", "true");
+        frame.setAttribute("allow", "fullscreen");
+        DOM.pdfViewerContainer.appendChild(frame);
+      } else if (frame) {
+        frame.removeAttribute("sandbox");
+        frame.setAttribute("allowfullscreen", "true");
+        frame.setAttribute("allow", "fullscreen");
+      }
+
+      if (DOM.pdfViewerContainer) {
+        DOM.pdfViewerContainer.classList.add("mode-embedded");
+      }
+      if (DOM.pdfSinglePageView) DOM.pdfSinglePageView.style.display = "none";
+      if (DOM.pdfPagesStack) DOM.pdfPagesStack.style.display = "none";
+      if (DOM.pdfToolbar) DOM.pdfToolbar.style.display = "none";
+      if (DOM.pdfFloatPrevBtn) DOM.pdfFloatPrevBtn.style.display = "none";
+      if (DOM.pdfFloatNextBtn) DOM.pdfFloatNextBtn.style.display = "none";
+
+      const cardContainer = document.getElementById("pdf-reader-card-container");
+      if (cardContainer) {
+        cardContainer.style.display = "none";
+      }
+
+      if (frame) {
+        frame.style.display = "block";
+        const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+
+        // If this URL is already loaded in the frame, complete immediately
+        if (frame.getAttribute("data-loaded-url") === url && frame.src) {
+          try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+          setTimeout(() => completePdfLoading(), 100);
+          return;
+        }
+
+        let loadCompleted = false;
+        let watchdogTimer = null;
+
+        const markDone = () => {
+          if (loadCompleted) return;
+          loadCompleted = true;
+          if (watchdogTimer) clearTimeout(watchdogTimer);
+          try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+          completePdfLoading();
+        };
+
+        frame.onload = () => {
+          setTimeout(() => {
+            try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+          }, 150);
+
+          setTimeout(() => {
+            markDone();
+          }, 400);
+        };
+
+        frame.setAttribute("data-loaded-url", url);
+        frame.src = viewerUrl;
+
+        // Reliability watchdog: ensure initial resize calibration
+        watchdogTimer = setTimeout(() => {
+          if (!loadCompleted && frame && frame.getAttribute("data-loaded-url") === url) {
+            try {
+              window.dispatchEvent(new Event("resize"));
+            } catch (e) {}
+          }
+        }, 1500);
+
+        // Safety timeout: dismiss loading overlay within 4.5s max
+        setTimeout(() => {
+          markDone();
+        }, 4500);
       }
       return;
     }

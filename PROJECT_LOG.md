@@ -1815,3 +1815,29 @@
      - Recompiled minified assets via `scripts/minify.py` (`style.min.css`, `app.min.js`).
      - Incremented cache-busting version query string to `?v=1795256400` across all HTML templates.
 
+---
+
+### In-Website PDF Reader Restoration & White Square Elimination: 2026-11-20 10:35:00 UTC
+- **User Feedback**:
+  - The user preferred reading PDFs directly on the website itself inside the in-app modal dialog box, and requested that this in-website reading experience be restored with the small white square bug resolved.
+- **Deep Root Cause of the White Square Bug in Website View**:
+  1. **Strict Iframe Sandbox Blocked Google Docs Viewer Web Workers**:
+     - In earlier commits (`4d05b45`/`3c9025b`), `sandbox="allow-scripts allow-same-origin allow-forms allow-popups"` was added to `<iframe id="pdf-embedded-frame">`.
+     - Google Docs Viewer's interactive application (`apps-viewer.standalone.*.js`) uses Web Workers and cross-origin subframes to decompress and render vector document page streams.
+     - Under the iframe sandbox, modern browsers strictly block Web Worker instantiation (`DOMException: Failed to construct 'Worker'`).
+     - As a result, Google Docs Viewer halted execution and remained permanently frozen on its initial static thumbnail placeholder (`.ndfHFb-c4YZDc-ujibv-nUpftc`), which is rendered with `margin-top: 64px` in the upper half of the container — the exact small white square seen by the user.
+  2. **Unrendered Canvas & Frame Solid White Artifacts**:
+     - An unrendered `<canvas id="pdf-canvas">` with default HTML5 dimensions (300×150px) and CSS `background: #FFFFFF` sat inside `.pdf-single-page-view` at the top of the container.
+- **Resolution**:
+  1. **Restored Full In-Website Document Reading**:
+     - Removed the restrictive `sandbox` attribute from `<iframe id="pdf-embedded-frame">` across all pages (`index.html`, `anatomy.html`, `biochemistry.html`, `physiology.html`).
+     - Updated embedded viewer URL in `js/app.js` to `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`.
+     - With `sandbox` removed, Google Docs Viewer successfully initializes its Web Worker, decompresses document layers, and smoothly transitions from thumbnail to the full interactive, scrollable, zoomable document viewer directly inside the modal dialog box on the website.
+  2. **Completely Eliminated All White Square Artifacts**:
+     - Kept `#pdf-single-page-view` hidden (`style="display: none;"`) and `.pdf-canvas` background `transparent` until content is rendered.
+     - `.pdf-embedded-frame` set to `display: block !important` in `.mode-embedded` with full 100% viewport width and height.
+  3. **Production Minification & Deployment**:
+     - Recompiled minified assets via `scripts/minify.py` (`style.min.css`, `app.min.js`).
+     - Updated cachebuster query strings to `?v=1795257500` across all site templates.
+
+

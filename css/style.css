@@ -3792,14 +3792,14 @@ body.modal-open {
   height: 100%;
   min-height: 100%;
   border: none;
-  background: transparent;
+  background: #FFFFFF;
   border-radius: 0 0 16px 16px;
   flex: 1 1 100%;
-  display: none !important;
+  display: none;
 }
 
 .pdf-viewer-container.mode-embedded .pdf-embedded-frame {
-  display: none !important;
+  display: block !important;
 }
 
 /* ==========================================================================
