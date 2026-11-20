@@ -309,61 +309,87 @@
     return true;
   }
 
-  function detectSubject(summary, desc, loc) {
-    const titleLow = (summary || "").toLowerCase().trim();
-    const fullText = `${summary || ""} ${desc || ""} ${loc || ""}`.toLowerCase();
+  function isActualExam(title, desc) {
+    const t = (title || "").trim();
+    const d = (desc || "").trim();
+    const lowerT = t.toLowerCase();
 
+    // Exclude medical diagnostics and patient examinations:
+    if (/\b(function test|test for|tests for|benedict|molisch|heat coagulation|examination of|physical examination|clinical examination|microscopic examination)\b/i.test(lowerT)) {
+      return false;
+    }
+
+    // Positive matches for student tests/exams:
+    // PCT (Part Completion Test)
+    if (/\b(pct|part completion test)\b/i.test(lowerT)) {
+      return true;
+    }
+    // Class Test
+    if (/\bclass\s*test\b/i.test(lowerT)) {
+      return true;
+    }
+    // Internal Assessment / Term Exams / OSPE / OSCE
+    if (/\b(internal assessment|term exam|terminal exam|semester exam|preliminary exam|send-up exam|ospe|osce|spotting exam|theory exam|practical exam)\b/i.test(lowerT)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function detectSubject(summary, desc, loc) {
+    const t = (summary || "").trim();
+    const d = (desc || "").trim();
+    const l = (loc || "").trim();
+    const titleLow = t.toLowerCase();
+    const fullText = `${t} ${d} ${l}`.toLowerCase();
+
+    // 1. Break / Lunch
     if (titleLow.includes("lunch") || titleLow.includes("break") || titleLow.includes("recess")) {
       return "break";
     }
-    if (titleLow.includes("holiday") || titleLow.includes("vacation") || titleLow.includes("dussehra") || titleLow.includes("diwali")) {
+
+    // 2. Holiday
+    if (titleLow.includes("holiday") || titleLow.includes("vacation") || titleLow.includes("dussehra") || titleLow.includes("diwali") || titleLow.includes("closed")) {
       return "holiday";
     }
-    if (titleLow.includes("biochemistry") || /\bbc\s*\d/i.test(titleLow)) {
-      return "biochemistry";
-    }
-    if (titleLow.includes("physiology") || /\bpy\s*\d/i.test(titleLow)) {
-      return "physiology";
-    }
-    if (titleLow.includes("anatomy") || titleLow.includes("dissection") || titleLow.includes("histology") || /\ban\s*\d/i.test(titleLow)) {
-      return "anatomy";
-    }
-    if (titleLow.includes("aetcom")) {
-      return "aetcom";
-    }
-    if (titleLow.includes("ece")) {
-      return "ece";
-    }
+
+    // 3. Sports & ECA
     if (titleLow.includes("sports") || titleLow.includes("eca")) {
       return "sports";
     }
-    if (titleLow.includes("pathology")) {
-      return "pathology";
-    }
-    if (titleLow.includes("pharmacology")) {
-      return "pharmacology";
-    }
-    if (titleLow.includes("microbiology")) {
-      return "microbiology";
-    }
-    if (titleLow.includes("community medicine") || titleLow.includes("psm")) {
+
+    // 4. Community Medicine
+    if (titleLow.includes("community medicine") || /\b(psm|cm\s*\d)\b/i.test(fullText)) {
       return "community";
     }
-    if (titleLow.includes("forensic") || titleLow.includes("fmt")) {
-      return "forensic";
-    }
-    if (/clinic|posting|ward|surgery|pediatrics|medicine|obg|ophthalmology|ent|orthopedics/i.test(titleLow)) {
-      return "clinical";
-    }
 
-    // Full text heuristics with word boundaries
-    if (/\b(biochemistry|urine sample|lipid|protein|carbohydrate|vitamins)\b/i.test(fullText)) {
-      return "biochemistry";
+    // 5. Core Departments by Title or Competency Code
+    // Anatomy (AN xx.x, dissection, histology, osteo, vertebra, ribs, etc.)
+    if (/\b(anatomy|dissection|histology|osteo|embryology)\b/i.test(titleLow) || /\ban\s*\d/i.test(fullText)) {
+      return "anatomy";
     }
-    if (/\b(physiology|ecg|git disorders|salivary|pancreas|colon)\b/i.test(fullText)) {
+    // Physiology (PY xx.x, hematology, etc.)
+    if (/\b(physiology|hematology|haematology)\b/i.test(titleLow) || /\bpy\s*\d/i.test(fullText)) {
       return "physiology";
     }
-    if (/\b(anatomy|dissection|histology|pericardium|sternum|mediastinum|heart|lungs|atrium)\b/i.test(fullText)) {
+    // Biochemistry (BC xx.x, etc.)
+    if (/\b(biochemistry)\b/i.test(titleLow) || /\bbc\s*\d/i.test(fullText)) {
+      return "biochemistry";
+    }
+
+    // 6. Specific Anatomical structures in osteology/DOAP
+    if (/\b(vertebra|rib|sternum|joint|fossa|muscle|nerve|artery|bone|skull|thorax|upper limb|lower limb|abdomen|pelvis)\b/i.test(fullText)) {
+      return "anatomy";
+    }
+
+    // 7. Heuristic keywords in full text
+    if (/\b(biochemistry|urine sample|lipid|protein|carbohydrate|vitamins|minerals|enzymes)\b/i.test(fullText)) {
+      return "biochemistry";
+    }
+    if (/\b(physiology|ecg|blood pressure|cranial nerve|git disorders|salivary|pancreas|colon)\b/i.test(fullText)) {
+      return "physiology";
+    }
+    if (/\b(anatomy|dissection|histology|pericardium|mediastinum|heart|lungs|atrium)\b/i.test(fullText)) {
       return "anatomy";
     }
 
@@ -371,38 +397,63 @@
   }
 
   function detectSessionType(summary, desc) {
-    const s = `${summary} ${desc}`.toLowerCase();
-    if (s.includes("(l)") || s.includes("lecture") || s.includes("(l):") || s.includes("l:")) {
-      return "lecture";
-    }
-    if (s.includes("(dh)") || s.includes("dissection")) {
-      return "dissection";
-    }
-    if (s.includes("practical")) {
-      return "practical";
-    }
-    if (s.includes("(sgt)") || s.includes("doap") || s.includes("tutorial")) {
-      return "sgt_doap";
-    }
-    if (s.includes("sdl")) {
-      return "sdl";
-    }
-    if (s.includes("pct") || s.includes("class test") || s.includes("test") || s.includes("exam")) {
-      return "test_exam";
-    }
-    if (s.includes("aetcom")) {
-      return "aetcom";
-    }
-    if (s.includes("ece")) {
-      return "ece";
-    }
-    if (s.includes("holiday")) {
-      return "holiday";
-    }
-    if (s.includes("lunch")) {
+    const title = (summary || "").trim();
+    const d = (desc || "").trim();
+    const lowerT = title.toLowerCase();
+    const fullText = `${title} ${d}`.toLowerCase();
+
+    if (lowerT.includes("lunch") || lowerT.includes("break") || lowerT.includes("recess")) {
       return "break";
     }
-    return "other";
+    if (lowerT.includes("holiday") || lowerT.includes("vacation")) {
+      return "holiday";
+    }
+    if (isActualExam(title, desc)) {
+      return "test_exam";
+    }
+    if (lowerT.includes("(dh)") || lowerT.includes("dissection")) {
+      return "dissection";
+    }
+    if (lowerT.includes("practical") || fullText.includes("(practical)")) {
+      return "practical";
+    }
+    if (lowerT.includes("(l)") || lowerT.includes("lecture") || lowerT.includes("(l):") || lowerT.startsWith("l:")) {
+      return "lecture";
+    }
+    if (lowerT.includes("(sgt)") || lowerT.includes("doap") || lowerT.includes("tutorial")) {
+      return "sgt_doap";
+    }
+    if (lowerT.includes("sdl") || lowerT.includes("self-directed")) {
+      return "sdl";
+    }
+    if (lowerT.includes("aetcom")) {
+      return "aetcom";
+    }
+    if (lowerT.includes("ece") || lowerT.includes("early clinical exposure")) {
+      return "ece";
+    }
+    if (lowerT.includes("sports") || lowerT.includes("eca")) {
+      return "sports";
+    }
+
+    // Context in description if title didn't specify
+    if (fullText.includes("(dh)") || fullText.includes("dissection")) {
+      return "dissection";
+    }
+    if (fullText.includes("practical")) {
+      return "practical";
+    }
+    if (fullText.includes("(sgt)") || fullText.includes("doap") || fullText.includes("tutorial")) {
+      return "sgt_doap";
+    }
+    if (fullText.includes("sdl")) {
+      return "sdl";
+    }
+    if (fullText.includes("(l)") || fullText.includes("lecture")) {
+      return "lecture";
+    }
+
+    return "lecture";
   }
 
   function extractMetadata(title, desc, subject) {
@@ -941,7 +992,12 @@
 
     // Session Type Filter
     if (state.selectedSessionType !== "all") {
-      list = list.filter((s) => s.sessionType === state.selectedSessionType);
+      list = list.filter((s) => {
+        if (state.selectedSessionType === "test_exam") {
+          return s.sessionType === "test_exam" || isActualExam(s.title, s.cleanDesc || s.description);
+        }
+        return s.sessionType === state.selectedSessionType;
+      });
     }
 
     // Search Query
@@ -1050,7 +1106,7 @@
             <span class="live-remaining-pill">${remText}</span>
           </div>
           <div class="live-banner-content">
-            <span class="badge-subject">${escapeHtml(activeTimed.subject)}</span>
+            <span class="badge-subject subject-badge-${activeTimed.subject}">${escapeHtml(formatSubjectName(activeTimed.subject))}</span>
             <h3 class="live-banner-title">${escapeHtml(activeTimed.title)}</h3>
           </div>
           <div class="live-banner-meta">
@@ -1087,7 +1143,7 @@
             <span class="next-time-chip">${formatTimeAMPM(nextSession.startDate)} – ${formatTimeAMPM(nextSession.endDate)}</span>
           </div>
           <div class="next-banner-content">
-            <span class="badge-subject">${escapeHtml(nextSession.subject)}</span>
+            <span class="badge-subject subject-badge-${nextSession.subject}">${escapeHtml(formatSubjectName(nextSession.subject))}</span>
             <h3 class="next-banner-title">${escapeHtml(nextSession.title)}</h3>
           </div>
           <div class="next-banner-meta">
@@ -1164,44 +1220,6 @@
     }
   }
 
-  function detectImportantSession(s) {
-    const text = `${s.title || ""} ${s.description || ""} ${s.cleanDesc || ""}`.toLowerCase();
-    const type = (s.sessionType || "").toLowerCase();
-
-    // 1. PCTs / Examinations / Internal Assessments
-    if (
-      type === "test_exam" ||
-      /\b(pct|exam|examination|assessment|term final|viva|ospe|osce|internal assessment|post-test)\b/i.test(text)
-    ) {
-      return {
-        type: "exam",
-        label: "Exam / PCT",
-        icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`
-      };
-    }
-
-    // 2. SDL (Self-Directed Learning)
-    if (type === "sdl" || /\b(sdl|self-directed learning|self directed learning)\b/i.test(text)) {
-      return {
-        type: "sdl",
-        label: "SDL",
-        icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`
-      };
-    }
-
-    // 3. Special Classes / Integrated Seminars / Guest Lectures
-    if (
-      /\b(special class|guest lecture|integrated seminar|symposium|workshop|foundation course|webinar)\b/i.test(text)
-    ) {
-      return {
-        type: "special",
-        label: "Special Session",
-        icon: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>`
-      };
-    }
-
-    return null;
-  }
 
   function getDayCategory(groupSessions, dateObj) {
     const holidays = groupSessions.filter((s) => s.subject === "holiday" || s.sessionType === "holiday");
@@ -1398,6 +1416,38 @@
     }
   }
 
+  function formatSubjectName(sub) {
+    const map = {
+      anatomy: "Anatomy",
+      physiology: "Physiology",
+      biochemistry: "Biochemistry",
+      community: "Community Med",
+      sports: "Sports & ECA",
+      break: "Break",
+      holiday: "Holiday",
+      general: "College Event"
+    };
+    return map[sub] || (sub ? sub.charAt(0).toUpperCase() + sub.slice(1) : "Session");
+  }
+
+  function formatSessionTypeName(type) {
+    const map = {
+      lecture: "Lecture",
+      dissection: "Dissection",
+      practical: "Practical",
+      sgt_doap: "SGT / DOAP",
+      sdl: "SDL",
+      test_exam: "Exam / PCT",
+      aetcom: "AETCOM",
+      ece: "ECE",
+      sports: "Sports & ECA",
+      holiday: "Holiday",
+      break: "Break",
+      other: "Lecture"
+    };
+    return map[type] || "Lecture";
+  }
+
   function createSessionCardHtml(s, now) {
     const isOngoing = !s.allDay && now >= s.startDate && now < s.endDate && s.subject !== "holiday";
     const isAllDay = s.allDay || (s.startDate.getHours() === 0 && s.startDate.getMinutes() === 0 && s.endDate.getHours() === 0 && s.endDate.getMinutes() === 0 && (s.endDate.getTime() - s.startDate.getTime() >= 86400000));
@@ -1405,11 +1455,12 @@
     const durationMinutes = Math.round((s.endDate.getTime() - s.startDate.getTime()) / 60000);
     const durationLabel = isAllDay ? "All Day" : (durationMinutes >= 60 ? `${Math.floor(durationMinutes / 60)}h${durationMinutes % 60 ? ` ${durationMinutes % 60}m` : ""}` : `${durationMinutes}m`);
 
-    const important = detectImportantSession(s);
-    const isExam = important && important.type === "exam";
+    const isExam = s.sessionType === "test_exam" || isActualExam(s.title, s.cleanDesc || s.description);
     const sessionKey = getSessionKey(s);
     const isBookmarked = state.bookmarks.has(sessionKey);
     const hasNote = Boolean(state.notes && state.notes[sessionKey]);
+
+    const examIconSvg = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
 
     return `
       <article class="session-card subject-${s.subject} ${isOngoing ? "is-active-session" : ""} ${isAllDay ? "is-allday-card" : ""} ${isExam ? "is-exam-session" : ""}" data-session-uid="${escapeHtml(s.uid)}" data-session-start="${escapeHtml(s.startIso)}" data-session-key="${escapeHtml(sessionKey)}">
@@ -1433,11 +1484,10 @@
             </span>
             <div class="session-top-actions">
               <div class="session-badges-group">
-                <span class="badge-subject">${escapeHtml(s.subject)}</span>
-                <span class="badge-type">${escapeHtml(formatSessionTypeName(s.sessionType))}</span>
-                ${important ? `
-                  <span class="session-priority-pill priority-${important.type}" title="${important.label}">
-                    ${important.icon} <span>${important.label}</span>
+                <span class="badge-subject subject-badge-${s.subject}">${escapeHtml(formatSubjectName(s.subject))}</span>
+                ${s.subject !== "break" && s.subject !== "holiday" ? `
+                  <span class="badge-type type-${isExam ? "test_exam" : s.sessionType}">
+                    ${isExam ? examIconSvg + " " : ""}${escapeHtml(isExam ? "Exam / PCT" : formatSessionTypeName(s.sessionType))}
                   </span>
                 ` : ""}
                 ${hasNote ? '<span class="session-note-pill" title="Has private preparation notes">📝 Note</span>' : ""}
@@ -1475,23 +1525,6 @@
     `;
   }
 
-  function formatSessionTypeName(type) {
-    const map = {
-      lecture: "Lecture",
-      dissection: "Dissection",
-      practical: "Practical",
-      sgt_doap: "SGT / DOAP",
-      sdl: "SDL",
-      test_exam: "Test / Exam",
-      aetcom: "AETCOM",
-      ece: "ECE",
-      holiday: "Holiday",
-      break: "Break",
-      other: "Session"
-    };
-    return map[type] || "Session";
-  }
-
   // --- Modals ---
   function openDetailsModal(s) {
     if (!DOM.detailsModal) return;
@@ -1504,10 +1537,12 @@
       ? `${formatDateHuman(s.startDate)} • ALL DAY`
       : `${formatDateHuman(s.startDate)} • ${formatTimeAMPM(s.startDate)} – ${formatTimeAMPM(s.endDate)}`;
 
-    DOM.detailsSubjectBadge.textContent = s.subject.toUpperCase();
-    DOM.detailsSubjectBadge.className = `badge-subject subject-${s.subject}`;
+    DOM.detailsSubjectBadge.textContent = formatSubjectName(s.subject);
+    DOM.detailsSubjectBadge.className = `badge-subject subject-badge-${s.subject}`;
 
-    DOM.detailsTypeBadge.textContent = formatSessionTypeName(s.sessionType);
+    const isExamModal = s.sessionType === "test_exam" || isActualExam(s.title, s.cleanDesc || s.description);
+    DOM.detailsTypeBadge.textContent = isExamModal ? "Exam / PCT" : formatSessionTypeName(s.sessionType);
+    DOM.detailsTypeBadge.className = `badge-type type-${isExamModal ? "test_exam" : s.sessionType}`;
 
     if (s.faculty && DOM.detailsFaculty) {
       DOM.detailsFaculty.textContent = `Faculty: ${s.faculty}`;

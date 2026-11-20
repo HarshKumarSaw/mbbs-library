@@ -88,72 +88,119 @@ def parse_iso_date(dt_str):
         dt = dt + datetime.timedelta(hours=5, minutes=30)
     return dt
 
-def detect_subject(summary, desc="", loc=""):
-    title_low = summary.lower().strip()
-    full_text = f"{summary} {desc} {loc}".lower()
+def is_actual_exam(title, desc=""):
+    t = (title or "").strip()
+    d = (desc or "").strip()
+    lower_t = t.lower()
+    full_text = f"{t} {d}".lower()
 
-    if "lunch" in title_low or "break" in title_low or "recess" in title_low:
+    # Exclude routine patient diagnostics and biochemical practical tests:
+    if re.search(r"\b(function test|test for|tests for|benedict|molisch|heat coagulation|examination of|physical examination|clinical examination|microscopic examination)\b", lower_t, re.I):
+        return False
+
+    # Positive matches for student tests/exams
+    # PCT (Part Completion Test)
+    if re.search(r"\b(pct|part completion test)\b", lower_t, re.I):
+        return True
+    # Class Test
+    if re.search(r"\bclass\s*test\b", lower_t, re.I):
+        return True
+    # Internal Assessment / Term Exams / OSPE / OSCE
+    if re.search(r"\b(internal assessment|term exam|terminal exam|semester exam|preliminary exam|send-up exam|ospe|osce|spotting exam|theory exam|practical exam)\b", lower_t, re.I):
+        return True
+
+    return False
+
+def detect_subject(summary, desc="", loc=""):
+    t = (summary or "").strip()
+    d = (desc or "").strip()
+    l = (loc or "").strip()
+    title_low = t.lower()
+    full_text = f"{t} {d} {l}".lower()
+
+    # 1. Break / Lunch
+    if any(k in title_low for k in ["lunch", "break", "recess"]):
         return "break"
-    if "holiday" in title_low or "vacation" in title_low or "dussehra" in title_low or "diwali" in title_low:
+
+    # 2. Holiday
+    if any(k in title_low for k in ["holiday", "vacation", "dussehra", "diwali", "closed"]):
         return "holiday"
-    if "biochemistry" in title_low or re.search(r"\bbc\s*\d", title_low):
-        return "biochemistry"
-    if "physiology" in title_low or re.search(r"\bpy\s*\d", title_low):
-        return "physiology"
-    if "anatomy" in title_low or "dissection" in title_low or "histology" in title_low or re.search(r"\ban\s*\d", title_low):
-        return "anatomy"
-    if "aetcom" in title_low:
-        return "aetcom"
-    if "ece" in title_low:
-        return "ece"
+
+    # 3. Sports & ECA
     if "sports" in title_low or "eca" in title_low:
         return "sports"
-    if "pathology" in title_low:
-        return "pathology"
-    if "pharmacology" in title_low:
-        return "pharmacology"
-    if "microbiology" in title_low:
-        return "microbiology"
-    if "community medicine" in title_low or "psm" in title_low:
-        return "community"
-    if "forensic" in title_low or "fmt" in title_low:
-        return "forensic"
-    if any(k in title_low for k in ["clinic", "posting", "ward", "surgery", "pediatrics", "medicine", "obg", "ophthalmology", "ent", "orthopedics"]):
-        return "clinical"
 
-    # Contextual regex with word boundaries
-    if re.search(r"\b(biochemistry|urine sample|lipid|protein|carbohydrate|vitamins)\b", full_text):
-        return "biochemistry"
-    if re.search(r"\b(physiology|ecg|git disorders|salivary|pancreas|colon)\b", full_text):
+    # 4. Community Medicine
+    if "community medicine" in title_low or re.search(r"\b(psm|cm\s*\d)\b", full_text):
+        return "community"
+
+    # 5. Core Departments by Title or Competency Code
+    # Anatomy (AN xx.x, dissection, histology, osteo, vertebra, ribs, etc.)
+    if re.search(r"\b(anatomy|dissection|histology|osteo|embryology)\b", title_low) or re.search(r"\ban\s*\d", full_text):
+        return "anatomy"
+    # Physiology (PY xx.x, hematology, etc.)
+    if re.search(r"\b(physiology|hematology|haematology)\b", title_low) or re.search(r"\bpy\s*\d", full_text):
         return "physiology"
-    if re.search(r"\b(anatomy|dissection|histology|pericardium|sternum|mediastinum|heart|lungs|atrium)\b", full_text):
+    # Biochemistry (BC xx.x, etc.)
+    if re.search(r"\b(biochemistry)\b", title_low) or re.search(r"\bbc\s*\d", full_text):
+        return "biochemistry"
+
+    # 6. Specific Anatomical structures in osteology/DOAP
+    if re.search(r"\b(vertebra|rib|sternum|joint|fossa|muscle|nerve|artery|bone|skull|thorax|upper limb|lower limb|abdomen|pelvis)\b", full_text):
+        return "anatomy"
+
+    # 7. Heuristic keywords in full text
+    if re.search(r"\b(biochemistry|urine sample|lipid|protein|carbohydrate|vitamins|minerals|enzymes)\b", full_text):
+        return "biochemistry"
+    if re.search(r"\b(physiology|ecg|blood pressure|cranial nerve|git disorders|salivary|pancreas|colon)\b", full_text):
+        return "physiology"
+    if re.search(r"\b(anatomy|dissection|histology|pericardium|mediastinum|heart|lungs|atrium)\b", full_text):
         return "anatomy"
 
     return "general"
 
 def detect_session_type(summary, desc):
-    s = f"{summary} {desc}".lower()
-    if "(l)" in s or "lecture" in s or "(l):" in s or "l:" in s:
-        return "lecture"
-    if "(dh)" in s or "dissection" in s:
-        return "dissection"
-    if "practical" in s:
-        return "practical"
-    if "(sgt)" in s or "doap" in s or "tutorial" in s:
-        return "sgt_doap"
-    if "sdl" in s:
-        return "sdl"
-    if "pct" in s or "class test" in s or "test" in s or "exam" in s:
-        return "test_exam"
-    if "aetcom" in s:
-        return "aetcom"
-    if "ece" in s:
-        return "ece"
-    if "holiday" in s:
-        return "holiday"
-    if "lunch" in s:
+    title = (summary or "").strip()
+    d = (desc or "").strip()
+    lower_t = title.lower()
+    full_text = f"{title} {d}".lower()
+
+    if "lunch" in lower_t or "break" in lower_t or "recess" in lower_t:
         return "break"
-    return "other"
+    if "holiday" in lower_t or "vacation" in lower_t:
+        return "holiday"
+    if is_actual_exam(title, desc):
+        return "test_exam"
+    if "(dh)" in lower_t or "dissection" in lower_t:
+        return "dissection"
+    if "practical" in lower_t or "(practical)" in full_text:
+        return "practical"
+    if "(l)" in lower_t or "lecture" in lower_t or "(l):" in lower_t or lower_t.startswith("l:"):
+        return "lecture"
+    if "(sgt)" in lower_t or "doap" in lower_t or "tutorial" in lower_t:
+        return "sgt_doap"
+    if "sdl" in lower_t or "self-directed" in lower_t:
+        return "sdl"
+    if "aetcom" in lower_t:
+        return "aetcom"
+    if "ece" in lower_t or "early clinical exposure" in lower_t:
+        return "ece"
+    if "sports" in lower_t or "eca" in lower_t:
+        return "sports"
+
+    # Context in description if title didn't specify
+    if "(dh)" in full_text or "dissection" in full_text:
+        return "dissection"
+    if "practical" in full_text:
+        return "practical"
+    if "(sgt)" in full_text or "doap" in full_text or "tutorial" in full_text:
+        return "sgt_doap"
+    if "sdl" in full_text:
+        return "sdl"
+    if "(l)" in full_text or "lecture" in full_text:
+        return "lecture"
+
+    return "lecture"
 
 def extract_faculty_and_competency(title, desc, subject):
     text = f"{title}\n{desc}"

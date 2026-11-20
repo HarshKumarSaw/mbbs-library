@@ -873,14 +873,9 @@
 
 /* Examination / PCT High Visibility Distinguisher */
 .session-card.is-exam-session {
-  border-color: #FCA5A5;
+  border: 1.5px solid #FCA5A5;
   background: #FFFDFD;
   box-shadow: 0 2px 10px rgba(220, 38, 38, 0.08);
-}
-
-.session-card.is-exam-session .session-color-strip {
-  background: #DC2626 !important;
-  width: 7px;
 }
 
 .session-card.is-exam-session .session-title {
@@ -976,41 +971,6 @@
   border-color: #FDE68A;
 }
 
-.session-priority-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.16rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.68rem;
-  font-weight: 750;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  line-height: 1.3;
-}
-
-.session-priority-pill svg {
-  flex-shrink: 0;
-}
-
-.priority-exam {
-  background: #FEF2F2;
-  color: #DC2626;
-  border: 1px solid #FECACA;
-}
-
-.priority-sdl {
-  background: #EEF2FF;
-  color: #4F46E5;
-  border: 1px solid #C7D2FE;
-}
-
-.priority-special {
-  background: #FFFBEB;
-  color: #B45309;
-  border: 1px solid #FDE68A;
-}
-
 .session-note-pill {
   display: inline-flex;
   align-items: center;
@@ -1045,85 +1005,190 @@
   gap: 0.4rem;
 }
 
+/* Base Subject Badge */
 .badge-subject {
+  display: inline-flex;
+  align-items: center;
   padding: 0.22rem 0.65rem;
   border-radius: 6px;
   font-size: 0.72rem;
   font-weight: 750;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
+/* Base Activity & Format Badge (Single Non-Duplicating Format Tag) */
 .badge-type {
-  padding: 0.22rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.62rem;
   border-radius: 6px;
   font-size: 0.72rem;
   font-weight: 650;
   background: #F1F5F9;
   color: #475569;
+  border: 1px solid #E2E8F0;
+  white-space: nowrap;
 }
 
-/* Subject Colors Standardization */
-/* Anatomy #A33D43 */
+/* Activity Badge Variant Tints */
+.badge-type.type-test_exam {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.badge-type.type-sdl {
+  background: #EEF2FF;
+  color: #4338CA;
+  border-color: #C7D2FE;
+  font-weight: 750;
+}
+
+.badge-type.type-dissection {
+  background: #FFF7ED;
+  color: #C2410C;
+  border-color: #FFEDD5;
+  font-weight: 650;
+}
+
+.badge-type.type-practical {
+  background: #ECFDF5;
+  color: #047857;
+  border-color: #A7F3D0;
+  font-weight: 650;
+}
+
+.badge-type.type-sgt,
+.badge-type.type-sgt_doap {
+  background: #FAF5FF;
+  color: #7E22CE;
+  border-color: #F3E8FF;
+  font-weight: 650;
+}
+
+.badge-type.type-aetcom {
+  background: #FEFCE8;
+  color: #A16207;
+  border-color: #FEF08A;
+  font-weight: 700;
+}
+
+.badge-type.type-ece {
+  background: #F0F9FF;
+  color: #0369A1;
+  border-color: #BAE6FD;
+  font-weight: 700;
+}
+
+.badge-type.type-lecture {
+  background: #F8FAFC;
+  color: #475569;
+  border-color: #E2E8F0;
+  font-weight: 650;
+}
+
+/* Subject Colors Standardization (Distinct, Consistent Color Identity per Subject) */
+/* 1. Anatomy #A33D43 */
 .subject-anatomy .session-color-strip { background: #A33D43; }
-.subject-anatomy .badge-subject { background: #FDF3F3; color: #A33D43; border: 1px solid rgba(163, 61, 67, 0.3); }
-.live-session-banner.subject-anatomy, .next-session-banner.subject-anatomy { border-left-color: #A33D43; }
+.subject-anatomy .badge-subject,
+.badge-subject.subject-badge-anatomy {
+  background: #FDF3F3;
+  color: #A33D43;
+  border: 1px solid rgba(163, 61, 67, 0.3);
+}
+.live-session-banner.subject-anatomy,
+.next-session-banner.subject-anatomy {
+  border-left-color: #A33D43;
+}
 
-/* Physiology #6950A1 */
+/* 2. Physiology #6950A1 */
 .subject-physiology .session-color-strip { background: #6950A1; }
-.subject-physiology .badge-subject { background: #F7F4FD; color: #6950A1; border: 1px solid rgba(105, 80, 161, 0.3); }
-.live-session-banner.subject-physiology, .next-session-banner.subject-physiology { border-left-color: #6950A1; }
+.subject-physiology .badge-subject,
+.badge-subject.subject-badge-physiology {
+  background: #F7F4FD;
+  color: #6950A1;
+  border: 1px solid rgba(105, 80, 161, 0.3);
+}
+.live-session-banner.subject-physiology,
+.next-session-banner.subject-physiology {
+  border-left-color: #6950A1;
+}
 
-/* Biochemistry #23775C */
+/* 3. Biochemistry #23775C */
 .subject-biochemistry .session-color-strip { background: #23775C; }
-.subject-biochemistry .badge-subject { background: #EFF9F4; color: #23775C; border: 1px solid rgba(35, 119, 92, 0.3); }
-.live-session-banner.subject-biochemistry, .next-session-banner.subject-biochemistry { border-left-color: #23775C; }
+.subject-biochemistry .badge-subject,
+.badge-subject.subject-badge-biochemistry {
+  background: #EFF9F4;
+  color: #23775C;
+  border: 1px solid rgba(35, 119, 92, 0.3);
+}
+.live-session-banner.subject-biochemistry,
+.next-session-banner.subject-biochemistry {
+  border-left-color: #23775C;
+}
 
-/* Community Medicine #159B91 */
+/* 4. Community Medicine #159B91 */
 .subject-community .session-color-strip { background: #159B91; }
-.subject-community .badge-subject { background: #F0FDFA; color: #159B91; border: 1px solid rgba(21, 155, 145, 0.3); }
-.live-session-banner.subject-community, .next-session-banner.subject-community { border-left-color: #159B91; }
+.subject-community .badge-subject,
+.badge-subject.subject-badge-community {
+  background: #F0FDFA;
+  color: #159B91;
+  border: 1px solid rgba(21, 155, 145, 0.3);
+}
+.live-session-banner.subject-community,
+.next-session-banner.subject-community {
+  border-left-color: #159B91;
+}
 
-/* Sports #28729B */
+/* 5. Sports & ECA #28729B */
 .subject-sports .session-color-strip { background: #28729B; }
-.subject-sports .badge-subject { background: #F0F9FF; color: #28729B; border: 1px solid rgba(40, 114, 155, 0.3); }
-.live-session-banner.subject-sports, .next-session-banner.subject-sports { border-left-color: #28729B; }
+.subject-sports .badge-subject,
+.badge-subject.subject-badge-sports {
+  background: #F0F9FF;
+  color: #28729B;
+  border: 1px solid rgba(40, 114, 155, 0.3);
+}
+.live-session-banner.subject-sports,
+.next-session-banner.subject-sports {
+  border-left-color: #28729B;
+}
 
-/* Break #A45A29 */
+/* 6. Break #A45A29 */
 .subject-break .session-color-strip { background: #A45A29; }
-.subject-break .badge-subject { background: #FEF3C7; color: #A45A29; border: 1px solid rgba(164, 90, 41, 0.3); }
-.live-session-banner.subject-break, .next-session-banner.subject-break { border-left-color: #A45A29; }
+.subject-break .badge-subject,
+.badge-subject.subject-badge-break {
+  background: #FEF3C7;
+  color: #A45A29;
+  border: 1px solid rgba(164, 90, 41, 0.3);
+}
+.live-session-banner.subject-break,
+.next-session-banner.subject-break {
+  border-left-color: #A45A29;
+}
 
-/* AETCOM #854D0E */
-.subject-aetcom .session-color-strip { background: #854D0E; }
-.subject-aetcom .badge-subject { background: #FEF9C3; color: #854D0E; border: 1px solid #FDE047; }
-.live-session-banner.subject-aetcom, .next-session-banner.subject-aetcom { border-left-color: #854D0E; }
-
-/* Holiday #DC2626 */
+/* 7. Holiday #DC2626 */
 .subject-holiday .session-color-strip { background: #DC2626; }
-.subject-holiday .badge-subject { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+.subject-holiday .badge-subject,
+.badge-subject.subject-badge-holiday {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
 
-/* ECE #0284C7 */
-.subject-ece .session-color-strip { background: #0284C7; }
-.subject-ece .badge-subject { background: #F0F9FF; color: #0284C7; border: 1px solid #BAE6FD; }
-
-.subject-pathology .session-color-strip { background: #B91C1C; }
-.subject-pathology .badge-subject { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
-
-.subject-pharmacology .session-color-strip { background: #6D28D9; }
-.subject-pharmacology .badge-subject { background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; }
-
-.subject-microbiology .session-color-strip { background: #15803D; }
-.subject-microbiology .badge-subject { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
-
-.subject-forensic .session-color-strip { background: #334155; }
-.subject-forensic .badge-subject { background: #F8FAFC; color: #334155; border: 1px solid #CBD5E1; }
-
-.subject-clinical .session-color-strip { background: #2563EB; }
-.subject-clinical .badge-subject { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
-
+/* 8. General / College Event #475569 */
 .subject-general .session-color-strip { background: #475569; }
-.subject-general .badge-subject { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
+.subject-general .badge-subject,
+.badge-subject.subject-badge-general {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid rgba(71, 85, 105, 0.3);
+}
 
 .session-title {
   font-family: 'Outfit', sans-serif;
