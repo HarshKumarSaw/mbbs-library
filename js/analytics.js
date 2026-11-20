@@ -6,43 +6,39 @@
 (function () {
   "use strict";
 
-  // PostHog Configuration Defaults
+  // PostHog Configuration with User Project Key
   const ANALYTICS_CONFIG = {
-    apiKey: (typeof window !== "undefined" && (window.POSTHOG_API_KEY || localStorage.getItem("mbbs_posthog_key"))) || "YOUR_POSTHOG_API_KEY",
-    host: (typeof window !== "undefined" && window.POSTHOG_HOST) || "https://us.i.posthog.com",
+    apiKey: "phc_A9g4GsLWQAhmvi27AxfGEHyKv2hCthLdkWot7L5CMMvB",
+    host: "https://us.i.posthog.com",
+    defaults: "2026-05-30",
+    personProfiles: "identified_only",
     maskInputs: true
   };
 
   let searchDebounce = null;
   let isPostHogLoaded = false;
+  const eventQueue = [];
 
-  // Initialize PostHog via dynamic script loader
-  function loadPostHogSDK() {
-    if (!ANALYTICS_CONFIG.apiKey || ANALYTICS_CONFIG.apiKey === "YOUR_POSTHOG_API_KEY") {
-      return;
+  // Flush queued events once PostHog finishes loading
+  function flushEventQueue() {
+    if (!window.posthog || typeof window.posthog.capture !== "function") return;
+    while (eventQueue.length > 0) {
+      const item = eventQueue.shift();
+      try {
+        window.posthog.capture(item.name, item.props);
+      } catch (e) {
+        console.warn("[Analytics] Queue flush issue:", e);
+      }
     }
-
-    if (window.posthog && typeof window.posthog.init === "function") {
-      configurePostHog();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    const hostDomain = ANALYTICS_CONFIG.host.includes("eu.i.posthog.com")
-      ? "https://eu-assets.i.posthog.com/static/array.js"
-      : "https://us-assets.i.posthog.com/static/array.js";
-    script.src = hostDomain;
-    script.onload = () => configurePostHog();
-    document.head.appendChild(script);
   }
 
+  // Configure PostHog once SDK is ready
   function configurePostHog() {
     if (window.posthog && typeof window.posthog.init === "function" && !isPostHogLoaded) {
       window.posthog.init(ANALYTICS_CONFIG.apiKey, {
         api_host: ANALYTICS_CONFIG.host,
-        person_profiles: "identified_only",
+        defaults: ANALYTICS_CONFIG.defaults,
+        person_profiles: ANALYTICS_CONFIG.personProfiles,
         capture_pageview: true,
         capture_pageleave: true,
         autocapture: true,
@@ -52,7 +48,26 @@
         }
       });
       isPostHogLoaded = true;
+      flushEventQueue();
     }
+  }
+
+  // Dynamically load PostHog official client
+  function loadPostHogSDK() {
+    if (window.posthog && typeof window.posthog.init === "function") {
+      configurePostHog();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.src = "https://us-assets.i.posthog.com/static/array.js";
+    script.onload = () => configurePostHog();
+    script.onerror = () => {
+      console.warn("[Analytics] PostHog asset script failed to load (possible adblocker).");
+    };
+    document.head.appendChild(script);
   }
 
   // Unified Analytics API
@@ -67,13 +82,15 @@
         properties || {}
       );
 
-      // PostHog event dispatch
-      try {
-        if (window.posthog && typeof window.posthog.capture === "function") {
+      // PostHog event dispatch (or queue until SDK loads)
+      if (isPostHogLoaded && window.posthog && typeof window.posthog.capture === "function") {
+        try {
           window.posthog.capture(eventName, payload);
+        } catch (e) {
+          console.warn("[Analytics] PostHog dispatch issue:", e);
         }
-      } catch (e) {
-        console.warn("[Analytics] PostHog dispatch issue:", e);
+      } else {
+        eventQueue.push({ name: eventName, props: payload });
       }
 
       // Google Analytics (GA4) / GTM event dispatch
@@ -152,17 +169,6 @@
 
     trackTimetable: function (action, extra) {
       this.track("timetable_action", Object.assign({ action: action }, extra || {}));
-    },
-
-    setApiKey: function (key, host) {
-      if (key) {
-        ANALYTICS_CONFIG.apiKey = key;
-        if (host) ANALYTICS_CONFIG.host = host;
-        try {
-          localStorage.setItem("mbbs_posthog_key", key);
-        } catch (_) {}
-        loadPostHogSDK();
-      }
     }
   };
 
