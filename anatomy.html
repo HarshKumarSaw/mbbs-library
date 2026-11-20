@@ -122,7 +122,7 @@
 
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1795257501">
+  <link rel="stylesheet" href="css/style.min.css?v=1795257503">
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -312,6 +312,72 @@
 
     <!-- Resources Section (Direct Immediate Focus!) -->
     <section class="resources-section" id="catalog-section" aria-label="Anatomy study catalog">
+      <!-- Ambient Scientific Watermark Layer (Subtle, non-interfering medical atlas line-art) -->
+      <div class="anatomy-ambient-layer" aria-hidden="true">
+        <!-- Watermark 1: Cervical Vertebra & Spinal Canal Line-Art (Upper Left Margin) -->
+        <div class="ambient-motif ambient-motif-cervical">
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="48" fill="var(--accent-anatomy)" fill-opacity="0.12"/>
+            <g stroke="var(--anatomy-text)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.45">
+              <ellipse cx="60" cy="46" rx="20" ry="12"/>
+              <path d="M40 46 C32 46 22 52 24 64 C26 74 38 78 46 76 L52 74"/>
+              <path d="M80 46 C88 46 98 52 96 64 C94 74 82 78 74 76 L68 74"/>
+              <path d="M52 74 L56 100 L64 100 L68 74"/>
+              <circle cx="60" cy="62" r="8" fill="var(--accent-anatomy)" fill-opacity="0.25"/>
+              <path d="M30 64 L20 66 M90 64 L100 66" stroke-dasharray="2 2"/>
+              <circle cx="30" cy="64" r="2" fill="var(--anatomy-text)"/>
+              <circle cx="90" cy="64" r="2" fill="var(--anatomy-text)"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Watermark 2: Cranium, Orbit & Caliper Scale (Upper Right Margin) -->
+        <div class="ambient-motif ambient-motif-cranium">
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="48" fill="var(--accent-anatomy)" fill-opacity="0.12"/>
+            <g stroke="var(--anatomy-text)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.42">
+              <path d="M50 24 C70 24 90 38 90 60 C90 74 82 82 78 86 L72 98 L60 98 C56 94 54 90 48 90 C42 90 40 84 40 78 L40 70 C35 70 30 65 30 58 C30 50 35 48 38 48 C38 32 42 24 50 24 Z"/>
+              <ellipse cx="50" cy="54" rx="6" ry="7"/>
+              <path d="M56 58 C62 58 70 64 74 64"/>
+              <path d="M22 40 L18 40 M22 50 L16 50 M22 60 L14 60 M22 70 L16 70 M22 80 L18 80" stroke-width="1.1"/>
+              <path d="M22 34 L22 86"/>
+              <circle cx="70" cy="66" r="2" fill="var(--anatomy-text)"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Watermark 3: Femur & Articular Trabeculae (Mid Left Margin) -->
+        <div class="ambient-motif ambient-motif-femur">
+          <svg viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="70" r="50" fill="var(--accent-anatomy)" fill-opacity="0.10"/>
+            <g stroke="var(--anatomy-text)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+              <circle cx="44" cy="32" r="14" fill="none"/>
+              <path d="M52 42 L66 52 C72 56 78 62 76 72 L72 108 C70 114 74 120 80 124 L82 126"/>
+              <path d="M38 44 L44 58 C46 64 56 70 56 78 L54 108 C54 116 48 122 42 126"/>
+              <path d="M42 126 C50 130 74 130 82 126"/>
+              <path d="M48 30 C56 34 66 38 72 44" stroke-dasharray="2 2" stroke-width="1"/>
+              <circle cx="44" cy="32" r="2.5" fill="var(--anatomy-text)"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Watermark 4: Thoracic Ribcage & Costal Cartilage (Mid-Lower Right Margin) -->
+        <div class="ambient-motif ambient-motif-thorax">
+          <svg viewBox="0 0 120 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="65" r="48" fill="var(--accent-anatomy)" fill-opacity="0.10"/>
+            <g stroke="var(--anatomy-text)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+              <rect x="56" y="24" width="8" height="42" rx="3" fill="none"/>
+              <path d="M60 20 L60 24 M60 66 L60 76"/>
+              <path d="M56 32 C40 30 24 38 22 52 C20 64 34 70 56 60"/>
+              <path d="M64 32 C80 30 96 38 98 52 C100 64 86 70 64 60"/>
+              <path d="M56 42 C38 42 22 50 20 66 C18 80 36 86 56 72"/>
+              <path d="M64 42 C82 42 98 50 100 66 C102 80 84 86 64 72"/>
+              <path d="M56 52 C42 54 28 62 26 78"/>
+              <path d="M64 52 C78 54 92 62 94 78"/>
+            </g>
+          </svg>
+        </div>
+      </div>
       <div class="container">
         <h2 class="sr-only">Human Anatomy Curriculum Resources</h2>
         
@@ -793,6 +859,6 @@
   <script src="js/data.js?v=1795257500"></script>
   <script src="js/app.min.js?v=1795257500"></script>
   <script src="js/pwa.js" defer></script>
-  <script src="js/push.js?v=1794462000" defer></script>
+  <script src="js/push.js?v=1794463000" defer></script>
 </body>
 </html>

@@ -64,6 +64,49 @@
   letter-spacing: -0.025em;
 }
 
+.timetable-header-main {
+  position: relative;
+}
+
+.timetable-motif {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+.timetable-motif svg {
+  display: block;
+}
+
+.timetable-motif-left {
+  left: -14px;
+  width: 68px;
+  height: 68px;
+}
+
+.timetable-motif-right {
+  right: -14px;
+  width: 68px;
+  height: 68px;
+}
+
+@media (max-width: 899px) {
+  .timetable-motif {
+    display: none;
+  }
+}
+
+.timetable-brand-col .subject-title-motif {
+  display: block;
+  width: 140px;
+  height: 10px;
+  margin: 0.25rem 0 0 0;
+}
+
 /* Control Toolbar & Refresh */
 .timetable-controls-bar {
   display: flex;

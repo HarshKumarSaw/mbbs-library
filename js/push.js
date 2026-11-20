@@ -852,6 +852,137 @@
     ensurePushRecoveryDOM();
   }
 
+  // --- Welcome Push Notification Prompt Modal (Soft Ask on Visit) ---
+  let isWelcomePushModalOpen = false;
+
+  function ensureWelcomePushDOM() {
+    if (document.getElementById("mbbs-push-welcome-modal")) return;
+
+    const modal = document.createElement("div");
+    modal.id = "mbbs-push-welcome-modal";
+    modal.className = "push-welcome-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "push-welcome-title");
+    modal.setAttribute("aria-hidden", "true");
+
+    modal.innerHTML = `
+      <div class="push-welcome-backdrop" id="push-welcome-backdrop"></div>
+      <div class="push-welcome-card" id="push-welcome-card">
+        <button type="button" class="push-welcome-close" id="push-welcome-close-btn" aria-label="Close dialog">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <div class="push-welcome-icon-wrap">
+          <div class="push-welcome-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </div>
+        </div>
+        <span class="push-welcome-pill">🔔 Instant Study Alerts</span>
+        <h3 class="push-welcome-title" id="push-welcome-title">Enable MBBS Study Notifications?</h3>
+        <p class="push-welcome-desc">
+          Get instant alerts on your device whenever new Johari diagrams, practical viva notes, anatomy guides, or academic timetable changes are posted. 100% free & spam-free.
+        </p>
+        <div class="push-welcome-actions">
+          <button type="button" class="push-welcome-btn-primary" id="push-welcome-allow-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span>Allow Notifications</span>
+          </button>
+          <button type="button" class="push-welcome-btn-secondary" id="push-welcome-dismiss-btn">
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeBtn = document.getElementById("push-welcome-close-btn");
+    const backdrop = document.getElementById("push-welcome-backdrop");
+    const dismissBtn = document.getElementById("push-welcome-dismiss-btn");
+    const allowBtn = document.getElementById("push-welcome-allow-btn");
+
+    const dismissHandler = () => {
+      closeWelcomePushModal();
+      try {
+        localStorage.setItem("mbbs_push_welcome_dismissed", String(Date.now()));
+      } catch (_) {}
+    };
+
+    if (closeBtn) closeBtn.addEventListener("click", dismissHandler);
+    if (backdrop) backdrop.addEventListener("click", dismissHandler);
+    if (dismissBtn) dismissBtn.addEventListener("click", dismissHandler);
+
+    if (allowBtn) {
+      allowBtn.addEventListener("click", async () => {
+        closeWelcomePushModal();
+        try {
+          localStorage.setItem("mbbs_push_welcome_dismissed", "subscribed");
+        } catch (_) {}
+        await subscribeToPush();
+      });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && isWelcomePushModalOpen) {
+        dismissHandler();
+      }
+    });
+  }
+
+  function showWelcomePushModal() {
+    if (isCurrentlySubscribed()) return;
+    if ("Notification" in window && Notification.permission === "granted") return;
+    if (localStorage.getItem("mbbs_push_opted_out") === "true") return;
+
+    ensureWelcomePushDOM();
+    const modal = document.getElementById("mbbs-push-welcome-modal");
+    if (!modal || isWelcomePushModalOpen) return;
+
+    isWelcomePushModalOpen = true;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeWelcomePushModal() {
+    const modal = document.getElementById("mbbs-push-welcome-modal");
+    if (!modal || !isWelcomePushModalOpen) return;
+    isWelcomePushModalOpen = false;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function initWelcomePushPrompt() {
+    // 1. If notifications unsupported or permission already granted, exit
+    if (!("Notification" in window) || Notification.permission === "granted") return;
+
+    // 2. If already subscribed or opted out
+    if (isCurrentlySubscribed() || getStoredStatus() === "subscribed") return;
+    if (localStorage.getItem("mbbs_push_opted_out") === "true") return;
+
+    // 3. If dismissed recently (within 3 days)
+    const dismissed = localStorage.getItem("mbbs_push_welcome_dismissed");
+    if (dismissed) {
+      if (dismissed === "subscribed") return;
+      const ts = parseInt(dismissed, 10);
+      if (Date.now() - ts < 3 * 86400 * 1000) return;
+    }
+
+    // 4. Show after 1.8s delay on page load
+    setTimeout(() => {
+      if (Notification.permission === "granted" || isCurrentlySubscribed()) return;
+      showWelcomePushModal();
+    }, 1800);
+  }
+
   // --- Push Recovery & Re-subscribe Modal ---
   let isPushRecoveryOpen = false;
 
@@ -1576,6 +1707,7 @@
     });
 
     updateBellUI();
+    initWelcomePushPrompt();
   }
 
   // Utilities
