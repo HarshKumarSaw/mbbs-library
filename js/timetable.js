@@ -863,7 +863,7 @@
     // 2. Try pre-synced college JSON cache
     try {
       const jsonUrl = `assets/data/timetable_college.json?t=${Date.now()}`;
-      const jsonResp = await fetch(jsonUrl);
+      const jsonResp = await fetch(jsonUrl, { cache: forceRefresh ? "reload" : "no-cache" });
       if (jsonResp.ok) {
         const data = await jsonResp.json();
         if (data && Array.isArray(data.events) && data.events.length > 0) {

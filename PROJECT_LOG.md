@@ -1869,3 +1869,19 @@
   - Bumped Service Worker cache in `sw.js` to `harsh-library-v1.3.7`.
   - Injected `analytics.min.js` across all site templates (`index.html`, `anatomy.html`, `biochemistry.html`, `physiology.html`, `timetable.html`, `404.html`).
 
+---
+
+### Real-Time Timetable Auto-Sync & Cache Pipeline Upgrade: 2026-11-21 16:45:00 IST
+- **Issue Diagnosis**:
+  - Google Calendar updates were delayed because GitHub Actions schedule was set to a 2-hour interval (`0 */2 * * *`) and throttled by GitHub cron delays.
+  - Termux `sync_from_phone.sh` checked `CHANGES` before executing `sync_timetable.py`, skipping timetable updates whenever no local PDFs changed.
+  - `sw.js` handled `timetable_college.json` under Stale-While-Revalidate caching, causing users to see cached schedules until multiple reloads.
+- **Root Cause Fixes**:
+  - **Live Calendar Sync**: Regenerated `assets/data/timetable_college.json` with 1,072 verified college sessions, pulling latest community medicine and biochemistry lectures.
+  - **Service Worker Network-First Strategy**: Routed `timetable_college.json` to Network-First with cache fallback in `sw.js` and bumped cache version to `harsh-library-v1.3.8`.
+  - **Phone Auto-Sync Engine**: Updated `sync_from_phone.sh` (`mbbs-sync` / `mbbs-upload`) to always check Google Calendar updates upon startup or manual trigger.
+  - **Termux Daemon & Watcher**: Created `scripts/timetable_daemon.py` with commands `mbbs-timetable-sync` (1-tap sync) and `mbbs-timetable-watch` (`start`/`stop`/`status`).
+  - **GitHub Actions Upgrade**: Tightened `.github/workflows/sync-timetable.yml` schedule from 2 hours to every 15 minutes (`*/15 * * * *`).
+  - **Instant Webhook Integration**: Created `scripts/google_apps_script_trigger.js` enabling Google Apps Script to trigger GitHub deployment in real-time upon any calendar edit.
+
+

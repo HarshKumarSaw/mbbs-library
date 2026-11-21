@@ -1,24 +1,8 @@
 {
-  "generated_at": "2026-11-21 02:59:51",
+  "generated_at": "2026-11-21 16:33:21",
   "timezone": "Asia/Kolkata",
-  "total_college_sessions": 1071,
+  "total_college_sessions": 1072,
   "events": [
-    {
-      "uid": "ov14q8lde92smsrnepdq3fv9is@google.com",
-      "title": "Lunch Break",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Recess / Lunch",
-      "competency": "",
-      "start": "2026-10-22 13:00:00",
-      "end": "2026-10-22 14:00:00",
-      "start_iso": "2026-10-22T13:00:00",
-      "end_iso": "2026-10-22T14:00:00",
-      "all_day": false,
-      "subject": "break",
-      "session_type": "break",
-      "raw_rrule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA"
-    },
     {
       "uid": "59gji7eh0l3jjbqkr7bii2q5tc@google.com",
       "title": "Physiology (L)",
@@ -197,10 +181,10 @@
     },
     {
       "uid": "db4qkva910o8b1embatamf1ugs@google.com",
-      "title": "Community Medicine",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Department Faculty",
+      "title": "Community Medicine: N/H/O Disease & Levels of Prevention",
+      "description": "Department of Community Medicine – 1st MBBS (Admission Year 2026)\\nTopic: CM 1.5 N/H/O Disease & Various Levels of Prevention with Examples\\nFaculty: Dr. Geetika Markam & All PG Students\\nVenue: LT-I/III",
+      "location": "LT-I/III\\, Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Dr. Geetika Markam & All PG Students",
       "competency": "",
       "start": "2026-10-24 15:00:00",
       "end": "2026-10-24 16:00:00",
@@ -209,7 +193,7 @@
       "all_day": false,
       "subject": "community",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "bola9vit3694h4fkngujddvnvc@google.com",
@@ -789,10 +773,10 @@
     },
     {
       "uid": "db4qkva910o8b1embatamf1ugs@google.com",
-      "title": "Community Medicine",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Department Faculty",
+      "title": "Community Medicine: Concept of Control & Modes of Intervention",
+      "description": "Department of Community Medicine – 1st MBBS (Admission Year 2026)\\nTopic: CM 1.5a Concept of Control & Modes of Intervention with Examples\\nFaculty: Dr. Aashish Verma & All PG Students\\nVenue: LT-I/III",
+      "location": "LT-I/III\\, Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Dr. Aashish Verma & All PG Students",
       "competency": "",
       "start": "2026-10-31 15:00:00",
       "end": "2026-10-31 16:00:00",
@@ -801,7 +785,7 @@
       "all_day": false,
       "subject": "community",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "bola9vit3694h4fkngujddvnvc@google.com",
@@ -821,10 +805,10 @@
     },
     {
       "uid": "3uu83tc80tb4no8h7s9d53fgkk@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Vitamin – B1",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Vitamin – B1 (BC.8.1)\\nFaculty: Dr. A. S. Thakur\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr. A. S. Thakur",
       "competency": "",
       "start": "2026-11-02 09:00:00",
       "end": "2026-11-02 10:00:00",
@@ -833,7 +817,7 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "mleuldg40kqogna1jteg26d66o@google.com",
@@ -1013,10 +997,10 @@
     },
     {
       "uid": "79reru4buhiv4u7s38toqdr7jc@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Minerals-04",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Minerals-04 (BC.9.1)\\nFaculty: Mr. P. Girish\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Mr. P. Girish",
       "competency": "",
       "start": "2026-11-04 09:00:00",
       "end": "2026-11-04 10:00:00",
@@ -1025,7 +1009,7 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "kochggc55armvhvldt27no85i4@google.com",
@@ -1557,10 +1541,10 @@
     },
     {
       "uid": "3uu83tc80tb4no8h7s9d53fgkk@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Riboflavin & Niacin",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Vit – Riboflavin\\, Niacin (BC.8.1)\\nFaculty: Dr H. Sarathe\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr H. Sarathe",
       "competency": "",
       "start": "2026-11-16 09:00:00",
       "end": "2026-11-16 10:00:00",
@@ -1569,7 +1553,7 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "mleuldg40kqogna1jteg26d66o@google.com",
@@ -1765,10 +1749,10 @@
     },
     {
       "uid": "79reru4buhiv4u7s38toqdr7jc@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Minerals-05",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Minerals-05 (BC.9.1)\\nFaculty: Dr. A. S. Thakur & Mr. P. Girish\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr. A. S. Thakur & Mr. P. Girish",
       "competency": "",
       "start": "2026-11-18 09:00:00",
       "end": "2026-11-18 10:00:00",
@@ -1777,7 +1761,7 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "kochggc55armvhvldt27no85i4@google.com",
@@ -1972,6 +1956,22 @@
       "raw_rrule": null
     },
     {
+      "uid": "l3psi85fro39vp6v2m0rm7li00@google.com",
+      "title": "AETCOM – Class Test 03: Chemistry of Protein",
+      "description": "Department of Biochemistry – Special Class Schedule\\, 1st MBBS 2026–27\\nSession: AETCOM (Friday\\, 4:00–5:00 PM)\\nTopic: Class test – 03 Chemistry of Protein\\nFaculty: Dr. H. Sarathe\\nDate marked tentative in the departmental schedule.",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Dr. H. Sarathe",
+      "competency": "",
+      "start": "2026-11-20 16:00:00",
+      "end": "2026-11-20 17:00:00",
+      "start_iso": "2026-11-20T16:00:00",
+      "end_iso": "2026-11-20T17:00:00",
+      "all_day": false,
+      "subject": "biochemistry",
+      "session_type": "test_exam",
+      "raw_rrule": null
+    },
+    {
       "uid": "k0rckfoil0j0pjl7qhm7qhum8o@google.com",
       "title": "Physiology: Stomach & its Secretory Function - III",
       "description": "Department of Physiology – MBBS 1st Prof\\, Batch 2026\\nGastro-Intestinal System (GIT)\\nTopic: Stomach & its Secretory Function - III\\nFaculty: Dr. S.B. Kesh",
@@ -2005,18 +2005,18 @@
     },
     {
       "uid": "7hd055cim7d9j9p3bv6tgd3mhk@google.com",
-      "title": "Anatomy ECE / Dissection Hall (DH)",
-      "description": "Department of Anatomy\\nSession: ECE / Dissection Hall (DH) – Anatomy",
+      "title": "Biochemistry ECE: Seminar (Roll no. 76–90)",
+      "description": "Department of Biochemistry – Special Class Schedule\\, 1st MBBS 2026–27\\nSession: ECE (Saturday\\, 10:00 AM–1:00 PM)\\nTopic: Seminar – Roll no. 76–90\\nFaculty: Dr. A. S. Thakur & All faculty\\nDate marked tentative in the departmental schedule.",
       "location": "Lt. BRKM Govt. Medical College, Jagdalpur",
-      "faculty": "Anatomy Faculty",
+      "faculty": "Dr. A. S. Thakur & All faculty",
       "competency": "",
       "start": "2026-11-21 11:00:00",
       "end": "2026-11-21 13:00:00",
       "start_iso": "2026-11-21T11:00:00",
       "end_iso": "2026-11-21T13:00:00",
       "all_day": false,
-      "subject": "anatomy",
-      "session_type": "dissection",
+      "subject": "biochemistry",
+      "session_type": "ece",
       "raw_rrule": null
     },
     {
@@ -2037,10 +2037,10 @@
     },
     {
       "uid": "h5uboassdjtok4raimo0cq0ijc@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Vitamin – Pantothenic Acid & Pyridoxine",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Vitamin – Pantothenic Acid\\, Pyridoxine (BC.8.1)\\nFaculty: Dr. H. Sarathe\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr. H. Sarathe",
       "competency": "",
       "start": "2026-11-21 14:00:00",
       "end": "2026-11-21 15:00:00",
@@ -2049,14 +2049,14 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "db4qkva910o8b1embatamf1ugs@google.com",
-      "title": "Community Medicine",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Department Faculty",
+      "title": "Community Medicine: Introduction to Nutrition & Classification of Foods and Nutrients",
+      "description": "Department of Community Medicine – 1st MBBS (Admission Year 2026)\\nTopic: CM 5.1b Introduction to Nutrition & Classification of Foods and Nutrients\\nFaculty: Dr. J. Sandhya Rani & All PG Students\\nVenue: LT-I/III",
+      "location": "LT-I/III\\, Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Dr. J. Sandhya Rani & All PG Students",
       "competency": "",
       "start": "2026-11-21 15:00:00",
       "end": "2026-11-21 16:00:00",
@@ -2065,7 +2065,7 @@
       "all_day": false,
       "subject": "community",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "bola9vit3694h4fkngujddvnvc@google.com",
@@ -2085,10 +2085,10 @@
     },
     {
       "uid": "3uu83tc80tb4no8h7s9d53fgkk@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Minerals – 06",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Minerals – 06 (BC.9.1)\\nFaculty: Dr. A. S. Thakur & Mr. P. Girish\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr. A. S. Thakur & Mr. P. Girish",
       "competency": "",
       "start": "2026-11-23 09:00:00",
       "end": "2026-11-23 10:00:00",
@@ -2097,15 +2097,15 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "mleuldg40kqogna1jteg26d66o@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Blood Supply of Heart - I",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nTopic: Blood Supply of Heart - I\\nCompetency: AN 22.3 - 22.4\\nFaculty: Mr. Hussain B. Shaik (HBS)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
-      "competency": "",
+      "faculty": "Mr. Hussain B. Shaik (HBS",
+      "competency": "AN 22.3 - 22.4",
       "start": "2026-11-23 10:00:00",
       "end": "2026-11-23 11:00:00",
       "start_iso": "2026-11-23T10:00:00",
@@ -2113,7 +2113,7 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "9fhr9pcdq663ctbuhsrhqik2u8@google.com",
@@ -2165,11 +2165,11 @@
     },
     {
       "uid": "apjdogvcarjhhr9tqu9hi8uduc@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Thoracic Duct\\, Azygous System",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nTopic: Thoracic Duct\\, Azygous System\\nCompetency: AN 23.3\\, 23.8\\, 23.7\\nFaculty: Dr. Ritika (R)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
-      "competency": "",
+      "faculty": "Dr. Ritika (R",
+      "competency": "AN 23.3, 23.8, 23.7",
       "start": "2026-11-23 14:00:00",
       "end": "2026-11-23 15:00:00",
       "start_iso": "2026-11-23T14:00:00",
@@ -2177,12 +2177,12 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "q56db4io5rnkcthidoi6khj4c4@google.com",
-      "title": "Anatomy (Dissection)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Dissection Hall (DH)",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nDissection Hall (DH)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
       "faculty": "Anatomy Faculty",
       "competency": "",
@@ -2193,110 +2193,30 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "dissection",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "gg2ssag9eevbcimqk4smldhvqs@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Holiday: Guru Nanak Jayanti",
+      "description": "Holiday: Guru Nanak Jayanti\\nDepartment of Anatomy - 1st MBBS (2026 Batch)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
+      "faculty": "College Holiday",
       "competency": "",
       "start": "2026-11-24 09:00:00",
       "end": "2026-11-24 10:00:00",
       "start_iso": "2026-11-24T09:00:00",
       "end_iso": "2026-11-24T10:00:00",
       "all_day": false,
-      "subject": "anatomy",
-      "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
-    },
-    {
-      "uid": "vbjshr7at3isdjf8q4o81k3ukg@google.com",
-      "title": "Physiology (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Physiology Faculty",
-      "competency": "",
-      "start": "2026-11-24 10:00:00",
-      "end": "2026-11-24 11:00:00",
-      "start_iso": "2026-11-24T10:00:00",
-      "end_iso": "2026-11-24T11:00:00",
-      "all_day": false,
-      "subject": "physiology",
-      "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
-    },
-    {
-      "uid": "a72copg822k238rra1nreqdmsc@google.com",
-      "title": "Anatomy (Dissection)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
-      "competency": "",
-      "start": "2026-11-24 11:00:00",
-      "end": "2026-11-24 13:00:00",
-      "start_iso": "2026-11-24T11:00:00",
-      "end_iso": "2026-11-24T13:00:00",
-      "all_day": false,
-      "subject": "anatomy",
-      "session_type": "dissection",
-      "raw_rrule": "FREQ=WEEKLY"
-    },
-    {
-      "uid": "ov14q8lde92smsrnepdq3fv9is@google.com",
-      "title": "Lunch Break",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Recess / Lunch",
-      "competency": "",
-      "start": "2026-11-24 13:00:00",
-      "end": "2026-11-24 14:00:00",
-      "start_iso": "2026-11-24T13:00:00",
-      "end_iso": "2026-11-24T14:00:00",
-      "all_day": false,
-      "subject": "break",
-      "session_type": "break",
-      "raw_rrule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA"
-    },
-    {
-      "uid": "0puaas0tvhrsuno3anvdp4kivk@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
-      "competency": "",
-      "start": "2026-11-24 14:00:00",
-      "end": "2026-11-24 15:00:00",
-      "start_iso": "2026-11-24T14:00:00",
-      "end_iso": "2026-11-24T15:00:00",
-      "all_day": false,
-      "subject": "anatomy",
-      "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
-    },
-    {
-      "uid": "7vkfhn2s7m26dpmcst93eun460@google.com",
-      "title": "Physiology / Biochemistry (Practical)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Physiology Faculty",
-      "competency": "",
-      "start": "2026-11-24 15:00:00",
-      "end": "2026-11-24 17:00:00",
-      "start_iso": "2026-11-24T15:00:00",
-      "end_iso": "2026-11-24T17:00:00",
-      "all_day": false,
-      "subject": "physiology",
-      "session_type": "practical",
-      "raw_rrule": "FREQ=WEEKLY"
+      "subject": "holiday",
+      "session_type": "holiday",
+      "raw_rrule": null
     },
     {
       "uid": "79reru4buhiv4u7s38toqdr7jc@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Vitamins B7 & B9",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Vitamins B7\\, B9 (BC.8.1)\\nFaculty: Dr. H. Sarathe\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr. H. Sarathe",
       "competency": "",
       "start": "2026-11-25 09:00:00",
       "end": "2026-11-25 10:00:00",
@@ -2305,15 +2225,15 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "kochggc55armvhvldt27no85i4@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Histo Cartilage",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nTopic: Histo Cartilage\\nCompetency: AN 71.2\\nFaculty: Mr. Hussain B. Shaik (HBS)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
-      "competency": "",
+      "faculty": "Mr. Hussain B. Shaik (HBS",
+      "competency": "AN 71.2",
       "start": "2026-11-25 10:00:00",
       "end": "2026-11-25 11:00:00",
       "start_iso": "2026-11-25T10:00:00",
@@ -2321,7 +2241,7 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "2e39akokqeuvss2j4afdiut9co@google.com",
@@ -2373,8 +2293,8 @@
     },
     {
       "uid": "4j6lv872uab68m731h214kb1s0@google.com",
-      "title": "Anatomy (Dissection)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Histo Group A (01–75) / DH Group B (76–150)",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nPractical / Dissection:\\n- Histology Group A (01–75)\\n- Dissection Hall (DH) Group B (76–150)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
       "faculty": "Anatomy Faculty",
       "competency": "",
@@ -2385,7 +2305,7 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "dissection",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "0ov86vu7dfmvbv57js6i5l36ks@google.com",
@@ -2405,11 +2325,11 @@
     },
     {
       "uid": "1g8pr8q7hnqh3t6gbvg3ibib2o@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Blood Supply of Heart - II",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nTopic: Blood Supply of Heart - II\\nCompetency: AN 22.5 - 22.7\\nFaculty: Dr. Bithika Nel Kumar (BNK)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
-      "competency": "",
+      "faculty": "Dr. Bithika Nel Kumar (BNK",
+      "competency": "AN 22.5 - 22.7",
       "start": "2026-11-26 10:00:00",
       "end": "2026-11-26 11:00:00",
       "start_iso": "2026-11-26T10:00:00",
@@ -2417,12 +2337,12 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "eltcg4tkpocdtd2si2pn328fss@google.com",
-      "title": "Anatomy (Dissection)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Histo Group B (76–150) / DH Group A (01–75)",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nPractical / Dissection:\\n- Histology Group B (76–150)\\n- Dissection Hall (DH) Group A (01–75)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
       "faculty": "Anatomy Faculty",
       "competency": "",
@@ -2433,7 +2353,7 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "dissection",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "ov14q8lde92smsrnepdq3fv9is@google.com",
@@ -2453,11 +2373,11 @@
     },
     {
       "uid": "qi73ijti65g9s115q30c3sqcgc@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Aorta + Arch of Aorta",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nTopic: Aorta + Arch of Aorta\\nCompetency: AN 23.4\\nFaculty: Dr. Firoj Kumar Khare (FKK)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
-      "competency": "",
+      "faculty": "Dr. Firoj Kumar Khare (FKK",
+      "competency": "AN 23.4",
       "start": "2026-11-26 14:00:00",
       "end": "2026-11-26 15:00:00",
       "start_iso": "2026-11-26T14:00:00",
@@ -2465,7 +2385,7 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "0tceej5dfo5dnepgah1g84qos4@google.com",
@@ -2501,10 +2421,10 @@
     },
     {
       "uid": "1t8dkpbvu68soci4md420vivsg@google.com",
-      "title": "Anatomy (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Surface Marking Thorax",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nTopic: Surface Marking Thorax\\nFaculty: Dr. Shreya Dhurandher (SD)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
+      "faculty": "Dr. Shreya Dhurandher (SD",
       "competency": "",
       "start": "2026-11-27 10:00:00",
       "end": "2026-11-27 11:00:00",
@@ -2513,7 +2433,7 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "42hdenp9hu6jh0i7r24n56nsmc@google.com",
@@ -2549,8 +2469,8 @@
     },
     {
       "uid": "q8h9fvuk4aubl73mun0vqbkmn0@google.com",
-      "title": "Anatomy (Dissection)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: SDL",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nSelf-Directed Learning (SDL)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
       "faculty": "Anatomy Faculty",
       "competency": "",
@@ -2560,13 +2480,13 @@
       "end_iso": "2026-11-27T15:00:00",
       "all_day": false,
       "subject": "anatomy",
-      "session_type": "dissection",
-      "raw_rrule": "FREQ=WEEKLY"
+      "session_type": "sdl",
+      "raw_rrule": null
     },
     {
       "uid": "9v84nuute3c1qj1ch9enevgrfo@google.com",
-      "title": "Anatomy (SDL)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Anatomy: Dissection Hall (DH)",
+      "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nDissection Hall (DH)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
       "faculty": "Anatomy Faculty",
       "competency": "",
@@ -2576,8 +2496,8 @@
       "end_iso": "2026-11-27T16:00:00",
       "all_day": false,
       "subject": "anatomy",
-      "session_type": "sdl",
-      "raw_rrule": "FREQ=WEEKLY"
+      "session_type": "dissection",
+      "raw_rrule": null
     },
     {
       "uid": "rt6ohavamak2k4k77kq02ms1bk@google.com",
@@ -2613,19 +2533,19 @@
     },
     {
       "uid": "7suhgvmilp6b3o7rqlehevl42c@google.com",
-      "title": "ECE (Anatomy / Physiology / Biochemistry)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "ECE (Physiology)",
+      "description": "Early Clinical Exposure (ECE) – Physiology\\nDepartment of Anatomy / Physiology (2026 Batch)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Anatomy Faculty",
+      "faculty": "Physiology Faculty",
       "competency": "",
       "start": "2026-11-28 10:00:00",
       "end": "2026-11-28 13:00:00",
       "start_iso": "2026-11-28T10:00:00",
       "end_iso": "2026-11-28T13:00:00",
       "all_day": false,
-      "subject": "anatomy",
+      "subject": "physiology",
       "session_type": "ece",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "ov14q8lde92smsrnepdq3fv9is@google.com",
@@ -2645,10 +2565,10 @@
     },
     {
       "uid": "h5uboassdjtok4raimo0cq0ijc@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Body Fluids",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Body Fluids\\nFaculty: Dr. M. Ravikanth\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr. M. Ravikanth",
       "competency": "",
       "start": "2026-11-28 14:00:00",
       "end": "2026-11-28 15:00:00",
@@ -2657,14 +2577,14 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "db4qkva910o8b1embatamf1ugs@google.com",
-      "title": "Community Medicine",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Department Faculty",
+      "title": "Community Medicine: Common Nutrition Related Health Disorders",
+      "description": "Department of Community Medicine – 1st MBBS (Admission Year 2026)\\nTopic: CM 5.3 Define & Describe Common Nutrition Related Health Disorders and Their Control & Management\\nFaculty: Dr. Madhu Gaikwad & All PG Students\\nVenue: LT-I/III",
+      "location": "LT-I/III\\, Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Dr. Madhu Gaikwad & All PG Students",
       "competency": "",
       "start": "2026-11-28 15:00:00",
       "end": "2026-11-28 16:00:00",
@@ -2673,7 +2593,7 @@
       "all_day": false,
       "subject": "community",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "bola9vit3694h4fkngujddvnvc@google.com",
@@ -2693,10 +2613,10 @@
     },
     {
       "uid": "3uu83tc80tb4no8h7s9d53fgkk@google.com",
-      "title": "Biochemistry (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "title": "Biochemistry: Vitamin B12",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Vitamin B12 (BC.8.1)\\nFaculty: Dr. H. Sarathe\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Biochemistry Faculty",
+      "faculty": "Dr. H. Sarathe",
       "competency": "",
       "start": "2026-11-30 09:00:00",
       "end": "2026-11-30 10:00:00",
@@ -2705,7 +2625,7 @@
       "all_day": false,
       "subject": "biochemistry",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "mleuldg40kqogna1jteg26d66o@google.com",
@@ -3205,10 +3125,10 @@
     },
     {
       "uid": "db4qkva910o8b1embatamf1ugs@google.com",
-      "title": "Community Medicine",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Department Faculty",
+      "title": "Community Medicine: Nutritional Requirements for Special Groups",
+      "description": "Department of Community Medicine – 1st MBBS (Admission Year 2026)\\nTopic: CM 5.2 Nutritional Requirements for Special Group (ANC\\, PNC\\, Under-5\\, HT\\, DM etc.)\\nFaculty: Dr. R.K. Chaurasia & All PG Students\\nVenue: LT-I/III",
+      "location": "LT-I/III\\, Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Dr. R.K. Chaurasia & All PG Students",
       "competency": "",
       "start": "2026-12-05 15:00:00",
       "end": "2026-12-05 16:00:00",
@@ -3217,7 +3137,7 @@
       "all_day": false,
       "subject": "community",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "bola9vit3694h4fkngujddvnvc@google.com",
@@ -3797,10 +3717,10 @@
     },
     {
       "uid": "db4qkva910o8b1embatamf1ugs@google.com",
-      "title": "Community Medicine",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Department Faculty",
+      "title": "Community Medicine: Food Hygiene",
+      "description": "Department of Community Medicine – 1st MBBS (Admission Year 2026)\\nTopic: CM 5.7 Food Hygiene\\nFaculty: Dr. Geetika Markam & All PG Students\\nVenue: LT-I/III",
+      "location": "LT-I/III\\, Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Dr. Geetika Markam & All PG Students",
       "competency": "",
       "start": "2026-12-12 15:00:00",
       "end": "2026-12-12 16:00:00",
@@ -3809,7 +3729,7 @@
       "all_day": false,
       "subject": "community",
       "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
+      "raw_rrule": null
     },
     {
       "uid": "bola9vit3694h4fkngujddvnvc@google.com",
@@ -17137,6 +17057,102 @@
       "all_day": false,
       "subject": "anatomy",
       "session_type": "dissection",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "qfpf0qqf461khual6c0losb0ls@google.com",
+      "title": "Physiology (L)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Physiology Faculty",
+      "competency": "",
+      "start": "2027-05-20 09:00:00",
+      "end": "2027-05-20 10:00:00",
+      "start_iso": "2027-05-20T09:00:00",
+      "end_iso": "2027-05-20T10:00:00",
+      "all_day": false,
+      "subject": "physiology",
+      "session_type": "lecture",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "1g8pr8q7hnqh3t6gbvg3ibib2o@google.com",
+      "title": "Anatomy (L)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Anatomy Faculty",
+      "competency": "",
+      "start": "2027-05-20 10:00:00",
+      "end": "2027-05-20 11:00:00",
+      "start_iso": "2027-05-20T10:00:00",
+      "end_iso": "2027-05-20T11:00:00",
+      "all_day": false,
+      "subject": "anatomy",
+      "session_type": "lecture",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "eltcg4tkpocdtd2si2pn328fss@google.com",
+      "title": "Anatomy (Dissection)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Anatomy Faculty",
+      "competency": "",
+      "start": "2027-05-20 11:00:00",
+      "end": "2027-05-20 13:00:00",
+      "start_iso": "2027-05-20T11:00:00",
+      "end_iso": "2027-05-20T13:00:00",
+      "all_day": false,
+      "subject": "anatomy",
+      "session_type": "dissection",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "ov14q8lde92smsrnepdq3fv9is@google.com",
+      "title": "Lunch Break",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Recess / Lunch",
+      "competency": "",
+      "start": "2027-05-20 13:00:00",
+      "end": "2027-05-20 14:00:00",
+      "start_iso": "2027-05-20T13:00:00",
+      "end_iso": "2027-05-20T14:00:00",
+      "all_day": false,
+      "subject": "break",
+      "session_type": "break",
+      "raw_rrule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA"
+    },
+    {
+      "uid": "qi73ijti65g9s115q30c3sqcgc@google.com",
+      "title": "Anatomy (L)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Anatomy Faculty",
+      "competency": "",
+      "start": "2027-05-20 14:00:00",
+      "end": "2027-05-20 15:00:00",
+      "start_iso": "2027-05-20T14:00:00",
+      "end_iso": "2027-05-20T15:00:00",
+      "all_day": false,
+      "subject": "anatomy",
+      "session_type": "lecture",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "0tceej5dfo5dnepgah1g84qos4@google.com",
+      "title": "Physiology / Biochemistry (Practical)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Physiology Faculty",
+      "competency": "",
+      "start": "2027-05-20 15:00:00",
+      "end": "2027-05-20 17:00:00",
+      "start_iso": "2027-05-20T15:00:00",
+      "end_iso": "2027-05-20T17:00:00",
+      "all_day": false,
+      "subject": "physiology",
+      "session_type": "practical",
       "raw_rrule": "FREQ=WEEKLY"
     }
   ]

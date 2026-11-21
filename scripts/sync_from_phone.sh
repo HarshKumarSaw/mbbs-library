@@ -1098,6 +1098,19 @@ cd "$REPO_DIR"
 rm -rf "$REPO_DIR/assets/docs" 2>/dev/null || true
 find "$REPO_DIR" -maxdepth 3 -name "*.pdf" -delete 2>/dev/null || true
 
+# Refresh college timetable cache from Google Calendar
+TIMETABLE_PRE_HASH=$(git hash-object "$REPO_DIR/assets/data/timetable_college.json" 2>/dev/null || echo "")
+if [ -f "$REPO_DIR/scripts/sync_timetable.py" ]; then
+    [ "$ON_STARTUP" -eq 0 ] && echo -e "📅 ${CYAN}[Timetable] Checking Google Calendar for updates...${RESET}"
+    python3 "$REPO_DIR/scripts/sync_timetable.py" 2>/dev/null || true
+fi
+TIMETABLE_POST_HASH=$(git hash-object "$REPO_DIR/assets/data/timetable_college.json" 2>/dev/null || echo "")
+TIMETABLE_UPDATED=0
+if [ "$TIMETABLE_PRE_HASH" != "$TIMETABLE_POST_HASH" ]; then
+    TIMETABLE_UPDATED=1
+    [ "$ON_STARTUP" -eq 0 ] && echo -e "   ${GREEN}➜${RESET} Detected latest Google Calendar updates! Incorporating into release."
+fi
+
 CHANGES=$(git status --porcelain)
 UNPUSHED=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
 
@@ -1128,9 +1141,6 @@ if [ -n "$CHANGES" ]; then
         echo -e "${BLUE}───────────────────────────────────────────────────────────${RESET}"
     fi
 
-    # Refresh college timetable cache if feed is configured
-    python3 "$REPO_DIR/scripts/sync_timetable.py" 2>/dev/null || true
-
     # Minify CSS and JS while preserving readable source files
     python3 "$REPO_DIR/scripts/minify.py" 2>/dev/null || true
 
@@ -1144,10 +1154,15 @@ if [ -n "$CHANGES" ]; then
     [ "${#DELETED_SUMMARY[@]}" -gt 0 ] && COMMIT_PARTS+=("synced ${#DELETED_SUMMARY[@]} deletion(s)")
     [ "$ORGANIZED_COUNT" -gt 0 ] && COMMIT_PARTS+=("organized $ORGANIZED_COUNT file(s)")
     [ "$OPT_COUNT" -gt 0 ] && COMMIT_PARTS+=("optimized $OPT_COUNT new PDF(s)")
+    [ "$TIMETABLE_UPDATED" -eq 1 ] && COMMIT_PARTS+=("auto-synced college timetable")
 
     COMMIT_MSG="feat(sync): $(IFS=', '; echo "${COMMIT_PARTS[*]}")"
     if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" = "feat(sync): " ]; then
-        COMMIT_MSG="feat(sync): sync library resources with SteadyLink CDN"
+        if [ "$TIMETABLE_UPDATED" -eq 1 ]; then
+            COMMIT_MSG="chore(timetable): auto-sync academic timetable with latest Google Calendar"
+        else
+            COMMIT_MSG="feat(sync): sync library resources with SteadyLink CDN"
+        fi
     fi
 
     # Append activity record to PROJECT_LOG.md BEFORE git commit

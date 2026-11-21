@@ -2,8 +2,8 @@ name: Auto-Sync College Timetable from Google Calendar
 
 on:
   schedule:
-    # Runs every 2 hours throughout the day
-    - cron: '0 */2 * * *'
+    # Auto-sync every 15 minutes around the clock
+    - cron: '*/15 * * * *'
   workflow_dispatch: # Allows manual 1-click trigger anytime from GitHub UI
   push:
     paths:

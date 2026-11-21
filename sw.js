@@ -18,7 +18,7 @@ if (!self._ONESIGNAL_WORKER_LOADED) {
  *  - Safe fallback for offline navigation
  */
 
-const CACHE_NAME = 'harsh-library-v1.3.7';
+const CACHE_NAME = 'harsh-library-v1.3.8';
 
 // Detect base subpath dynamically from service worker scope (e.g. '/mbbs-library/')
 const getBasePath = () => {
@@ -155,7 +155,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static Assets (CSS, JS, Fonts, Images, Icons): Stale-While-Revalidate
+  // 2. Dynamic Timetable JSON: Always Network-First with Cache Fallback
+  // Ensures college class and schedule updates are instantly seen by students.
+  if (url.pathname.includes('timetable_college.json')) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // 3. Static Assets (CSS, JS, Fonts, Images, Icons): Stale-While-Revalidate
   const isStaticAsset = url.pathname.match(
     /\.(css|js|woff2?|png|jpe?g|webp|ico|svg|json|webmanifest)$/i
   );
