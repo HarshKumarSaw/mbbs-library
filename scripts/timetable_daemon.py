@@ -90,31 +90,20 @@ def run_sync_and_push(force=False):
 
     print("🔍 Checking Google Calendar for updates...")
     try:
-        new_hash, data_len = get_feed_hash()
-    except Exception as e:
-        print(f"❌ Failed to fetch calendar feed: {e}")
-        return False
-
-    old_hash = get_last_stored_hash()
-    if not force and old_hash and old_hash == new_hash:
-        print("✅ Google Calendar feed is unchanged. Local timetable is up to date.")
-        return True
-
-    print(f"📥 New calendar changes detected ({data_len:,} bytes). Regenerating timetable cache...")
-    try:
-        st.sync_timetable()
+        res = st.sync_timetable()
+        if isinstance(res, tuple):
+            num_events, has_diff = res
+        else:
+            num_events, has_diff = res, True
     except Exception as e:
         print(f"❌ Error generating timetable: {e}")
         return False
 
-    # Check git diff for assets/data/timetable_college.json
-    diff_res = subprocess.run(["git", "diff", "--name-only", TARGET_JSON], cwd=REPO_DIR, capture_output=True, text=True)
-    has_diff = bool(diff_res.stdout.strip())
-
     if not has_diff and not force:
-        save_stored_hash(new_hash)
-        print("✅ Timetable JSON already matches latest calendar sessions.")
+        print("✅ Timetable cache is already up-to-date with Google Calendar. Zero changes detected.")
         return True
+
+    print(f"📥 Calendar updates detected ({num_events} verified sessions). Incorporating into website...")
 
     # Minify assets
     print("⚡ Minifying production scripts & stylesheets...")

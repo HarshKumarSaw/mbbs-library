@@ -529,11 +529,25 @@ def sync_timetable():
         "events": cleaned_events
     }
 
-    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
+    events_changed = True
+    if os.path.exists(OUTPUT_JSON):
+        try:
+            with open(OUTPUT_JSON, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+            if existing.get("events") == cleaned_events:
+                events_changed = False
+                payload = existing
+        except Exception:
+            pass
 
-    print(f"✅ Generated {OUTPUT_JSON} with {len(cleaned_events)} verified college sessions.")
-    return len(cleaned_events)
+    if events_changed:
+        with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        print(f"✅ Generated {OUTPUT_JSON} with {len(cleaned_events)} verified college sessions.")
+    else:
+        print(f"✅ Timetable cache already up-to-date ({len(cleaned_events)} sessions, no changes).")
+
+    return len(cleaned_events), events_changed
 
 if __name__ == "__main__":
     sync_timetable()
