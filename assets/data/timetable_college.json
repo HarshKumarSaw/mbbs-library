@@ -1,23 +1,23 @@
 {
-  "generated_at": "2026-11-20 21:42:11",
+  "generated_at": "2026-11-21 02:59:51",
   "timezone": "Asia/Kolkata",
   "total_college_sessions": 1071,
   "events": [
     {
-      "uid": "4hb50pi53odmgdpvurmmiqfuro@google.com",
-      "title": "Local Holiday",
-      "description": "Local Holiday\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "location": "Lt. BRKM Govt. Medical College, Jagdalpur",
-      "faculty": "College Holiday",
+      "uid": "ov14q8lde92smsrnepdq3fv9is@google.com",
+      "title": "Lunch Break",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Recess / Lunch",
       "competency": "",
-      "start": "2026-10-22 00:00:00",
-      "end": "2026-10-23 00:00:00",
-      "start_iso": "2026-10-22T00:00:00",
-      "end_iso": "2026-10-23T00:00:00",
-      "all_day": true,
-      "subject": "holiday",
-      "session_type": "holiday",
-      "raw_rrule": null
+      "start": "2026-10-22 13:00:00",
+      "end": "2026-10-22 14:00:00",
+      "start_iso": "2026-10-22T13:00:00",
+      "end_iso": "2026-10-22T14:00:00",
+      "all_day": false,
+      "subject": "break",
+      "session_type": "break",
+      "raw_rrule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA"
     },
     {
       "uid": "59gji7eh0l3jjbqkr7bii2q5tc@google.com",
