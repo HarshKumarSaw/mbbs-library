@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Harsh\'s Library</string>
+    <string name="widget_name">MBBS Timetable</string>
+    <string name="widget_description">Live GMC Jagdalpur MBBS lecture schedule &amp; practicals</string>
+    <string name="status_happening_now">HAPPENING NOW</string>
+    <string name="status_next_up">NEXT UP</string>
+    <string name="status_no_classes">NO MORE CLASSES TODAY</string>
+    <string name="timetable_btn_label">Full Schedule</string>
+    <string name="anatomy_btn_label">Anatomy</string>
+    <string name="physio_btn_label">Physiology</string>
+    <string name="biochem_btn_label">Biochem</string>
+</resources>

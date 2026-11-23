@@ -1,0 +1,27 @@
+<resources>
+    <color name="colorPrimary">#FAF8F4</color>
+    <color name="colorPrimaryDark">#EDE9E3</color>
+    <color name="colorAccent">#151B2B</color>
+
+    <color name="widget_bg">#FAF8F4</color>
+    <color name="widget_card_inner">#FFFFFF</color>
+    <color name="widget_border">#E2DFD8</color>
+    <color name="text_headline">#151B2B</color>
+    <color name="text_subtle">#64748B</color>
+    <color name="text_faculty">#475569</color>
+
+    <!-- Badges -->
+    <color name="badge_active_bg">#DEF7EC</color>
+    <color name="badge_active_text">#03543F</color>
+
+    <color name="badge_upcoming_bg">#E1EFFE</color>
+    <color name="badge_upcoming_text">#1E429F</color>
+
+    <color name="badge_idle_bg">#F3F4F6</color>
+    <color name="badge_idle_text">#6B7280</color>
+
+    <!-- Quick action buttons -->
+    <color name="quick_btn_bg">#FFFFFF</color>
+    <color name="quick_btn_border">#CBD5E1</color>
+    <color name="quick_btn_text">#151B2B</color>
+</resources>
