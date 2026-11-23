@@ -8,6 +8,8 @@ assets/docs/**
 *.log
 .timetable_diff.json
 assets/data/.timetable_diff.json
+.last_daily_notification
+assets/data/.last_daily_notification
 __pycache__/
 .DS_Store
 node_modules/

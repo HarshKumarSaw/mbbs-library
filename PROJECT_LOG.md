@@ -1924,3 +1924,27 @@
   - **Local Watcher & Termux Phone Sync (`scripts/timetable_daemon.py` & `scripts/sync_from_phone.sh`)**:
     - Added automatic push notification triggers upon successful Git push in both local daemon and Termux sync scripts.
 
+---
+
+### Daily 8:00 AM Morning Schedule Push Notification: 2026-11-23 17:40:00 IST
+- **Goal**:
+  - Broadcast a morning push notification every day at 8:00 AM IST to all subscribed devices summarizing the day's college schedule (classes, practicals, exams, or holidays).
+- **Implementation**:
+  - **Dispatcher Script (`scripts/notify_daily_schedule.py`)**:
+    - Evaluates the current date in Indian Standard Time (IST, UTC+5:30).
+    - Detects:
+      - 🏖️ **Holidays**: *"College is closed today for [Holiday Name]. Enjoy your holiday!"*
+      - ☀️ **Sundays**: *"No college classes today. Have a restful Sunday!"*
+      - 📝 **Exam Days**: *"📝 Exam Today! [Time]: [Subject] • ..."*
+      - 🩺 **Regular Days**: Natural timeline breakdown e.g. *"9 AM: Biochem • 10 AM: Anatomy • 11 AM: Physio Practical • 2 PM: Anatomy • 3 PM: Dissection. Tap to view full timetable."*
+    - Automatically wraps and compacts text to fit mobile push notification display constraints.
+    - Added deduplication cache (`.last_daily_notification`) to ensure exactly one notification per day.
+    - OneSignal REST API targeting with `--dry-run`, `--force`, and `--date` arguments.
+  - **GitHub Actions Scheduled Automation (`.github/workflows/daily-schedule-notification.yml`)**:
+    - Configured cron schedule: `30 2 * * *` (02:30 UTC = 08:00 AM IST daily).
+    - Runs fresh sync against Google Calendar feed, then triggers `notify_daily_schedule.py`.
+    - Supports manual `workflow_dispatch` trigger.
+  - **Termux Command Utility**:
+    - Created executable `/data/data/com.termux/files/usr/bin/mbbs-morning-notify` and `mbbs-morning` alias.
+
+
