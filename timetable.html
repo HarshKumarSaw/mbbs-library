@@ -122,7 +122,7 @@
         <div class="brand-emblem brand-emblem-logo" aria-hidden="true">
           <picture>
             <source srcset="navbar-logo.webp" type="image/webp">
-            <img src="navbar-logo.png" alt="Harsh's Library Logo" class="brand-logo-img" width="46" height="46" fetchpriority="high" decoding="async">
+            <img src="navbar-logo.png" alt="Harsh's Library Logo" class="brand-logo-img" width="38" height="38" fetchpriority="high" decoding="async">
           </picture>
         </div>
         <div class="brand-text">
@@ -177,115 +177,35 @@
   <section class="timetable-hero">
     <div class="container">
       <div class="timetable-header-main">
-        <div class="timetable-motif timetable-motif-left" aria-hidden="true">
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="40" fill="#20B995" fill-opacity="0.10"/>
-            <g stroke="#171D30" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.45">
-              <path d="M30 40 C30 54 44 65 50 68 C56 65 70 54 70 40 C70 30 62 26 50 34 C38 26 30 30 30 40 Z"/>
-              <path d="M22 50 L34 50 L38 42 L42 58 L46 48 L50 52 L54 50 L78 50" stroke="#20B995" stroke-width="1.4"/>
-            </g>
-          </svg>
-        </div>
-
-        <div class="timetable-brand-col">
-          <h1 class="timetable-title">Academic Timetable</h1>
-          <svg class="subject-title-motif" viewBox="0 0 160 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="none">
-            <path d="M4 6 L65 6" stroke="var(--highlight-yellow, #F9E88A)" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="80" cy="6" r="4.5" stroke="var(--primary-navy, #171D30)" stroke-width="1.3" fill="var(--canvas-bg, #F8F7F3)"/>
-            <circle cx="80" cy="6" r="1.8" fill="var(--primary-navy, #171D30)"/>
-            <path d="M95 6 L156 6" stroke="var(--highlight-yellow, #F9E88A)" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-
-        <div class="timetable-motif timetable-motif-right" aria-hidden="true">
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="40" fill="#28729B" fill-opacity="0.10"/>
-            <g stroke="#171D30" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.45">
-              <circle cx="50" cy="50" r="24"/>
-              <polyline points="50 36 50 50 60 54"/>
-              <path d="M32 26 L26 32 M68 26 L74 32"/>
-              <circle cx="50" cy="22" r="3" fill="#28729B"/>
-            </g>
-          </svg>
-        </div>
+        <h1 class="timetable-title">Academic Timetable</h1>
+        <p class="timetable-subtitle">Your academic schedule at a glance</p>
       </div>
     </div>
   </section>
 
   <!-- Main Content Container -->
-  <main class="container" style="padding-top: 1.25rem; min-height: 55vh;">
-    <!-- Secondary Filters (Subject Pills + Type Select + Search) - Positioned ABOVE view switcher -->
-    <div class="timetable-filter-bar">
-      <!-- Mobile Filter Toggle Bar -->
-      <div class="mobile-filter-header">
-        <button type="button" class="mobile-filter-toggle-btn" id="mobile-filter-toggle-btn" aria-expanded="false" aria-label="Toggle search and filters">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            <span>Search &amp; Filter Options</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="filter-count-badge" id="filter-active-count" style="display: none;">0</span>
-            <svg class="chevron-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-        </button>
-      </div>
-
-      <div class="filter-pills-container">
-        <div class="filter-pills-scroll" role="group" aria-label="Subject filter">
-          <button type="button" class="sub-pill active" data-subject="all">All</button>
-          <button type="button" class="sub-pill" data-subject="anatomy">Anatomy</button>
-          <button type="button" class="sub-pill" data-subject="physiology">Physiology</button>
-          <button type="button" class="sub-pill" data-subject="biochemistry">Biochemistry</button>
-          <button type="button" class="sub-pill" data-subject="community">Community Med</button>
-          <button type="button" class="sub-pill" data-subject="aetcom">AETCOM</button>
-          <button type="button" class="sub-pill sub-pill-bookmarks" data-subject="bookmarks" id="pill-bookmarks" title="Show only bookmarked lectures">★ Bookmarked</button>
-        </div>
-      </div>
-
-      <div class="timetable-filter-secondary-group" id="timetable-secondary-filters">
-        <select id="session-type-select" class="session-type-select" aria-label="Filter by session type">
-          <option value="all">All Session Types</option>
-          <option value="lecture">Lectures</option>
-          <option value="dissection">Dissection Hall</option>
-          <option value="practical">Practicals</option>
-          <option value="sgt_doap">SGT &amp; DOAP</option>
-          <option value="sdl">Self-Directed Learning (SDL)</option>
-          <option value="test_exam">Tests &amp; Exams</option>
-        </select>
-
-        <div class="timetable-search-box">
-          <svg class="search-input-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input type="text" id="timetable-search-input" placeholder="Search topic or faculty..." aria-label="Search timetable">
-          <button type="button" id="timetable-search-clear" aria-label="Clear search">✕</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- View Switcher Tabs (Today, Tomorrow, Upcoming) + Actions - Positioned BELOW filter -->
+  <main class="container timetable-main-content">
+    <!-- View Switcher Tabs (Today, Tomorrow, Upcoming) + Integrated Refresh -->
     <div class="timetable-controls-bar">
       <div class="timetable-views-wrapper">
         <div class="timetable-nav-tabs" role="tablist" aria-label="Schedule view">
           <button type="button" class="tab-btn active" data-view="today" role="tab" aria-selected="true">
-            Today <span class="tab-count-badge" id="tab-count-today">0</span>
+            <span>Today</span>
+            <span class="tab-count-badge" id="tab-count-today">0</span>
           </button>
           <button type="button" class="tab-btn" data-view="tomorrow" role="tab" aria-selected="false">
-            Tomorrow <span class="tab-count-badge" id="tab-count-tomorrow">0</span>
+            <span>Tomorrow</span>
+            <span class="tab-count-badge" id="tab-count-tomorrow">0</span>
           </button>
           <button type="button" class="tab-btn" data-view="upcoming" role="tab" aria-selected="false">
-            Upcoming <span class="tab-count-badge" id="tab-count-upcoming">0</span>
+            <span>Upcoming</span>
+            <span class="tab-count-badge" id="tab-count-upcoming">0</span>
           </button>
         </div>
       </div>
 
       <button type="button" class="btn-timetable-action btn-refresh" id="btn-refresh-timetable" aria-label="Refresh timetable feed" title="Refresh schedule">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
@@ -296,6 +216,53 @@
 
     <!-- Happening Now / Next Class Banner -->
     <div id="now-banner-container" style="display: none;"></div>
+
+    <!-- Compact Expandable Search & Filter Bar -->
+    <div class="timetable-filter-bar">
+      <div class="filter-main-row">
+        <div class="filter-pills-container">
+          <div class="filter-pills-scroll" role="group" aria-label="Subject filter">
+            <button type="button" class="sub-pill active" data-subject="all">All</button>
+            <button type="button" class="sub-pill" data-subject="anatomy">Anatomy</button>
+            <button type="button" class="sub-pill" data-subject="physiology">Physiology</button>
+            <button type="button" class="sub-pill" data-subject="biochemistry">Biochemistry</button>
+            <button type="button" class="sub-pill" data-subject="community">Community Med</button>
+            <button type="button" class="sub-pill" data-subject="aetcom">AETCOM</button>
+            <button type="button" class="sub-pill sub-pill-bookmarks" data-subject="bookmarks" id="pill-bookmarks" title="Show only bookmarked lectures">★ Bookmarked</button>
+          </div>
+        </div>
+
+        <button type="button" class="mobile-filter-toggle-btn" id="mobile-filter-toggle-btn" aria-expanded="false" aria-label="Toggle search and filters" title="Search and filters">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span class="filter-toggle-label">Filter</span>
+          <span class="filter-count-badge" id="filter-active-count" style="display: none;">0</span>
+        </button>
+      </div>
+
+      <div class="timetable-filter-secondary-group" id="timetable-secondary-filters">
+        <div class="timetable-search-box">
+          <svg class="search-input-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="timetable-search-input" placeholder="Search topic or faculty..." aria-label="Search timetable">
+          <button type="button" id="timetable-search-clear" aria-label="Clear search">✕</button>
+        </div>
+
+        <select id="session-type-select" class="session-type-select" aria-label="Filter by session type">
+          <option value="all">All Session Types</option>
+          <option value="lecture">Lectures</option>
+          <option value="dissection">Dissection Hall</option>
+          <option value="practical">Practicals</option>
+          <option value="sgt_doap">SGT &amp; DOAP</option>
+          <option value="sdl">Self-Directed Learning (SDL)</option>
+          <option value="test_exam">Tests &amp; Exams</option>
+        </select>
+      </div>
+    </div>
 
     <!-- Jump-to-Date Control (Active in Upcoming View) -->
     <div class="timetable-jump-bar" id="timetable-jump-bar" style="display: none;">

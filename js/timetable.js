@@ -1233,25 +1233,29 @@
       const percent = Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
       const remainingMs = Math.max(0, activeTimed.endDate.getTime() - now.getTime());
       const remMins = Math.max(1, Math.round(remainingMs / 60000));
-      const remText = remMins < 60 ? `${remMins}m remaining` : `${Math.floor(remMins / 60)}h ${remMins % 60}m remaining`;
+      const remText = remMins < 60 ? `${remMins}m left` : `${Math.floor(remMins / 60)}h ${remMins % 60}m left`;
 
       DOM.nowBannerContainer.innerHTML = `
         <div class="live-session-banner subject-${activeTimed.subject}" data-session-uid="${escapeHtml(activeTimed.uid)}" data-session-start="${escapeHtml(activeTimed.startIso)}" title="Click to view details">
           <div class="live-banner-top">
-            <span class="live-badge-pulse">
-              <span class="timetable-pulse-dot" aria-hidden="true"></span>
-              <span>LIVE NOW</span>
-            </span>
-            <span class="live-time-chip">${formatTimeAMPM(activeTimed.startDate)} – ${formatTimeAMPM(activeTimed.endDate)}</span>
-            <span class="live-remaining-pill">${remText}</span>
+            <div class="live-badge-group">
+              <span class="live-badge-pulse">
+                <span class="timetable-pulse-dot" aria-hidden="true"></span>
+                <span>LIVE NOW</span>
+              </span>
+              <span class="badge-subject subject-badge-${activeTimed.subject}">${escapeHtml(formatSubjectName(activeTimed.subject))}</span>
+            </div>
+            <div class="live-time-group">
+              <span class="live-time-chip">${formatTimeAMPM(activeTimed.startDate)} – ${formatTimeAMPM(activeTimed.endDate)}</span>
+              <span class="live-remaining-pill">${remText}</span>
+            </div>
           </div>
           <div class="live-banner-content">
-            <span class="badge-subject subject-badge-${activeTimed.subject}">${escapeHtml(formatSubjectName(activeTimed.subject))}</span>
             <h3 class="live-banner-title">${escapeHtml(activeTimed.title)}</h3>
           </div>
           <div class="live-banner-meta">
-            <span>👨‍🏫 ${escapeHtml(activeTimed.faculty || "Department Faculty")}</span>
-            ${activeTimed.location ? `<span>🏛️ ${escapeHtml(activeTimed.location)}</span>` : ""}
+            <span class="live-meta-item">👨‍🏫 ${escapeHtml(activeTimed.faculty || "Department Faculty")}</span>
+            ${activeTimed.location ? `<span class="live-meta-item">🏛️ ${escapeHtml(activeTimed.location)}</span>` : ""}
           </div>
           <div class="live-progress-bar" title="${percent}% of session completed">
             <div class="live-progress-fill" style="width: ${percent}%;"></div>
@@ -1276,19 +1280,21 @@
       DOM.nowBannerContainer.innerHTML = `
         <div class="next-session-banner subject-${nextSession.subject}" data-session-uid="${escapeHtml(nextSession.uid)}" data-session-start="${escapeHtml(nextSession.startIso)}" title="Click to view details">
           <div class="next-banner-top">
-            <span class="next-badge">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span>UP NEXT • ${countdownStr}</span>
-            </span>
+            <div class="next-badge-group">
+              <span class="next-badge">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>UP NEXT • ${countdownStr}</span>
+              </span>
+              <span class="badge-subject subject-badge-${nextSession.subject}">${escapeHtml(formatSubjectName(nextSession.subject))}</span>
+            </div>
             <span class="next-time-chip">${formatTimeAMPM(nextSession.startDate)} – ${formatTimeAMPM(nextSession.endDate)}</span>
           </div>
           <div class="next-banner-content">
-            <span class="badge-subject subject-badge-${nextSession.subject}">${escapeHtml(formatSubjectName(nextSession.subject))}</span>
             <h3 class="next-banner-title">${escapeHtml(nextSession.title)}</h3>
           </div>
           <div class="next-banner-meta">
-            <span>👨‍🏫 ${escapeHtml(nextSession.faculty || "Department Faculty")}</span>
-            ${nextSession.competency ? `<span>📋 ${escapeHtml(nextSession.competency)}</span>` : ""}
+            <span class="next-meta-item">👨‍🏫 ${escapeHtml(nextSession.faculty || "Department Faculty")}</span>
+            ${nextSession.competency ? `<span class="next-meta-item">📋 ${escapeHtml(nextSession.competency)}</span>` : ""}
           </div>
         </div>
       `;
