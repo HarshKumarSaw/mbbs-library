@@ -1992,6 +1992,44 @@
   - `js/timetable.min.js`
   - `PROJECT_LOG.md`
 
+---
+
+### Site-Wide Google Indexing & Comprehensive SEO Optimization: 2026-11-23 18:15:00 IST
+- **Goal**:
+  - Ensure all pages across Harsh's Library are 100% Google index ready, optimized for search performance and discovery, with full attribution to Harsh Kumar Saw and Late Baliram Kashyap Memorial Govt. Medical College, Jagdalpur (GMC Jagdalpur).
+- **Improvements Delivered**:
+  1. **Fixed Timetable Indexing Directive**:
+     - `timetable.html` previously contained `<meta name="robots" content="noindex, nofollow">`, which blocked Google from indexing it.
+     - Updated to: `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">`.
+  2. **Complete Sitemap Coverage (`sitemap.xml` & `sitemap.txt`)**:
+     - Added `timetable.html` with high priority (`0.95`, daily update frequency).
+     - Synchronized `sitemap.xml` and `sitemap.txt` across all 5 public pages (`/`, `timetable.html`, `anatomy.html`, `physiology.html`, `biochemistry.html`).
+  3. **Robots.txt Crawl Directive Optimization (`robots.txt`)**:
+     - Added explicit crawl permissions for `Googlebot` and `Googlebot-Image`.
+     - Retained rules for social crawlers (`WhatsApp`, `Twitterbot`, `TelegramBot`, `facebookexternalhit`).
+  4. **College Name & Author Branding Across SEO**:
+     - Integrated college name: *Late Baliram Kashyap Memorial Govt. Medical College, Jagdalpur* / *Lt. BRKM Govt. Medical College* / *GMC Jagdalpur* into `<title>`, `<meta name="description">`, `<meta name="keywords">`, Open Graph, Twitter Cards, and schema markup.
+     - Integrated author: *Harsh Kumar Saw* across author meta tags, description, keywords, Open Graph, Twitter Cards, and schema markup.
+  5. **Rich Schema.org JSON-LD Structured Data**:
+     - Validated Schema.org graphs on all pages with `WebSite`, `MedicalWebPage`, `CollectionPage`, `ItemList`, `BreadcrumbList`, and `Person` author (`Harsh Kumar Saw`) affiliated with `EducationalOrganization` (*Late Baliram Kashyap Memorial Govt. Medical College, Jagdalpur*).
+  6. **PWA Manifest Search & Discovery (`manifest.json`)**:
+     - Updated web manifest metadata with author, college name, and 1-tap shortcut for College Timetable.
+  7. **Footer Semantic Consistency**:
+     - Updated footer copyright on all pages to: `© 2026 Harsh Kumar Saw • [Department / Harsh's Library] • GMC Jagdalpur`.
+- **Modified Files**:
+  - `index.html`
+  - `timetable.html`
+  - `anatomy.html`
+  - `physiology.html`
+  - `biochemistry.html`
+  - `404.html`
+  - `sitemap.xml`
+  - `sitemap.txt`
+  - `robots.txt`
+  - `manifest.json`
+  - `PROJECT_LOG.md`
+
+
 
 
 

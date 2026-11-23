@@ -1,6 +1,17 @@
 # Robots.txt for Harsh's Library
 # https://harshkumarsaw.github.io/mbbs-library/
 
+User-agent: Googlebot
+Allow: /
+Allow: /mbbs-library/
+Allow: /mbbs-library/*.html
+Disallow: /mbbs-library/404.html
+Disallow: /404.html
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /mbbs-library/
+
 User-agent: *
 Allow: /
 Allow: /mbbs-library/

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
-  "name": "Harsh's Library – MBBS Study Resources",
+  "name": "Harsh's Library – MBBS Study Resources | GMC Jagdalpur",
   "short_name": "Harsh's Library",
-  "description": "A free collection of MBBS study materials, notes, textbooks and PDFs, organised for easy access.",
+  "description": "Free 1st Year MBBS notes, curriculum materials and live academic timetable for Late Baliram Kashyap Memorial Govt. Medical College (GMC Jagdalpur) curated by Harsh Kumar Saw.",
   "id": "/mbbs-library/",
   "start_url": "/mbbs-library/",
   "scope": "/mbbs-library/",
@@ -44,6 +44,18 @@
     }
   ],
   "shortcuts": [
+    {
+      "name": "College Timetable",
+      "short_name": "Timetable",
+      "description": "Live daily lecture schedule, dissection hall and practical routines",
+      "url": "/mbbs-library/timetable.html",
+      "icons": [
+        {
+          "src": "/mbbs-library/assets/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
     {
       "name": "Anatomy Department",
       "short_name": "Anatomy",
