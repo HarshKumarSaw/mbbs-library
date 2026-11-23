@@ -135,6 +135,12 @@ def run_sync_and_push(force=False):
         save_stored_hash(new_hash)
         print("✨ Successfully synchronized timetable with GitHub Pages!")
         print("🌐 Live site: https://harshkumarsaw.github.io/mbbs-library/timetable.html")
+        print("🔔 Dispatching timetable push notification to subscribers...")
+        try:
+            notify_script = os.path.join(REPO_DIR, "scripts", "notify_timetable_update.py")
+            subprocess.run([sys.executable, notify_script], cwd=REPO_DIR)
+        except Exception as e:
+            print(f"⚠️ Warning dispatching timetable notification: {e}")
         return True
     else:
         print("❌ Git push failed. Will retry on next cycle.")

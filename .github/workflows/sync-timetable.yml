@@ -39,10 +39,13 @@ jobs:
       - name: Fetch Google Calendar Feed & Generate Timetable Cache
         env:
           COLLEGE_ICAL_URL: ${{ secrets.COLLEGE_ICAL_URL }}
+          ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
         run: |
           python3 scripts/sync_timetable.py
 
-      - name: Commit and Push Updated Timetable
+      - name: Commit, Push Updated Timetable & Send Push Notification
+        env:
+          ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -53,4 +56,6 @@ jobs:
             echo "📥 New calendar changes detected! Committing and pushing..."
             git commit -m "chore(timetable): auto-sync with latest Google Calendar [skip ci]"
             git push
+            echo "🔔 Dispatching push notification to all subscribers..."
+            python3 scripts/notify_timetable_update.py
           fi

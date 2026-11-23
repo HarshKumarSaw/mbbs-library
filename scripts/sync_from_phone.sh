@@ -1330,6 +1330,15 @@ if curl -s --connect-timeout 5 -I https://github.com >/dev/null 2>&1; then
         if [ "$DATA_WAS_PUSHED" -eq 1 ]; then
             dispatch_smart_push_notification
         fi
+
+        TIMETABLE_WAS_PUSHED=0
+        if [ "$TIMETABLE_UPDATED" -eq 1 ] || git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | grep -q 'assets/data/timetable_college\.json'; then
+            TIMETABLE_WAS_PUSHED=1
+        fi
+
+        if [ "$TIMETABLE_WAS_PUSHED" -eq 1 ]; then
+            python3 "$REPO_DIR/scripts/notify_timetable_update.py" 2>/dev/null || true
+        fi
     else
         echo -e "${RED}${BOLD}❌ Git push failed!${RESET}"
         echo -e "${YELLOW}Detailed reason from GitHub:${RESET}"

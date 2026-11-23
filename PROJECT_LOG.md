@@ -1899,3 +1899,28 @@
 - **Phone Deletions Synced to Website**: 0 file(s)
 - **New PDFs Optimized**: 0
 - **Total In-Sync Files**: 65
+
+---
+
+### Automated Academic Schedule Push Notifications: 2026-11-23 17:30:00 IST
+- **Goal**:
+  - Whenever there is an update in the academic schedule (Google Calendar timetable), automatically broadcast an instant push notification to everyone (all subscribed student devices) to let them know.
+- **Implementation**:
+  - **Push Notification Dispatcher (`scripts/notify_timetable_update.py`)**:
+    - Created smart diff analyzer comparing previous and new schedule sessions.
+    - Intelligent headline and alert prioritization:
+      - 📝 **Exams / Tests**: Detects upcoming exams/PCTs and highlights *"Exam Alert: [Title] scheduled for [Date]"*.
+      - 🏖️ **Holidays**: Detects college holidays/vacations and highlights *"Holiday Notice: [Title] on [Date]"*.
+      - 📅 **Class Updates**: Detects single or multiple lecture/practical changes with date formatting (*"Today"*, *"Tomorrow"*, *"Wed, 25 Nov"*).
+      - 🌐 Direct landing URL configured to `https://harshkumarsaw.github.io/mbbs-library/timetable.html`.
+    - OneSignal REST API integration targeting all active devices and falling back to `Total Subscriptions` segment.
+    - Added CLI flags: `--dry-run`, `--force`, `--title`, `--message`, `--url`.
+  - **Sync Engine Integration (`scripts/sync_timetable.py`)**:
+    - Generates and writes `.timetable_diff.json` on detected calendar changes.
+    - Added `--notify` flag for direct CLI triggers.
+  - **GitHub Actions Auto-Sync Workflow (`.github/workflows/sync-timetable.yml`)**:
+    - Configured `ONESIGNAL_API_KEY` secret.
+    - Updated deployment job: after committing and pushing updated timetable changes, automatically executes `python3 scripts/notify_timetable_update.py`.
+  - **Local Watcher & Termux Phone Sync (`scripts/timetable_daemon.py` & `scripts/sync_from_phone.sh`)**:
+    - Added automatic push notification triggers upon successful Git push in both local daemon and Termux sync scripts.
+

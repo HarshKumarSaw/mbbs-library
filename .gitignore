@@ -6,6 +6,8 @@ assets/docs/**
 # Temporary & build files
 *.tmp*
 *.log
+.timetable_diff.json
+assets/data/.timetable_diff.json
 __pycache__/
 .DS_Store
 node_modules/

@@ -11,6 +11,7 @@ import sys
 import re
 import json
 import datetime
+import argparse
 import urllib.request
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -530,11 +531,13 @@ def sync_timetable():
     }
 
     events_changed = True
+    existing_events = []
     if os.path.exists(OUTPUT_JSON):
         try:
             with open(OUTPUT_JSON, "r", encoding="utf-8") as f:
                 existing = json.load(f)
-            if existing.get("events") == cleaned_events:
+            existing_events = existing.get("events", [])
+            if existing_events == cleaned_events:
                 events_changed = False
                 payload = existing
         except Exception:
@@ -544,10 +547,35 @@ def sync_timetable():
         with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False)
         print(f"✅ Generated {OUTPUT_JSON} with {len(cleaned_events)} verified college sessions.")
+
+        # Compute diff and save metadata for push notifications
+        try:
+            import scripts.notify_timetable_update as ntu
+            title, msg, meta = ntu.analyze_events_diff(existing_events, cleaned_events)
+            diff_file = os.path.join(REPO_DIR, "assets", "data", ".timetable_diff.json")
+            with open(diff_file, "w", encoding="utf-8") as df:
+                json.dump({
+                    "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "title": title,
+                    "message": msg,
+                    "metadata": meta
+                }, df, indent=2)
+            print(f"📝 Timetable diff calculated: [{title}] {msg}")
+        except Exception as e:
+            print(f"⚠️ Warning computing timetable diff: {e}")
     else:
         print(f"✅ Timetable cache already up-to-date ({len(cleaned_events)} sessions, no changes).")
 
     return len(cleaned_events), events_changed
 
 if __name__ == "__main__":
-    sync_timetable()
+    parser = argparse.ArgumentParser(description="MBBS Timetable Sync Engine")
+    parser.add_argument("--notify", action="store_true", help="Send push notification to all subscribers if changes detected")
+    parser.add_argument("--dry-run", action="store_true", help="Test notification generation without sending network request")
+    args = parser.parse_args()
+
+    num_events, changed = sync_timetable()
+    if args.notify and changed:
+        import scripts.notify_timetable_update as ntu
+        title, message = ntu.resolve_notification_content()
+        ntu.send_timetable_notification(title, message, dry_run=args.dry_run)
