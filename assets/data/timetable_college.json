@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-22 19:21:27",
+  "generated_at": "2026-11-23 00:25:47",
   "timezone": "Asia/Kolkata",
-  "total_college_sessions": 1072,
+  "total_college_sessions": 1073,
   "events": [
     {
       "uid": "okim5c2794muv3lqlt9jq7edfg@google.com",
@@ -2610,6 +2610,22 @@
       "subject": "anatomy",
       "session_type": "dissection",
       "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "e9im6r31d5miqobjedkn6t1dehp62tj5dgmn0sj579r32ej8c5p76q3jc5rj0ca0ctmm2qbc5phmur9qc4rmgr1h69hj2q3a6dpj6spm60q3gsbhd9m6mt9p6g@google.com",
+      "title": "🚌 Travel",
+      "description": "<i>This event was created by <a href=\"https://app.reclaim.ai/landing/about?name=Harsh+Kumar+Saw&utm_source=calendar&utm_campaign=calendar-referral&utm_medium=buffer-event&utm_term=lPb6P\">Reclaim</a>.</i><p>Harsh Kumar is traveling at this time and may not be available for calls or meetings. You may book over it\\, but we encourage you to find another time to avoid scheduling conflicts.</p>",
+      "location": "Lt. BRKM Govt. Medical College, Jagdalpur",
+      "faculty": "Department Faculty",
+      "competency": "",
+      "start": "2026-12-01 11:30:00",
+      "end": "2026-12-01 12:00:00",
+      "start_iso": "2026-12-01T11:30:00",
+      "end_iso": "2026-12-01T12:00:00",
+      "all_day": false,
+      "subject": "general",
+      "session_type": "lecture",
+      "raw_rrule": null
     },
     {
       "uid": "a7hl12c1hj3s3s6048qqjlku94@google.com",
