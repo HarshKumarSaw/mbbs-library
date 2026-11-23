@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-MBBS Resource Library - Daily Morning Timetable Notification Dispatcher
-Sends a push notification to all subscribers every morning at 8:00 AM IST
-summarizing the day's college schedule, classes, practicals, exams, or holidays.
+MBBS Resource Library - Daily Timetable Notification Dispatcher
+Sends automated push notifications to all subscribers:
+- Morning at 8:00 AM IST: Today's schedule summary
+- Evening at 5:00 PM IST: Tomorrow's schedule summary
 
 Usage:
-  python3 scripts/notify_daily_schedule.py             # Send today's schedule
-  python3 scripts/notify_daily_schedule.py --dry-run   # Test without sending API request
-  python3 scripts/notify_daily_schedule.py --force     # Force re-send even if already sent today
+  python3 scripts/notify_daily_schedule.py --mode morning      # Today's schedule (8:00 AM)
+  python3 scripts/notify_daily_schedule.py --mode evening      # Tomorrow's schedule (5:00 PM)
+  python3 scripts/notify_daily_schedule.py --mode auto         # Automatically selects based on IST time
+  python3 scripts/notify_daily_schedule.py --tomorrow          # Alias for evening mode
+  python3 scripts/notify_daily_schedule.py --dry-run           # Test without sending API request
+  python3 scripts/notify_daily_schedule.py --force             # Force re-send even if already sent
   python3 scripts/notify_daily_schedule.py --date YYYY-MM-DD
 """
 
@@ -24,7 +28,8 @@ REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_DIR)
 
 TIMETABLE_JSON = os.path.join(REPO_DIR, "assets", "data", "timetable_college.json")
-SENT_LOG = os.path.join(REPO_DIR, "assets", "data", ".last_daily_notification")
+SENT_MORNING_LOG = os.path.join(REPO_DIR, "assets", "data", ".last_morning_notification")
+SENT_EVENING_LOG = os.path.join(REPO_DIR, "assets", "data", ".last_evening_notification")
 
 APP_ID = "54db441e-edff-4024-8e24-87bacea1d5fe"
 DEFAULT_URL = "https://harshkumarsaw.github.io/mbbs-library/timetable.html"
@@ -80,7 +85,6 @@ def format_session_short_name(event):
     # Extract topic or clean department prefix
     if ":" in raw_title:
         prefix = raw_title.split(":")[0].strip()
-        # If prefix is generic e.g. 'Biochemistry (L)' or 'Anatomy'
         name = prefix
     else:
         name = raw_title
@@ -90,14 +94,18 @@ def format_session_short_name(event):
     name = re.sub(r"\s*\([A-Z0-9\s]+\)", "", name).strip()
     return name or subj or "Class"
 
-def generate_daily_schedule_content(target_date_str, events):
+def generate_daily_schedule_content(target_date_str, events, is_tomorrow=False):
     """
     Constructs the notification title and message for a specific date.
     target_date_str: 'YYYY-MM-DD'
+    is_tomorrow: True if sending evening notification for tomorrow
     """
     dt = datetime.datetime.strptime(target_date_str, "%Y-%m-%d")
     day_name = dt.strftime("%A")
     date_display = dt.strftime("%-d %b")
+
+    prefix = "Tomorrow's Schedule" if is_tomorrow else "Today's Schedule"
+    time_word = "tomorrow" if is_tomorrow else "today"
 
     day_events = [e for e in events if e.get("start", "").startswith(target_date_str)]
     # Sort chronologically by start time
@@ -110,8 +118,8 @@ def generate_daily_schedule_content(target_date_str, events):
     ]
     if holidays:
         h_name = holidays[0].get("title", "Holiday").replace("\\,", ",").replace("Holiday:", "").strip()
-        title = f"Today's Schedule: Holiday 🏖️ • {day_name}"
-        msg = f"College is closed today for {h_name}. Enjoy your holiday!"
+        title = f"{prefix}: Holiday 🏖️ • {day_name}"
+        msg = f"College is closed {time_word} for {h_name}. Enjoy your holiday!"
         return title, msg
 
     # Filter out Lunch / Breaks
@@ -123,11 +131,11 @@ def generate_daily_schedule_content(target_date_str, events):
     # 2. Check for Sunday / Zero classes
     if not classes:
         if dt.weekday() == 6:
-            title = f"Today's Schedule: Sunday ☀️ • {date_display}"
-            msg = "No college classes today. Have a restful and energizing Sunday!"
+            title = f"{prefix}: Sunday ☀️ • {date_display}"
+            msg = f"No college classes {time_word}. Have a restful and energizing Sunday!"
         else:
-            title = f"Today's Schedule: {day_name} • {date_display} 🩺"
-            msg = "No college classes scheduled for today. Tap to check your timetable."
+            title = f"{prefix}: {day_name} • {date_display} 🩺"
+            msg = f"No college classes scheduled for {time_word}. Tap to check your timetable."
         return title, msg
 
     # 3. Check for Exams / Tests
@@ -135,7 +143,7 @@ def generate_daily_schedule_content(target_date_str, events):
         e for e in classes
         if e.get("session_type") == "test_exam" or any(k in e.get("title", "").lower() for k in ["pct", "exam", "test", "terminal"])
     ]
-    exam_prefix = "📝 Exam Today! " if exams else ""
+    exam_prefix = f"📝 Exam {time_word.capitalize()}! " if exams else ""
 
     # 4. Build timeline items
     items = []
@@ -145,12 +153,11 @@ def generate_daily_schedule_content(target_date_str, events):
         short_name = format_session_short_name(c)
         items.append(f"{time_lbl}: {short_name}")
 
-    title = f"Today's Schedule: {day_name} • {date_display} 🩺"
+    title = f"{prefix}: {day_name} • {date_display} 🩺"
 
     # Keep message length optimal for push notification display
     timeline_str = " • ".join(items)
     if len(timeline_str) > 140:
-        # If too long, abbreviate trailing items
         compact_items = items[:4]
         remaining = len(items) - 4
         timeline_str = " • ".join(compact_items) + f" (+{remaining} more)"
@@ -174,12 +181,14 @@ def get_active_player_ids(api_key):
         print(f"⚠️ Warning querying OneSignal players: {e}")
         return []
 
-def send_daily_push(title, message, dry_run=False, target_date_str=None):
+def send_daily_push(title, message, is_tomorrow=False, dry_run=False, target_date_str=None, sent_log_file=None):
     """Dispatches the daily schedule push notification via OneSignal REST API."""
     api_key = get_api_key()
 
+    banner_label = "🌆 HARSH'S LIBRARY: EVENING SCHEDULE NOTIFICATION (5:00 PM IST)" if is_tomorrow else "🌅 HARSH'S LIBRARY: MORNING SCHEDULE NOTIFICATION (8:00 AM IST)"
+
     print("═" * 70)
-    print("🌅 HARSH'S LIBRARY: DAILY MORNING SCHEDULE NOTIFICATION (8:00 AM)")
+    print(banner_label)
     print("═" * 70)
     print(f"📢 Title:   {title}")
     print(f"📝 Message: {message}")
@@ -211,11 +220,11 @@ def send_daily_push(title, message, dry_run=False, target_date_str=None):
         target_desc = "all subscribers (Total Subscriptions)"
 
     if dry_run:
-        print(f"🧪 [DRY RUN] Daily schedule notification validated. Target: {target_desc}.")
+        print(f"🧪 [DRY RUN] Schedule notification validated. Target: {target_desc}.")
         print("Payload:", json.dumps(payload, indent=2))
         return True
 
-    print(f"🚀 Dispatching daily schedule push to {target_desc}...")
+    print(f"🚀 Dispatching schedule push to {target_desc}...")
     try:
         req = urllib.request.Request(
             "https://api.onesignal.com/notifications",
@@ -229,12 +238,12 @@ def send_daily_push(title, message, dry_run=False, target_date_str=None):
             res = json.loads(resp.read().decode("utf-8"))
             notif_id = res.get("id")
             recipients = res.get("recipients", len(active_ids))
-            print(f"✅ Daily notification dispatched successfully! (ID: {notif_id}, Recipients: {recipients})")
+            print(f"✅ Notification dispatched successfully! (ID: {notif_id}, Recipients: {recipients})")
 
             # Record send date to prevent duplicates
-            if target_date_str:
+            if target_date_str and sent_log_file:
                 try:
-                    with open(SENT_LOG, "w", encoding="utf-8") as f:
+                    with open(sent_log_file, "w", encoding="utf-8") as f:
                         f.write(f"{target_date_str}\n")
                 except Exception:
                     pass
@@ -248,23 +257,44 @@ def send_daily_push(title, message, dry_run=False, target_date_str=None):
         return False
 
 def main():
-    parser = argparse.ArgumentParser(description="Send 8:00 AM daily schedule push notification")
+    parser = argparse.ArgumentParser(description="Send daily schedule push notifications (8:00 AM & 5:00 PM IST)")
+    parser.add_argument("--mode", choices=["morning", "evening", "auto"], default="morning",
+                        help="morning = today's schedule at 8:00 AM; evening = tomorrow's schedule at 5:00 PM; auto = time-based")
+    parser.add_argument("--tomorrow", action="store_true", help="Shortcut for --mode evening")
     parser.add_argument("--dry-run", action="store_true", help="Format and print notification without making network request")
     parser.add_argument("--force", action="store_true", help="Force send even if already sent today")
-    parser.add_argument("--date", help="Custom target date in YYYY-MM-DD format (defaults to current date in IST)")
+    parser.add_argument("--date", help="Custom target date in YYYY-MM-DD format")
     args = parser.parse_args()
 
-    # Determine target date in IST
     ist_now = get_current_ist_datetime()
-    target_date_str = args.date or ist_now.strftime("%Y-%m-%d")
 
-    # Check if already sent today
-    if not args.force and not args.dry_run and os.path.isfile(SENT_LOG):
+    # Determine mode
+    mode = args.mode
+    if args.tomorrow:
+        mode = "evening"
+    elif mode == "auto":
+        mode = "evening" if ist_now.hour >= 14 else "morning"
+
+    is_tomorrow = (mode == "evening")
+
+    # Determine target date
+    if args.date:
+        target_date_str = args.date
+    elif is_tomorrow:
+        target_date_str = (ist_now + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    else:
+        target_date_str = ist_now.strftime("%Y-%m-%d")
+
+    sent_log_file = SENT_EVENING_LOG if is_tomorrow else SENT_MORNING_LOG
+
+    # Check if already sent
+    if not args.force and not args.dry_run and os.path.isfile(sent_log_file):
         try:
-            with open(SENT_LOG, "r", encoding="utf-8") as f:
+            with open(sent_log_file, "r", encoding="utf-8") as f:
                 last_sent = f.read().strip()
             if last_sent == target_date_str:
-                print(f"ℹ️ Today's schedule notification was already sent on {target_date_str}. Use --force to re-send.")
+                label = "tomorrow's" if is_tomorrow else "today's"
+                print(f"ℹ️ {label.capitalize()} schedule notification was already sent on {target_date_str}. Use --force to re-send.")
                 sys.exit(0)
         except Exception:
             pass
@@ -278,8 +308,15 @@ def main():
         data = json.load(f)
     events = data.get("events", [])
 
-    title, message = generate_daily_schedule_content(target_date_str, events)
-    success = send_daily_push(title, message, dry_run=args.dry_run, target_date_str=target_date_str)
+    title, message = generate_daily_schedule_content(target_date_str, events, is_tomorrow=is_tomorrow)
+    success = send_daily_push(
+        title,
+        message,
+        is_tomorrow=is_tomorrow,
+        dry_run=args.dry_run,
+        target_date_str=target_date_str,
+        sent_log_file=sent_log_file
+    )
     sys.exit(0 if success else 1)
 
 if __name__ == "__main__":

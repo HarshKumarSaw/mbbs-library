@@ -10,6 +10,10 @@ assets/docs/**
 assets/data/.timetable_diff.json
 .last_daily_notification
 assets/data/.last_daily_notification
+.last_morning_notification
+assets/data/.last_morning_notification
+.last_evening_notification
+assets/data/.last_evening_notification
 __pycache__/
 .DS_Store
 node_modules/

@@ -40,4 +40,4 @@ jobs:
         env:
           ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
         run: |
-          python3 scripts/notify_daily_schedule.py
+          python3 scripts/notify_daily_schedule.py --mode morning

@@ -1947,4 +1947,27 @@
   - **Termux Command Utility**:
     - Created executable `/data/data/com.termux/files/usr/bin/mbbs-morning-notify` and `mbbs-morning` alias.
 
+---
+
+### Daily 5:00 PM Evening Schedule Push Notification (Tomorrow's Routine): 2026-11-23 17:45:00 IST
+- **Goal**:
+  - Broadcast an evening push notification every day at 5:00 PM IST to all subscribed devices summarizing tomorrow's college schedule (classes, practicals, exams, or holidays) so students can prepare their materials and bags in advance.
+- **Implementation**:
+  - **Dispatcher Script Updates (`scripts/notify_daily_schedule.py`)**:
+    - Added `--mode evening` and `--tomorrow` support.
+    - Evaluates tomorrow's date in Indian Standard Time (IST, UTC+5:30).
+    - Detects:
+      - 🏖️ **Holidays**: *"Tomorrow's Schedule: Holiday 🏖️ • Tuesday"* -> *"College is closed tomorrow for [Holiday Name]. Enjoy your holiday!"*
+      - ☀️ **Sundays**: *"Tomorrow's Schedule: Sunday ☀️ • [Date]"* -> *"No college classes tomorrow. Have a restful Sunday!"*
+      - 📝 **Exam Days**: *"Tomorrow's Schedule: [Day] • [Date] 🩺"* -> *"📝 Exam Tomorrow! [Time]: [Subject] • ..."*
+      - 🩺 **Regular Days**: *"Tomorrow's Schedule: [Day] • [Date] 🩺"* -> *"9 AM: Biochem • 10 AM: Anatomy • 11 AM: Biochem Practical • 2 PM: Physio • 3 PM: Dissection. Tap to view full timetable."*
+    - Separate deduplication cache (`.last_evening_notification`) preventing duplicates.
+  - **GitHub Actions Scheduled Automation (`.github/workflows/evening-schedule-notification.yml`)**:
+    - Configured cron schedule: `30 11 * * *` (11:30 UTC = 05:00 PM IST daily).
+    - Syncs Google Calendar feed, then triggers `notify_daily_schedule.py --mode evening`.
+    - Includes `workflow_dispatch` for manual 1-click test runs.
+  - **Termux Command Utility**:
+    - Created executable `/data/data/com.termux/files/usr/bin/mbbs-evening-notify` and `mbbs-evening` alias in `~/.bashrc`.
+
+
 

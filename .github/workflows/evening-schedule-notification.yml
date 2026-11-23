@@ -1,0 +1,43 @@
+name: Daily Evening Timetable Push (5:00 PM IST)
+
+on:
+  schedule:
+    # 11:30 UTC = 05:00 PM Indian Standard Time (IST) every evening
+    - cron: '30 11 * * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions UI
+
+concurrency:
+  group: evening-timetable-notification
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch-evening-notification:
+    name: Send Evening Tomorrow Schedule Alert
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Refresh Google Calendar Feed
+        env:
+          COLLEGE_ICAL_URL: ${{ secrets.COLLEGE_ICAL_URL }}
+        run: |
+          python3 scripts/sync_timetable.py || true
+
+      - name: Dispatch 5:00 PM Evening Schedule Push Notification
+        env:
+          ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
+        run: |
+          python3 scripts/notify_daily_schedule.py --mode evening
