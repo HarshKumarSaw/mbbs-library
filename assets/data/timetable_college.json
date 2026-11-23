@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-23 00:25:47",
+  "generated_at": "2026-11-23 08:04:13",
   "timezone": "Asia/Kolkata",
-  "total_college_sessions": 1073,
+  "total_college_sessions": 1072,
   "events": [
     {
       "uid": "okim5c2794muv3lqlt9jq7edfg@google.com",
@@ -1973,10 +1973,10 @@
     },
     {
       "uid": "3uu83tc80tb4no8h7s9d53fgkk@google.com",
-      "title": "Biochemistry: Minerals – 06",
-      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Minerals – 06 (BC.9.1)\\nFaculty: Dr. A. S. Thakur & Mr. P. Girish\\nTheory teaching schedule\\, November 2026.",
+      "title": "Biochemistry: Body Fluids",
+      "description": "Department of Biochemistry – 1st MBBS 2026–27\\nTopic: Minerals – 06 (BC.9.1)\\nFaculty: Nidhi mam\\nTheory teaching schedule\\, November 2026.",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Dr. A. S. Thakur & Mr. P. Girish",
+      "faculty": "Nidhi mam",
       "competency": "",
       "start": "2026-11-23 09:00:00",
       "end": "2026-11-23 10:00:00",
@@ -1989,7 +1989,7 @@
     },
     {
       "uid": "mleuldg40kqogna1jteg26d66o@google.com",
-      "title": "Anatomy: Blood Supply of Heart - I",
+      "title": "Anatomy: Venous Drainage of Heart",
       "description": "Department of Anatomy - 1st MBBS (2026 Batch)\\nTopic: Blood Supply of Heart - I\\nCompetency: AN 22.3 - 22.4\\nFaculty: Mr. Hussain B. Shaik (HBS)\\nLate Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal\\, Jagdalpur",
       "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
       "faculty": "Mr. Hussain B. Shaik (HBS",
@@ -2005,34 +2005,18 @@
     },
     {
       "uid": "9fhr9pcdq663ctbuhsrhqik2u8@google.com",
-      "title": "Physiology: Pancreas: Regulation & Secretion of Pancreatic Juice",
-      "description": "Department of Physiology – MBBS 1st Prof\\, Batch 2026\\nGastro-Intestinal System (GIT)\\nTopic: Pancreas: Regulation & Secretion of Pancreatic Juice\\nFaculty: Dr. S.K. Dwivedi",
+      "title": "Physiology Practical : Differential leukocyte count",
+      "description": "Department of Physiology – MBBS 1st Prof\\, Batch 2026\\nGastro-Intestinal System (GIT)\\nTopic: Pancreas: Regulation & Secretion of Pancreatic Juice\\nFaculty: Kesh Sir",
       "location": "Lt. BRKM Govt. Medical College, Jagdalpur",
-      "faculty": "Dr. S.K. Dwivedi",
+      "faculty": "Kesh Sir",
       "competency": "",
       "start": "2026-11-23 11:00:00",
-      "end": "2026-11-23 12:00:00",
-      "start_iso": "2026-11-23T11:00:00",
-      "end_iso": "2026-11-23T12:00:00",
-      "all_day": false,
-      "subject": "physiology",
-      "session_type": "lecture",
-      "raw_rrule": null
-    },
-    {
-      "uid": "g321bvqff688mf9rquk6pqces8@google.com",
-      "title": "Physiology: Liver & Gall Bladder",
-      "description": "Department of Physiology – MBBS 1st Prof\\, Batch 2026\\nGastro-Intestinal System (GIT)\\nTopic: Liver & Gall Bladder\\nFaculty: Dr. S.K. Dwivedi",
-      "location": "Lt. BRKM Govt. Medical College, Jagdalpur",
-      "faculty": "Dr. S.K. Dwivedi",
-      "competency": "",
-      "start": "2026-11-23 12:00:00",
       "end": "2026-11-23 13:00:00",
-      "start_iso": "2026-11-23T12:00:00",
+      "start_iso": "2026-11-23T11:00:00",
       "end_iso": "2026-11-23T13:00:00",
       "all_day": false,
       "subject": "physiology",
-      "session_type": "lecture",
+      "session_type": "practical",
       "raw_rrule": null
     },
     {
