@@ -2034,7 +2034,45 @@
 
 
 
-### Two-Way Auto-Sync: 2026-11-23 12:58:53 UTC
+### Academic Timetable Filter Overflow & Polish Fix: 2026-11-23 18:45:00 IST
+- **Goal**:
+  - Fix filter option overflowing out of the box on the Academic Schedule / Timetable page (`timetable.html`).
+  - Upgrade the visual presentation, responsive flex constraints, and mobile-first experience to look sleek, executive, and professional.
+- **Root Cause Analysis**:
+  - The horizontal subject pills flex child (`.filter-pills-scroll`) lacked `min-width: 0` and `flex: 1 1 0%`, causing it to enforce its full intrinsic width (~550px) on mobile viewports.
+  - This pushed the `.mobile-filter-toggle-btn` completely outside the right border of `.timetable-filter-bar` ("out of the box").
+  - The white container card lacked `overflow: hidden` and `box-sizing: border-box`, permitting child overflow into the viewport.
+  - On expanding secondary filters, `.session-type-select` lacked `box-sizing: border-box`, spilling 18px past the container edge on mobile.
+- **Improvements Delivered**:
+  1. **Zero-Overflow Boundary Containment**:
+     - Constrained `.timetable-filter-bar`, `.filter-main-row`, and `.filter-pills-container` with strict `box-sizing: border-box`, `min-width: 0`, and `overflow: hidden`.
+     - Gave `.filter-pills-scroll` `width: 100%; min-width: 0; flex: 1 1 0%;` ensuring pills scroll effortlessly within available width on any mobile device (320px–430px) without ever pushing neighboring controls.
+  2. **Refined Filter Toggle Button**:
+     - Positioned `.mobile-filter-toggle-btn` firmly inside the card with `flex-shrink: 0`.
+     - Added a clean SVG funnel icon, responsive label, active count badge (`#filter-active-count`), and animated chevron arrow (`.filter-toggle-icon` `▾`/`▲`).
+     - Added `.has-active` visual highlight state (navy surface with butter yellow counter badge) when filters are in effect.
+  3. **Bi-Directional Scroll Indicators**:
+     - Added left (`::before`) and right (`::after`) gradient fade masks on `.filter-pills-container` with dynamic `.is-scrolled-start` and `.is-scrolled-end` classes in `js/timetable.js`.
+  4. **Subject Pill Aesthetics**:
+     - Enhanced `.sub-pill` buttons with department emojis (`🦴 Anatomy`, `🫀 Physiology`, `🧪 Biochemistry`, `🏥 Community Med`, `⚖️ AETCOM`, `★ Bookmarked`), tactile pill radius (`9999px`), active elevation shadows, and department branding colors.
+  5. **Custom Styled Session Type Dropdown & Search**:
+     - Gave `.session-type-select` a custom SVG chevron arrow, `text-overflow: ellipsis`, and `box-sizing: border-box`.
+     - Styled `#timetable-search-input` with subtle focus rings and smooth transitions.
+  6. **Desktop & Mobile Optimization**:
+     - On desktop (`>= 768px`), search and session type filters are cleanly displayed side-by-side in row 2 with zero clicks required, and the mobile toggle button is hidden.
+     - On mobile (`< 768px`), the collapsible secondary drawer operates seamlessly with zero horizontal overflow.
+  7. **Production Minification & Cache Busting**:
+     - Generated minified production assets via `python3 scripts/minify.py`.
+     - Updated asset cache version in `timetable.html` (`v=1795440200`).
+- **Modified Files**:
+  - `timetable.html`
+  - `css/timetable.css`
+  - `css/timetable.min.css`
+  - `js/timetable.js`
+  - `js/timetable.min.js`
+  - `PROJECT_LOG.md`
+
+### Two-Way Auto-Sync: 2026-11-23 18:43:05 UTC
 - **Phone Deduplication**: Resolved 0 duplicate(s)
 - **Phone Organization**: Organized 0 root file(s)
 - **Phone Deletions Synced to Website**: 0 file(s)

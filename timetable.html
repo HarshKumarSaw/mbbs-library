@@ -109,8 +109,8 @@
   <!-- Self-Hosted Fonts & CSS -->
   <link rel="preload" href="assets/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.min.css?v=1795438733">
-  <link rel="stylesheet" href="css/timetable.min.css?v=1795438733">
+  <link rel="stylesheet" href="css/style.min.css?v=1795459385">
+  <link rel="stylesheet" href="css/timetable.min.css?v=1795459385">
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -238,24 +238,24 @@
     <!-- Compact Expandable Search & Filter Bar -->
     <div class="timetable-filter-bar">
       <div class="filter-main-row">
-        <div class="filter-pills-container">
+        <div class="filter-pills-container is-scrolled-start">
           <div class="filter-pills-scroll" role="group" aria-label="Subject filter">
             <button type="button" class="sub-pill active" data-subject="all">All</button>
-            <button type="button" class="sub-pill" data-subject="anatomy">Anatomy</button>
-            <button type="button" class="sub-pill" data-subject="physiology">Physiology</button>
-            <button type="button" class="sub-pill" data-subject="biochemistry">Biochemistry</button>
-            <button type="button" class="sub-pill" data-subject="community">Community Med</button>
-            <button type="button" class="sub-pill" data-subject="aetcom">AETCOM</button>
+            <button type="button" class="sub-pill" data-subject="anatomy">🦴 Anatomy</button>
+            <button type="button" class="sub-pill" data-subject="physiology">🫀 Physiology</button>
+            <button type="button" class="sub-pill" data-subject="biochemistry">🧪 Biochemistry</button>
+            <button type="button" class="sub-pill" data-subject="community">🏥 Community Med</button>
+            <button type="button" class="sub-pill" data-subject="aetcom">⚖️ AETCOM</button>
             <button type="button" class="sub-pill sub-pill-bookmarks" data-subject="bookmarks" id="pill-bookmarks" title="Show only bookmarked lectures">★ Bookmarked</button>
           </div>
         </div>
 
         <button type="button" class="mobile-filter-toggle-btn" id="mobile-filter-toggle-btn" aria-expanded="false" aria-label="Toggle search and filters" title="Search and filters">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <svg class="filter-btn-funnel-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
           </svg>
           <span class="filter-toggle-label">Filter</span>
+          <span class="filter-toggle-icon" aria-hidden="true">▾</span>
           <span class="filter-count-badge" id="filter-active-count" style="display: none;">0</span>
         </button>
       </div>
@@ -448,6 +448,6 @@
   <!-- Scripts -->
   <script src="js/pwa.js" defer></script>
   <script src="js/push.js?v=1794463000" defer></script>
-  <script src="js/timetable.min.js?v=1795438733" defer></script>
+  <script src="js/timetable.min.js?v=1795459385" defer></script>
 </body>
 </html>

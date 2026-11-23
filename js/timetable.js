@@ -1074,8 +1074,10 @@
       if (count > 0) {
         DOM.filterActiveCount.textContent = count;
         DOM.filterActiveCount.style.display = "inline-flex";
+        if (DOM.mobileFilterToggleBtn) DOM.mobileFilterToggleBtn.classList.add("has-active");
       } else {
         DOM.filterActiveCount.style.display = "none";
+        if (DOM.mobileFilterToggleBtn) DOM.mobileFilterToggleBtn.classList.remove("has-active");
       }
     }
   }
@@ -2023,12 +2025,16 @@
       });
     }
 
-    // Subject filter horizontal scroll end indicator
+    // Subject filter horizontal scroll indicators
     if (DOM.filterPillsScroll && DOM.filterPillsContainer) {
-      DOM.filterPillsScroll.addEventListener("scroll", () => {
+      const updateScrollIndicators = () => {
         const atEnd = DOM.filterPillsScroll.scrollWidth - DOM.filterPillsScroll.scrollLeft <= DOM.filterPillsScroll.clientWidth + 4;
         DOM.filterPillsContainer.classList.toggle("is-scrolled-end", atEnd);
-      }, { passive: true });
+        const atStart = DOM.filterPillsScroll.scrollLeft <= 4;
+        DOM.filterPillsContainer.classList.toggle("is-scrolled-start", atStart);
+      };
+      DOM.filterPillsScroll.addEventListener("scroll", updateScrollIndicators, { passive: true });
+      updateScrollIndicators();
     }
 
     // Mobile Filter Collapse Toggle
