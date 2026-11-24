@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-physiology_practical-1680",
+    title: "Physiology Practical",
+    subject: "physiology",
+    category: "practicals",
+    subcategories: ["practicals"],
+    code: "Physiology / Practicals",
+    description: "Uploaded document: Physiology Practical.pdf. Organized under Physiology (Practicals).",
+    tags: ["Physiology", "Practicals", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/3aa9201d-5f23-40b6-9389-01c13efa1899",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Practical.pdf",
+    fileSize: "6.1 MB",
+    pages: "58 Pages",
+    author: "HarshKumarSaw",
+    date: "24 Nov 2026",
+    updatedAt: 1795501222,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-comm-parks_preventive_soc-4820",
     title: "Parks Preventive Social Medicine 23Rd Ed",
     subject: "community_medicine",
@@ -48,24 +66,6 @@ const MBBS_RESOURCES = [
     author: "HarshKumarSaw",
     date: "20 Nov 2026",
     updatedAt: 1795166127,
-    year: "1st Year MBBS"
-  },
-  {
-    id: "user-phys-physiology_practical-1680",
-    title: "Physiology Practical",
-    subject: "physiology",
-    category: "practicals",
-    subcategories: ["practicals"],
-    code: "Physiology / Practicals",
-    description: "Uploaded document: Physiology Practical.pdf. Organized under Physiology (Practicals).",
-    tags: ["Physiology", "Practicals", "Mobile Upload"],
-    fileUrl: "https://cdn.steadylink.io/a/3aa9201d-5f23-40b6-9389-01c13efa1899",
-    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Physiology_Practical.pdf",
-    fileSize: "5.5 MB",
-    pages: "53 Pages",
-    author: "HarshKumarSaw",
-    date: "19 Nov 2026",
-    updatedAt: 1795093030,
     year: "1st Year MBBS"
   },
   {
