@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-phys-viva_voce_in_anatomy-8482",
+    title: "Viva Voce In Anatomy Physiology & Biochemistry 1",
+    subject: "physiology",
+    category: "other",
+    subcategories: ["other"],
+    code: "Physiology / Other",
+    description: "Uploaded document: Viva Voce in Anatomy Physiology & Biochemistry-1.pdf. Organized under Physiology / Other.",
+    tags: ["Physiology", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/f7b0ea2e-41d4-4c0c-bd57-0befc8248db5",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Viva_Voce_in_Anatomy_Physiology_._Biochemistry-1.pdf",
+    fileSize: "13.7 MB",
+    pages: "346 Pages",
+    author: "HarshKumarSaw",
+    date: "25 Nov 2026",
+    updatedAt: 1795568426,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-physiology_practical-1680",
     title: "Physiology Practical",
     subject: "physiology",
