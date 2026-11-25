@@ -59,3 +59,9 @@ jobs:
             echo "🔔 Dispatching push notification to all subscribers..."
             python3 scripts/notify_timetable_update.py
           fi
+
+      - name: Ensure Upcoming 8:00 AM & 5:00 PM IST Alerts Are Queued & Up-to-Date
+        env:
+          ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
+        run: |
+          python3 scripts/notify_daily_schedule.py --mode upcoming || true

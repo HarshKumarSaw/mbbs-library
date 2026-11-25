@@ -30,6 +30,8 @@ TIMETABLE_JSON = os.path.join(REPO_DIR, "assets", "data", "timetable_college.jso
 APP_ID = "54db441e-edff-4024-8e24-87bacea1d5fe"
 DEFAULT_URL = "https://harshkumarsaw.github.io/mbbs-library/timetable.html"
 ICON_URL = "https://harshkumarsaw.github.io/mbbs-library/assets/icons/logo-256x256.png"
+BADGE_URL = "https://harshkumarsaw.github.io/mbbs-library/assets/icons/favicon-48x48.png"
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
 
 def get_api_key():
     """Resolves OneSignal REST API Key from env or local secret files."""
@@ -48,10 +50,10 @@ def get_api_key():
     return None
 
 def format_event_date(dt_str):
-    """Formats event datetime into friendly display string (e.g., 'Today', 'Tomorrow', 'Wed, 25 Nov')."""
+    """Formats event datetime in IST into friendly display string (e.g., 'Today (9:00 AM)', 'Wed, 25 Nov')."""
     try:
         dt = datetime.datetime.strptime(dt_str[:19], "%Y-%m-%d %H:%M:%S")
-        today = datetime.date.today()
+        today = datetime.datetime.now(IST).date()
         ev_date = dt.date()
         if ev_date == today:
             return f"Today ({dt.strftime('%-I:%M %p')})"
@@ -108,8 +110,8 @@ def analyze_events_diff(old_events, new_events):
                 old_e.get("session_type") != new_e.get("session_type")):
                 modified.append({"old": old_e, "new": new_e})
 
-    # Filter for relevant upcoming or current sessions (from today onwards)
-    cutoff = (datetime.datetime.now() - datetime.timedelta(hours=14)).strftime("%Y-%m-%d %H:%M:%S")
+    # Filter for relevant upcoming or current sessions (from today IST onwards)
+    cutoff = (datetime.datetime.now(IST) - datetime.timedelta(hours=14)).strftime("%Y-%m-%d %H:%M:%S")
     rel_added = [e for e in added if e.get("start", "") >= cutoff]
     rel_modified = [m["new"] for m in modified if m["new"].get("start", "") >= cutoff]
     rel_removed = [e for e in removed if e.get("start", "") >= cutoff]
@@ -119,33 +121,33 @@ def analyze_events_diff(old_events, new_events):
     exam_candidates = [e for e in rel_added + rel_modified if is_exam_session(e)]
     if exam_candidates:
         cand = exam_candidates[0]
-        title = "Harsh's Library: Timetable Update 📝"
+        title = "Academic Exam Schedule Updated"
         date_str = format_event_date(cand.get("start", ""))
-        msg = f"Exam Alert: {clean_event_title(cand.get('title'))} scheduled for {date_str}. Tap to check timetable."
+        msg = f"Assessment Notice: {clean_event_title(cand.get('title'))} scheduled for {date_str}."
         return title, msg, {"type": "exam", "event": cand, "added": len(added), "modified": len(modified), "removed": len(removed)}
 
     # 2. Upcoming Holidays
     holiday_candidates = [e for e in rel_added + rel_modified if is_holiday_session(e)]
     if holiday_candidates:
         cand = holiday_candidates[0]
-        title = "Harsh's Library: Timetable Update 🏖️"
+        title = "College Holiday Notice"
         date_str = format_event_date(cand.get("start", ""))
-        msg = f"Holiday Notice: {clean_event_title(cand.get('title'))} on {date_str}. Tap to check timetable."
+        msg = f"{clean_event_title(cand.get('title'))} on {date_str}."
         return title, msg, {"type": "holiday", "event": cand, "added": len(added), "modified": len(modified), "removed": len(removed)}
 
     # 3. Single Specific Class Update
     if len(rel_added) == 1 and not rel_modified:
         cand = rel_added[0]
-        title = "Harsh's Library: Timetable Update 📅"
+        title = "Academic Timetable Updated"
         date_str = format_event_date(cand.get("start", ""))
-        msg = f"Schedule update: {clean_event_title(cand.get('title'))} added for {date_str}. Tap to view."
+        msg = f"Added: {clean_event_title(cand.get('title'))} on {date_str}."
         return title, msg, {"type": "single_class_add", "event": cand, "added": 1, "modified": 0, "removed": len(removed)}
 
     if len(rel_modified) == 1 and not rel_added:
         cand = rel_modified[0]
-        title = "Harsh's Library: Timetable Update 📅"
+        title = "Academic Timetable Updated"
         date_str = format_event_date(cand.get("start", ""))
-        msg = f"Schedule update: {clean_event_title(cand.get('title'))} updated for {date_str}. Tap to view."
+        msg = f"Updated: {clean_event_title(cand.get('title'))} on {date_str}."
         return title, msg, {"type": "single_class_mod", "event": cand, "added": 0, "modified": 1, "removed": len(removed)}
 
     # 4. Multiple Relevant Updates
@@ -153,13 +155,13 @@ def analyze_events_diff(old_events, new_events):
     if total_rel > 0:
         first_ev = sorted(rel_added + rel_modified + rel_removed, key=lambda x: x.get("start", ""))[0]
         date_str = format_event_date(first_ev.get("start", ""))
-        title = "Harsh's Library: Academic Schedule Updated 📅"
-        msg = f"{total_rel} schedule change(s) detected starting {date_str}. Tap to check your latest timetable."
+        title = "Academic Timetable Updated"
+        msg = f"{total_rel} schedule change(s) published starting {date_str}."
         return title, msg, {"type": "multiple", "total_relevant": total_rel, "added": len(added), "modified": len(modified), "removed": len(removed)}
 
     # 5. General Fallback
-    title = "Harsh's Library: Academic Schedule Updated 📅"
-    msg = "The college timetable has been synchronized with the latest Google Calendar updates. Tap to view."
+    title = "Academic Timetable Updated"
+    msg = "The college academic timetable has been synchronized with the latest calendar updates."
     return title, msg, {"type": "general", "added": len(added), "modified": len(modified), "removed": len(removed)}
 
 def extract_diff_from_git():
@@ -249,7 +251,16 @@ def send_timetable_notification(title, message, target_url=None, dry_run=False):
         "contents": {"en": message},
         "url": url,
         "chrome_web_icon": ICON_URL,
-        "firefox_icon": ICON_URL
+        "chrome_web_badge": BADGE_URL,
+        "firefox_icon": ICON_URL,
+        "android_accent_color": "1E3A8A",
+        "web_buttons": [
+            {
+                "id": "open-timetable",
+                "text": "View Timetable",
+                "url": url,
+            }
+        ],
     }
 
     if active_ids:

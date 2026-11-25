@@ -2,8 +2,10 @@ name: Daily Evening Timetable Push (5:00 PM IST)
 
 on:
   schedule:
-    # 11:30 UTC = 05:00 PM Indian Standard Time (IST) every evening
-    - cron: '30 11 * * *'
+    # Run well ahead of 05:00 PM IST (11:30 UTC) at off-peak minutes so OneSignal
+    # queues the notification for exact 17:00:00 IST regardless of GitHub cron lag.
+    - cron: '17 4 * * *' # 09:47 AM IST
+    - cron: '47 7 * * *' # 01:17 PM IST
   workflow_dispatch: # Allows manual trigger anytime from GitHub Actions UI
 
 concurrency:
@@ -15,7 +17,7 @@ permissions:
 
 jobs:
   dispatch-evening-notification:
-    name: Send Evening Tomorrow Schedule Alert
+    name: Queue 5:00 PM IST Evening Schedule Alert
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -36,8 +38,8 @@ jobs:
         run: |
           python3 scripts/sync_timetable.py || true
 
-      - name: Dispatch 5:00 PM Evening Schedule Push Notification
+      - name: Queue Exact 5:00 PM IST Evening Schedule Notification
         env:
           ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
         run: |
-          python3 scripts/notify_daily_schedule.py --mode evening
+          python3 scripts/notify_daily_schedule.py --mode upcoming

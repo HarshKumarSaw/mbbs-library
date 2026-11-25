@@ -139,6 +139,8 @@ def run_sync_and_push(force=False):
         try:
             notify_script = os.path.join(REPO_DIR, "scripts", "notify_timetable_update.py")
             subprocess.run([sys.executable, notify_script], cwd=REPO_DIR)
+            daily_script = os.path.join(REPO_DIR, "scripts", "notify_daily_schedule.py")
+            subprocess.run([sys.executable, daily_script, "--mode", "upcoming"], cwd=REPO_DIR)
         except Exception as e:
             print(f"⚠️ Warning dispatching timetable notification: {e}")
         return True
