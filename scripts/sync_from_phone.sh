@@ -4,8 +4,9 @@
 # 
 # 1. CONCURRENCY: Uses kernel flock to ensure exactly ONE sync process runs.
 # 2. STEP FEEDBACK: Clear 5-step numbered progress with live terminal indicators.
-# 3. PDF OPTIMIZATION: Real-time animated progress bar for Ghostscript + qpdf,
-#    enforcing <95MB ceiling for GitHub Pages and Fast Web View linearization.
+# 3. PDF OPTIMIZATION: Adaptive Ghostscript + qpdf compression for PDFs > 24 MB
+#    (preserving original quality <= 24 MB, targeting best quality < 25 MB,
+#    and applying 150 DPI /ebook fallback for very large PDFs).
 # 4. TWO-WAY SYNC: Phone ⇄ Website synchronization with automatic categorization.
 # 5. INTEGRITY: Audits unpushed commits and never gives false "fully synced"
 #    status when changes are pending upload.
@@ -719,12 +720,114 @@ is_pdf_already_optimized() {
 }
 
 # ==============================================================================
-# HIGH-SPEED PDF OPTIMIZATION WITH REAL-TIME PROGRESS BAR
+# ADAPTIVE PDF OPTIMIZATION (>24 MB ONLY, BEST QUALITY <25 MB, 150 DPI FLOOR)
 # ==============================================================================
+PDF_MIN_COMPRESS_BYTES=25165824   # 24 MB (24 * 1024 * 1024)
+PDF_TARGET_MAX_BYTES=26214400     # 25 MB (25 * 1024 * 1024)
+LAST_OPT_CHANGED=0
+
+_run_gs_tier() {
+    local input_pdf="$1"
+    local output_pdf="$2"
+    local total_pages="$3"
+    local tier_label="$4"
+    local pdf_settings="$5"
+    local color_dpi="$6"
+    local mono_dpi="$7"
+    local extra_arg="${8:-}"
+
+    local tmp_gs="$TMP_DIR/gs_opt_$$.pdf"
+    local tmp_lin="$TMP_DIR/lin_opt_$$.pdf"
+    local tmp_err="$TMP_DIR/gs_err_$$.log"
+    rm -f "$tmp_gs" "$tmp_lin" "$tmp_err" "$output_pdf"
+
+    local -a gs_args=(
+        -sDEVICE=pdfwrite
+        -dCompatibilityLevel=1.5
+        "-dPDFSETTINGS=$pdf_settings"
+        -dDownsampleColorImages=true
+        -dColorImageDownsampleType=/Bicubic
+        "-dColorImageResolution=$color_dpi"
+        -dDownsampleGrayImages=true
+        -dGrayImageDownsampleType=/Bicubic
+        "-dGrayImageResolution=$color_dpi"
+        -dDownsampleMonoImages=true
+        -dMonoImageDownsampleType=/Subsample
+        "-dMonoImageResolution=$mono_dpi"
+        -dDetectDuplicateImages=true
+        -dDoThumbnails=false
+        -dNOPAUSE
+        -dBATCH
+    )
+    if [ -n "$extra_arg" ]; then
+        gs_args+=("$extra_arg")
+    fi
+
+    local start_time
+    start_time=$(date +%s)
+    local last_sec=0
+    local gs_ok=1
+
+    if ! (
+        gs "${gs_args[@]}" -sOutputFile="$tmp_gs" "$input_pdf" 2>"$tmp_err" | while read -r line; do
+            if [[ "$line" =~ ^Page\ ([0-9]+) ]]; then
+                curr="${BASH_REMATCH[1]}"
+                now=$(date +%s)
+                if [ $((now - last_sec)) -ge 1 ] || [ "$curr" -eq "$total_pages" ]; then
+                    last_sec=$now
+                    pct=$((curr * 100 / total_pages))
+                    bar_filled=$((pct * 20 / 100))
+                    bar_empty=$((20 - bar_filled))
+                    fill_str=""
+                    for ((b=0; b<bar_filled; b++)); do fill_str="${fill_str}█"; done
+                    empty_str=""
+                    for ((b=0; b<bar_empty; b++)); do empty_str="${empty_str}░"; done
+                    elapsed=$((now - start_time))
+                    if [ "$curr" -gt 0 ]; then
+                        eta=$(( (elapsed * (total_pages - curr)) / curr ))
+                    else
+                        eta=0
+                    fi
+                    printf "\r      ⏳ [%s%s] %3d%% (%d/%d • %s) • %ds • ETA: %ds" "$fill_str" "$empty_str" "$pct" "$curr" "$total_pages" "$tier_label" "$elapsed" "$eta"
+                fi
+            fi
+        done
+    ); then
+        gs_ok=0
+    fi
+    printf "\r%96s\r" ""
+
+    if [ "$gs_ok" -eq 1 ] && [ -s "$tmp_gs" ]; then
+        if qpdf --linearize "$tmp_gs" "$tmp_lin" 2>/dev/null && [ -s "$tmp_lin" ]; then
+            mv -f "$tmp_lin" "$output_pdf"
+            rm -f "$tmp_gs" "$tmp_err"
+        else
+            mv -f "$tmp_gs" "$output_pdf"
+            rm -f "$tmp_lin" "$tmp_err"
+        fi
+        return 0
+    fi
+
+    rm -f "$tmp_gs" "$tmp_lin" "$tmp_err"
+    return 1
+}
+
+_apply_optimized_pdf() {
+    local src_pdf="$1"
+    local target_abs="$2"
+    local orig_file="$3"
+    mv -f "$src_pdf" "$target_abs"
+    if [ -n "$orig_file" ] && [ -f "$orig_file" ]; then
+        cp -p "$target_abs" "$orig_file" 2>/dev/null || true
+    fi
+    LAST_OPT_CHANGED=1
+}
+
 optimize_pdf_file() {
     local target_abs="$1"
     local display_name="${2:-${target_abs##*/}}"
     local orig_file="${3:-}"
+    LAST_OPT_CHANGED=0
 
     command -v gs >/dev/null 2>&1 || return 0
     command -v qpdf >/dev/null 2>&1 || return 0
@@ -735,92 +838,127 @@ optimize_pdf_file() {
     local orig_display
     orig_display=$(format_file_size "$orig_bytes")
 
+    # Never compress PDFs <= 24 MB
+    if [ "$orig_bytes" -le "$PDF_MIN_COMPRESS_BYTES" ]; then
+        local final_mtime
+        final_mtime=$(stat -c %Y "$target_abs" 2>/dev/null || echo 0)
+        save_opt_cache_entry "${target_abs#$PHONE_DIR/}" "$orig_bytes" "$final_mtime"
+        return 0
+    fi
+
     local total_pages
     total_pages=$(qpdf --show-npages "$target_abs" 2>/dev/null || echo 0)
     [ "$total_pages" -gt 0 ] || return 0
 
     echo -e "   ⚡ ${BOLD}Optimizing PDF:${RESET} ${CYAN}$display_name${RESET} (${orig_display}, ${total_pages} pages)"
 
-    local tmp_gs="$TMP_DIR/gs_opt_$$.pdf"
-    local tmp_opt="$TMP_DIR/lin_opt_$$.pdf"
-    local tmp_err="$TMP_DIR/gs_err_$$.log"
-    rm -f "$tmp_gs" "$tmp_opt" "$tmp_err"
+    local tmp_qpdf="$TMP_DIR/lin_qpdf_$$.pdf"
+    local tmp_tier="$TMP_DIR/gs_tier_$$.pdf"
+    rm -f "$tmp_qpdf" "$tmp_tier"
 
-    local start_time
-    start_time=$(date +%s)
-    local last_sec=0
-    local gs_ok=1
+    local qpdf_bytes=0
+    local applied=0
 
-    # High-quality eBook downsampling (150 DPI bicubic) with real-time page progress bar
-    if ! (
-        gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 \
-           -dPDFSETTINGS=/ebook \
-           -dDownsampleColorImages=true -dColorImageDownsampleType=/Bicubic -dColorImageResolution=150 \
-           -dDownsampleGrayImages=true -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=150 \
-           -dDownsampleMonoImages=true -dMonoImageDownsampleType=/Subsample -dMonoImageResolution=200 \
-           -dDetectDuplicateImages=true -dDoThumbnails=false \
-           -dNOPAUSE -dBATCH \
-           -sOutputFile="$tmp_gs" "$target_abs" 2>"$tmp_err" | while read -r line; do
-               if [[ "$line" =~ ^Page\ ([0-9]+) ]]; then
-                   curr="${BASH_REMATCH[1]}"
-                   now=$(date +%s)
-                   if [ $((now - last_sec)) -ge 1 ] || [ "$curr" -eq "$total_pages" ]; then
-                       last_sec=$now
-                       pct=$((curr * 100 / total_pages))
-                       bar_filled=$((pct * 20 / 100))
-                       bar_empty=$((20 - bar_filled))
-                       fill_str=""
-                       for ((b=0; b<bar_filled; b++)); do fill_str="${fill_str}█"; done
-                       empty_str=""
-                       for ((b=0; b<bar_empty; b++)); do empty_str="${empty_str}░"; done
-                       elapsed=$((now - start_time))
-                       if [ "$curr" -gt 0 ]; then
-                           eta=$(( (elapsed * (total_pages - curr)) / curr ))
-                       else
-                           eta=0
-                       fi
-                       printf "\r      ⏳ [%s%s] %3d%% (%d/%d pages) • %ds • ETA: %ds" "$fill_str" "$empty_str" "$pct" "$curr" "$total_pages" "$elapsed" "$eta"
-                   fi
-               fi
-           done
-    ); then
-        gs_ok=0
-    fi
-    printf "\r%80s\r" ""
-
-    if [ "$gs_ok" -eq 1 ] && [ -f "$tmp_gs" ] && [ -s "$tmp_gs" ]; then
-        if qpdf --linearize "$tmp_gs" "$tmp_opt" 2>/dev/null; then
-            local new_bytes
-            new_bytes=$(wc -c < "$tmp_opt")
-            if [ "$new_bytes" -lt "$orig_bytes" ]; then
-                mv -f "$tmp_opt" "$target_abs"
-                if [ -n "$orig_file" ] && [ -f "$orig_file" ]; then
-                    cp -p "$target_abs" "$orig_file" 2>/dev/null || true
+    # Tier 1: Lossless structural & stream optimization (always tried for 24-35 MB, or 24-25 MB)
+    if [ "$orig_bytes" -le 36700160 ]; then # <= 35 MB
+        if qpdf --linearize --compress-streams=y --recompress-flate --object-streams=generate "$target_abs" "$tmp_qpdf" 2>/dev/null && [ -s "$tmp_qpdf" ]; then
+            local qpdf_pages
+            qpdf_pages=$(qpdf --show-npages "$tmp_qpdf" 2>/dev/null || echo 0)
+            if [ "$qpdf_pages" -eq "$total_pages" ]; then
+                qpdf_bytes=$(wc -c < "$tmp_qpdf")
+                if [ "$orig_bytes" -lt "$PDF_TARGET_MAX_BYTES" ]; then
+                    # Already < 25 MB: keep lossless only if strictly smaller, otherwise keep untouched
+                    if [ "$qpdf_bytes" -lt "$orig_bytes" ]; then
+                        _apply_optimized_pdf "$tmp_qpdf" "$target_abs" "$orig_file"
+                        local saved_pct=$(( (orig_bytes - qpdf_bytes) * 100 / orig_bytes ))
+                        echo -e "      ${GREEN}✔ Losslessly Optimized (<25 MB):${RESET} $orig_display ➔ ${BOLD}$(format_file_size "$qpdf_bytes")${RESET} (${saved_pct}% saved, 100% original quality)"
+                    else
+                        echo -e "      ${GREEN}✔ Preserved Original (<25 MB):${RESET} $orig_display (100% original quality)"
+                    fi
+                    applied=1
+                elif [ "$qpdf_bytes" -lt "$PDF_TARGET_MAX_BYTES" ]; then
+                    _apply_optimized_pdf "$tmp_qpdf" "$target_abs" "$orig_file"
+                    local saved_pct=$(( (orig_bytes - qpdf_bytes) * 100 / orig_bytes ))
+                    echo -e "      ${GREEN}✔ Losslessly Optimized (<25 MB):${RESET} $orig_display ➔ ${BOLD}$(format_file_size "$qpdf_bytes")${RESET} (${saved_pct}% saved, 100% original quality)"
+                    applied=1
                 fi
-                local new_display
-                new_display=$(format_file_size "$new_bytes")
-                local saved_pct=$(( (orig_bytes - new_bytes) * 100 / orig_bytes ))
-                echo -e "      ${GREEN}✔ Optimized & Linearized:${RESET} $orig_display ➔ ${BOLD}$new_display${RESET} (${saved_pct}% saved, Fast Web View enabled)"
             else
-                qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs"
-                echo -e "      ${GREEN}✔ Linearized:${RESET} Fast Web View enabled ($orig_display, original was already optimal)"
+                rm -f "$tmp_qpdf"
             fi
         else
-            mv -f "$tmp_gs" "$target_abs"
-            echo -e "      ${GREEN}✔ Compressed:${RESET} $orig_display ➔ $(format_file_size $(wc -c < "$target_abs"))"
+            rm -f "$tmp_qpdf"
         fi
-    else
-        echo -e "      ${YELLOW}⚠️  Optimization notice:${RESET} Linearizing original stream..."
-        qpdf --linearize "$target_abs" "$tmp_opt" 2>/dev/null && mv -f "$tmp_opt" "$target_abs" || true
+    fi
+
+    # If file was between 24 MB and 25 MB and lossless didn't error, we're already done
+    if [ "$applied" -eq 0 ] && [ "$orig_bytes" -lt "$PDF_TARGET_MAX_BYTES" ]; then
+        echo -e "      ${GREEN}✔ Preserved Original (<25 MB):${RESET} $orig_display (100% original quality)"
+        applied=1
+    fi
+
+    # Tier 2: High-quality /printer preset (240 DPI color/gray, 400 DPI mono) for files <= 60 MB
+    if [ "$applied" -eq 0 ] && [ "$orig_bytes" -le 62914560 ]; then
+        if _run_gs_tier "$target_abs" "$tmp_tier" "$total_pages" "Light 240 DPI" "/printer" 240 400 "-dAutoRotatePages=/None"; then
+            local t2_bytes
+            t2_bytes=$(wc -c < "$tmp_tier")
+            if [ "$t2_bytes" -lt "$PDF_TARGET_MAX_BYTES" ]; then
+                _apply_optimized_pdf "$tmp_tier" "$target_abs" "$orig_file"
+                local saved_pct=$(( (orig_bytes - t2_bytes) * 100 / orig_bytes ))
+                echo -e "      ${GREEN}✔ Lightly Compressed (240 DPI, <25 MB):${RESET} $orig_display ➔ ${BOLD}$(format_file_size "$t2_bytes")${RESET} (${saved_pct}% saved, Fast Web View enabled)"
+                applied=1
+            fi
+        fi
+    fi
+
+    # Tier 3: Balanced /ebook preset (180 DPI color/gray, 250 DPI mono) for files <= 85 MB
+    if [ "$applied" -eq 0 ] && [ "$orig_bytes" -le 89128960 ]; then
+        if _run_gs_tier "$target_abs" "$tmp_tier" "$total_pages" "Balanced 180 DPI" "/ebook" 180 250; then
+            local t3_bytes
+            t3_bytes=$(wc -c < "$tmp_tier")
+            if [ "$t3_bytes" -lt "$PDF_TARGET_MAX_BYTES" ]; then
+                _apply_optimized_pdf "$tmp_tier" "$target_abs" "$orig_file"
+                local saved_pct=$(( (orig_bytes - t3_bytes) * 100 / orig_bytes ))
+                echo -e "      ${GREEN}✔ Balanced Compressed (180 DPI, <25 MB):${RESET} $orig_display ➔ ${BOLD}$(format_file_size "$t3_bytes")${RESET} (${saved_pct}% saved, Fast Web View enabled)"
+                applied=1
+            fi
+        fi
+    fi
+
+    # Tier 4: Current setup fallback (150 DPI /ebook, 200 DPI mono) — never compress below this floor
+    if [ "$applied" -eq 0 ]; then
+        if [ "$orig_bytes" -gt 89128960 ]; then
+            echo -e "      ${DIM}ℹ️  Very large PDF (>85 MB) — applying standard 150 DPI optimization to preserve legibility.${RESET}"
+        fi
+        if _run_gs_tier "$target_abs" "$tmp_tier" "$total_pages" "Standard 150 DPI" "/ebook" 150 200; then
+            local t4_bytes
+            t4_bytes=$(wc -c < "$tmp_tier")
+            if [ "$t4_bytes" -lt "$orig_bytes" ]; then
+                _apply_optimized_pdf "$tmp_tier" "$target_abs" "$orig_file"
+                local saved_pct=$(( (orig_bytes - t4_bytes) * 100 / orig_bytes ))
+                echo -e "      ${GREEN}✔ Optimized & Linearized (150 DPI):${RESET} $orig_display ➔ ${BOLD}$(format_file_size "$t4_bytes")${RESET} (${saved_pct}% saved, Fast Web View enabled)"
+                applied=1
+            fi
+        fi
+    fi
+
+    # Fallback if Tier 4 did not reduce size: use lossless qpdf if it shrunk the file, else keep original
+    if [ "$applied" -eq 0 ]; then
+        if [ -s "$tmp_qpdf" ] && [ "$qpdf_bytes" -gt 0 ] && [ "$qpdf_bytes" -lt "$orig_bytes" ]; then
+            _apply_optimized_pdf "$tmp_qpdf" "$target_abs" "$orig_file"
+            local saved_pct=$(( (orig_bytes - qpdf_bytes) * 100 / orig_bytes ))
+            echo -e "      ${GREEN}✔ Losslessly Linearized:${RESET} $orig_display ➔ ${BOLD}$(format_file_size "$qpdf_bytes")${RESET} (${saved_pct}% saved)"
+        else
+            echo -e "      ${GREEN}✔ Preserved Original:${RESET} $orig_display (already optimal at standard quality)"
+        fi
     fi
 
     # 25MB Large Document Guard: Inform user of direct CDN streaming while preserving visual clarity
     local final_bytes
     final_bytes=$(wc -c < "$target_abs")
-    if [ "$final_bytes" -ge 26214400 ]; then # 25 MB
+    if [ "$final_bytes" -gt "$PDF_TARGET_MAX_BYTES" ]; then # > 25 MB
         local final_disp
         final_disp=$(format_file_size "$final_bytes")
-        echo -e "      ${PURPLE}📦 [Large Asset Detected]:${RESET} File is ${BOLD}$final_disp${RESET} (>25MB) after compression."
+        echo -e "      ${PURPLE}📦 [Large Asset Detected]:${RESET} File is ${BOLD}$final_disp${RESET} (>25MB) after optimization."
         echo -e "         ${GREEN}✔ Preserved crystal-clear visual quality${RESET} for textbook study."
         echo -e "         ${CYAN}✔ Routed directly to GitHub Releases (v1.0.0-assets)${RESET} for direct device download."
     fi
@@ -830,7 +968,7 @@ optimize_pdf_file() {
     final_mtime=$(stat -c %Y "$target_abs" 2>/dev/null || echo 0)
     save_opt_cache_entry "${target_abs#$PHONE_DIR/}" "$final_bytes" "$final_mtime"
 
-    rm -f "$tmp_gs" "$tmp_opt" "$tmp_err"
+    rm -f "$tmp_qpdf" "$tmp_tier"
 }
 
 # ==============================================================================
@@ -1054,19 +1192,35 @@ rm -f "$TMP_MANIFEST"
 load_opt_cache
 
 OPT_COUNT=0
+SKIPPED_SMALL_COUNT=0
 for pf in "${ALL_PHONE_FILES[@]}"; do
     [ -f "$pf" ] || continue
     [[ "${pf,,}" == *.pdf ]] || continue
+
+    pf_size=$(stat -c %s "$pf" 2>/dev/null || wc -c < "$pf")
+    if [ "$pf_size" -le "$PDF_MIN_COMPRESS_BYTES" ]; then
+        SKIPPED_SMALL_COUNT=$((SKIPPED_SMALL_COUNT + 1))
+        rel_pf="${pf#$PHONE_DIR/}"
+        pf_mtime=$(stat -c %Y "$pf" 2>/dev/null || echo 0)
+        if [ "${CACHED_OPTS[$rel_pf]:-}" != "$pf_size|$pf_mtime" ]; then
+            [ "$ON_STARTUP" -eq 0 ] && echo -e "   ${DIM}⏩ Skipping compression (≤ 24 MB): ${pf##*/} ($(format_file_size "$pf_size"))${RESET}"
+            save_opt_cache_entry "$rel_pf" "$pf_size" "$pf_mtime"
+        fi
+        continue
+    fi
+
     if ! is_pdf_already_optimized "$pf"; then
-        OPT_COUNT=$((OPT_COUNT + 1))
         optimize_pdf_file "$pf" "${pf##*/}"
+        if [ "${LAST_OPT_CHANGED:-0}" -eq 1 ]; then
+            OPT_COUNT=$((OPT_COUNT + 1))
+        fi
     fi
 done
 
 if [ "$OPT_COUNT" -gt 0 ]; then
-    echo -e "   ${GREEN}✔ Optimized $OPT_COUNT new/updated document(s).${RESET}"
+    echo -e "   ${GREEN}✔ Optimized $OPT_COUNT new/updated document(s) (> 24 MB).${RESET}"
 elif [ "$ON_STARTUP" -eq 0 ]; then
-    echo -e "   ${DIM}✔ All phone PDFs verified: optimized & linearized for fast web viewing.${RESET}"
+    echo -e "   ${DIM}✔ All phone PDFs verified (${SKIPPED_SMALL_COUNT} ≤ 24 MB kept uncompressed; > 24 MB optimized).${RESET}"
 fi
 
 PRE_DATA_COUNT=$(grep -c "id:" "$DATA_FILE" 2>/dev/null || echo 0)

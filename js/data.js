@@ -12,6 +12,24 @@ const MBBS_RESOURCES = [
   // ==========================================
   // __AUTO_RESOURCES_START__
   {
+    id: "user-anat-histology_journal_pd-7781",
+    title: "Histology Journal",
+    subject: "anatomy",
+    category: "histology",
+    subcategories: ["histology"],
+    code: "Anatomy / Histology",
+    description: "Uploaded document: Histology Journal.pdf. Organized under Anatomy / Histology.",
+    tags: ["Anatomy", "Histology", "Mobile Upload"],
+    fileUrl: "https://cdn.steadylink.io/a/6d0d31d3-b4b3-48e6-8b47-34358bb7910e",
+    downloadUrl: "https://github.com/HarshKumarSaw/mbbs-library/releases/download/v1.0.0-assets/Histology_Journal.pdf",
+    fileSize: "2.8 MB",
+    pages: "15 Pages",
+    author: "HarshKumarSaw",
+    date: "25 Nov 2026",
+    updatedAt: 1795617738,
+    year: "1st Year MBBS"
+  },
+  {
     id: "user-phys-viva_voce_in_anatomy-8482",
     title: "Viva Voce In Anatomy Physiology & Biochemistry 1",
     subject: "physiology",
