@@ -1,40 +1,8 @@
 {
-  "generated_at": "2026-11-25 20:13:14",
+  "generated_at": "2026-11-26 10:57:50",
   "timezone": "Asia/Kolkata",
-  "total_college_sessions": 1077,
+  "total_college_sessions": 1078,
   "events": [
-    {
-      "uid": "gg2ssag9eevbcimqk4smldhvqs@google.com",
-      "title": "Anatomy (L): Wrist Joint (AN 13.3 HBS)",
-      "description": "Topic: Wrist Joint\\nCompetency: AN 13.3\\nFaculty: Dr. Hemlata B. Sheik (HBS)\\nDepartment: Department of Anatomy\\, Lt. BRKM Govt. Medical College\\, Jagdalpur",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Dr. Hemlata B. Sheik (HBS",
-      "competency": "AN 13.3",
-      "start": "2026-10-27 09:00:00",
-      "end": "2026-10-27 10:00:00",
-      "start_iso": "2026-10-27T09:00:00",
-      "end_iso": "2026-10-27T10:00:00",
-      "all_day": false,
-      "subject": "anatomy",
-      "session_type": "lecture",
-      "raw_rrule": null
-    },
-    {
-      "uid": "vbjshr7at3isdjf8q4o81k3ukg@google.com",
-      "title": "Physiology (L)",
-      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
-      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
-      "faculty": "Physiology Faculty",
-      "competency": "",
-      "start": "2026-10-27 10:00:00",
-      "end": "2026-10-27 11:00:00",
-      "start_iso": "2026-10-27T10:00:00",
-      "end_iso": "2026-10-27T11:00:00",
-      "all_day": false,
-      "subject": "physiology",
-      "session_type": "lecture",
-      "raw_rrule": "FREQ=WEEKLY"
-    },
     {
       "uid": "a72copg822k238rra1nreqdmsc@google.com",
       "title": "Anatomy: Histo GP B (76-150) / DH GP A (01-75)",
@@ -17234,6 +17202,54 @@
       "subject": "anatomy",
       "session_type": "dissection",
       "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "gg2ssag9eevbcimqk4smldhvqs@google.com",
+      "title": "Anatomy (L)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Anatomy Faculty",
+      "competency": "",
+      "start": "2027-05-25 09:00:00",
+      "end": "2027-05-25 10:00:00",
+      "start_iso": "2027-05-25T09:00:00",
+      "end_iso": "2027-05-25T10:00:00",
+      "all_day": false,
+      "subject": "anatomy",
+      "session_type": "lecture",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "vbjshr7at3isdjf8q4o81k3ukg@google.com",
+      "title": "Physiology (L)",
+      "description": "Late Baliram Kashyap Memorial Govt. Medical College\\, Dimrapal Jagdalpur (Chhattisgarh) - First MBBS Course (Batch 2026)",
+      "location": "Late Baliram Kashyap Memorial Govt. Medical College\\, Jagdalpur",
+      "faculty": "Physiology Faculty",
+      "competency": "",
+      "start": "2027-05-25 10:00:00",
+      "end": "2027-05-25 11:00:00",
+      "start_iso": "2027-05-25T10:00:00",
+      "end_iso": "2027-05-25T11:00:00",
+      "all_day": false,
+      "subject": "physiology",
+      "session_type": "lecture",
+      "raw_rrule": "FREQ=WEEKLY"
+    },
+    {
+      "uid": "college_lunch_2027-05-25",
+      "title": "Lunch Break",
+      "description": "Daily college lunch recess (01:00 PM – 02:00 PM).",
+      "location": "College Campus / Cafeteria",
+      "faculty": "Recess / Lunch",
+      "competency": "",
+      "start": "2027-05-25 13:00:00",
+      "end": "2027-05-25 14:00:00",
+      "start_iso": "2027-05-25T13:00:00+05:30",
+      "end_iso": "2027-05-25T14:00:00+05:30",
+      "all_day": false,
+      "subject": "break",
+      "session_type": "break",
+      "raw_rrule": null
     }
   ]
 }
